@@ -36,23 +36,12 @@ export default function FromDetailPage() {
       <main className="flex-1 px-4 py-6 space-y-6">
         {/* 출발지 기본 주소 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
-            출발지 주소
-          </label>
-          {/* <button
-            type="button"
-            className="w-full px-4 py-3 rounded-xl border text-left text-gray-900 bg-gray-100"
-            onClick={() => {
-              // TODO: 도로명 주소 팝업 열기
-            }}
-          >
-            {address || "주소를 입력하세요"}
-          </button> */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-1 block">
               출발지 주소
             </label>
-            <AddressSearchButton onAddressSelected={(addr) => setAddress(addr)}
+            <AddressSearchButton
+              onAddressSelected={(addr) => setAddress(addr)}
             />
             {address && <p className="mt-2 text-sm text-gray-700">{address}</p>}
           </div>
@@ -64,7 +53,7 @@ export default function FromDetailPage() {
           placeholder="상세 주소 입력 (동/호수 등)"
           value={detailAddress}
           onChange={(e) => setDetailAddress(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border text-sm"
+          className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-left text-gray-500"
         />
 
         {/* 건물 유형 선택 */}

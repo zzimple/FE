@@ -1,67 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react"; 
-import axios from "axios";
-import api from "@/lib/api"; 
+import { useEffect, useState } from "react";
+import api from "@/lib/axios";
 import Button from "@/components/common/Button";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
-// import { useEstimate } from "@/context/EstimateContext";
 import { useRouter } from "next/navigation";
 
 export default function Step1Page() {
   const router = useRouter();
-  // const { uuid } = useEstimate();
-  const [selected, setSelected] = useState<string | null>(null); 
+  const [selected, setSelected] = useState<string | null>(null);
   const [uuid, setUuid] = useState<string | null>(null);
 
+  // ✅ 최초 진입 시 localStorage에서 uuid 가져오기
   useEffect(() => {
     const storedUuid = localStorage.getItem("uuid");
+    console.log(storedUuid);
     if (storedUuid) {
       setUuid(storedUuid);
     } else {
-      // uuid가 없다면 서버에 발급 요청
-      const createDraft = async () => {
-        try {
-          const res = await axios.post("/estimate/draft/start", null, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
-
-          const newUuid = res.data.uuid;
-          localStorage.setItem("uuid", newUuid);
-          setUuid(newUuid); // ✅ 상태에 저장
-        } catch (err) {
-          console.error("UUID 발급 실패:", err);
-        }
-      };
-
-      createDraft(); // ✅ 발급 실행
+      // ❗ uuid가 없으면 이전 페이지에서 견적서 초안을 생성하지 않은 상태이므로 안내 후 홈으로 보냄
+      console.warn("uuid가 없습니다. 견적서를 처음부터 작성해주세요.");
+      alert("견적서를 먼저 생성해주세요.");
+      router.push("/estimate/start"); // 👉 필요한 경로로 바꿔도 됨
     }
-  }, []);
-  
+  }, [router]);
+
+  // ✅ 이사 유형 선택 후 서버로 전송
   const handleConfirm = async () => {
-    if (!uuid || !selected) return;
-  
+    console.log("현재 uuid:", uuid);
+    console.log("현재 selected:", selected);
+
+    if (!uuid || !selected) {
+      alert("uuid나 이사 유형이 없습니다.");
+      return;
+    }
+
     try {
-      const res = await axios.post(
-        `/estimates/draft/move-type?draftId=${uuid}`, // ✅ query param으로 draftId 전달
-        { moveType: selected.toUpperCase() },          // ✅ body에 moveType 전달 (SMALL/FAMILY)
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-  
-      console.log("응답 데이터:", res.data); // ✅ 응답 확인용
+      const res = await api.post(`/estimates/draft/move-type?draftId=${uuid}`, {
+        moveType: selected.toUpperCase(),
+      });
+
+      console.log("이사 유형 저장 성공:", res.data);
       router.push("/estimate/step2");
     } catch (err) {
       console.error("이사 유형 저장 에러:", err);
+      alert("이사 유형 저장에 실패했어요. 다시 시도해주세요.");
     }
-  };
-  
-
   };
 
   return (

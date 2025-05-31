@@ -8,7 +8,7 @@ export default function Step3Page() {
     const router = useRouter();
 
     return (
-      <div className="min-h-screen flex flex-col w-full max-auto bg-white">
+      <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
         <EstimateHeader step={3} title="주소입력" />
 
         <main className="flex-1 px-4 py-6 space-y-6">
@@ -19,14 +19,14 @@ export default function Step3Page() {
           {/* 출발지 주소 검색 버튼 */}
           <button
             onClick={() => router.push("/estimate/step3/from-detail")}
-            className="w-full px-4 py-3 rounded-xl border text-gray-500"
+            className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-center text-gray-500"
           >
             출발지 주소 검색하기
           </button>
           {/* 도착지 주소 검색 버튼 */}
           <button
             onClick={() => router.push("/estimate/step3/to-detail")}
-            className="w-full px-4 py-3 rounded-xl border text-gray-500"
+            className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-center text-gray-500"
           >
             도착지 주소 검색하기
           </button>
