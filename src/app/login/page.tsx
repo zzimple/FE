@@ -2,11 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import api from "@/lib/axios";
 
 export default function LoginPage() {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
+
+    // const handleLogin = async () => {
+    //     try {
+    //         // const res = await api.post('users/login'), {
+    //         //     loginId:id,
+    //         //     password:password,
+    //         // }
+    //     }
+    // }
 
     return (
         <main className="min-h-screen flex flex-col items-center justify-center px-4">
