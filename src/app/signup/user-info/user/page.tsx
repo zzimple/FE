@@ -7,7 +7,7 @@ import InputField from "@/components/signup/form/InputField";
 import PhoneVerificationField from "@/components/signup/form/PhoneVerificationField";
 import MemberTypeSelector from "@/components/signup/form/MemberTypeSelectorProps";
 import TermsAgreement from "@/components/signup/form/TermsAgreementProps";
-import api from "@/lib/api";
+import api from "@/lib/axios";
 import axios from "axios";
 
 export default function UserSignupPage() {
@@ -30,7 +30,6 @@ export default function UserSignupPage() {
   const [smsSent, setSmsSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-
   const [passwordMismatchError, setPasswordMismatchError] = useState("");
   const [emailError, setEmailError] = useState("");
 
@@ -50,11 +49,9 @@ export default function UserSignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!agreeTerms || !agreePrivacy)
-      return alert("필수 약관에 동의해주세요.");
+    if (!agreeTerms || !agreePrivacy) return alert("필수 약관에 동의해주세요.");
 
-    if (!userRole)
-      return alert("회원 유형을 선택해주세요.");
+    if (!userRole) return alert("회원 유형을 선택해주세요.");
 
     const payload = {
       userName,
@@ -83,10 +80,8 @@ export default function UserSignupPage() {
       <SignupHeader title="회원가입" currentStep={1} />
 
       <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-6">
-
         {/* 이름 */}
         <InputField label="이름" value={userName} onChange={setUserName} />
-
 
         {/* 전화번호 + 인증번호*/}
         <PhoneVerificationField
@@ -105,10 +100,16 @@ export default function UserSignupPage() {
         <InputField label="아이디" value={loginId} onChange={setLoginId} />
 
         {/* 비밀번호 입력 */}
-        <InputField label="비밀번호" type="password" value={password} onChange={setPassword} />
+        <InputField
+          label="비밀번호"
+          type="password"
+          value={password}
+          onChange={setPassword}
+        />
 
         {/* 비밀번호 확인 */}
-        <InputField label="비밀번호 확인"
+        <InputField
+          label="비밀번호 확인"
           type="password"
           value={passwordConfirm}
           onChange={setPasswordConfirm}
@@ -139,7 +140,6 @@ export default function UserSignupPage() {
         {/* 회원 유형 선택: 고객 / 직원 */}
         <MemberTypeSelector userRole={userRole} setUserRole={setUserRole} />
 
-
         {/* 약관 동의 항목들 */}
         <TermsAgreement
           agreeTerms={agreeTerms}
@@ -151,7 +151,10 @@ export default function UserSignupPage() {
         />
 
         {/* 📩 회원가입 완료 버튼 */}
-        <button type="submit" className="w-full h-14 rounded-full bg-[#2948FF] text-white text-sm">
+        <button
+          type="submit"
+          className="w-full h-14 rounded-full bg-[#2948FF] text-white text-sm"
+        >
           회원가입 완료
         </button>
       </form>

@@ -1,10 +1,10 @@
 "use client";
 
-import api from "@/lib/api";
+import api from "@/lib/axios";
 import { useState } from "react";
 import SignupHeader from "../../../components/signup/SignupHeader";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios"; 
+import axios from "axios";
 
 export default function SignupInfoPage() {
   const params = useSearchParams();
@@ -35,7 +35,7 @@ export default function SignupInfoPage() {
     insurance?: boolean;
     memberType?: "guest" | "staff";
   }
-  
+
   // 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,18 +141,18 @@ export default function SignupInfoPage() {
         <div className="space-y-2">
           <p className="text-sm font-bold">아이디</p>
           <div className="relative w-full">
-          <input
-            type="text"
-            placeholder="아이디 입력"
-            value={loginId}
-            onChange={(e) => setuserName(e.target.value)}
-            className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm"
-          />
-          <button className="absolute top-1/2 right-4 -translate-y-1/2 h-[32px] px-4 rounded-full bg-[#DBEBFF] text-sm font-bold">
-            중복 확인
-          </button>
+            <input
+              type="text"
+              placeholder="아이디 입력"
+              value={loginId}
+              onChange={(e) => setuserName(e.target.value)}
+              className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm"
+            />
+            <button className="absolute top-1/2 right-4 -translate-y-1/2 h-[32px] px-4 rounded-full bg-[#DBEBFF] text-sm font-bold">
+              중복 확인
+            </button>
+          </div>
         </div>
-      </div>
 
         {/* 비밀번호 */}
         <div className="space-y-2">

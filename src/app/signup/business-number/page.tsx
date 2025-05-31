@@ -3,7 +3,7 @@
 import { useState } from "react";
 import SignupHeader from "@/components/signup/SignupHeader";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import api from "@/lib/axios";
 
 export default function BusinessNumberPage() {
   const router = useRouter();
