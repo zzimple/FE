@@ -41,7 +41,7 @@ export default function AddressSearchButton({ onAddressSelected }: Props) {
     <button
       type="button"
       onClick={handleClick}
-      className="w-full px-4 py-3 rounded-xl border text-left text-gray-900 bg-gray-100"
+      className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-left text-gray-500"
     >
       주소 검색
     </button>

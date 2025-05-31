@@ -1,4 +1,4 @@
-import api from "@/lib/api";
+import api from "@/lib/axios";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
@@ -12,7 +12,11 @@ interface PhoneVerificationProps {
 }
 
 export default function PhoneVerificationField({
-  phone, setPhone, code, setCode, onSMSSent
+  phone,
+  setPhone,
+  code,
+  setCode,
+  onSMSSent,
 }: PhoneVerificationProps) {
   // 에러 메시지 상태 추가
   const [phoneError, setPhoneError] = useState(""); // 전화번호 입력 오류
@@ -26,7 +30,6 @@ export default function PhoneVerificationField({
 
   const [isVerified, setIsVerified] = useState(false);
 
-
   // 전화번호 유효성 검사 함수
   const isValidPhone = (phone: string) => /^010-\d{3,4}-\d{4}$/.test(phone);
 
@@ -36,7 +39,10 @@ export default function PhoneVerificationField({
     if (digitsOnly.length <= 3) return digitsOnly;
     if (digitsOnly.length <= 7)
       return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
-    return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 7)}-${digitsOnly.slice(7, 11)}`;
+    return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(
+      3,
+      7
+    )}-${digitsOnly.slice(7, 11)}`;
   };
 
   // 타이머 로직
@@ -88,7 +94,9 @@ export default function PhoneVerificationField({
 
         // 서버가 응답했지만 인증번호 요청 실패
         if (status === 429) {
-          setSmsSentMessage("너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.");
+          setSmsSentMessage(
+            "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요."
+          );
         } else if (status === 500) {
           setSmsSentMessage("서버 오류가 발생했습니다. 다시 시도해주세요.");
         } else {
@@ -96,7 +104,9 @@ export default function PhoneVerificationField({
         }
       } else {
         // 네트워크 오류 등 비정상 상황
-        setSmsSentMessage("알 수 없는 오류가 발생했습니다. 인터넷 연결을 확인해주세요.");
+        setSmsSentMessage(
+          "알 수 없는 오류가 발생했습니다. 인터넷 연결을 확인해주세요."
+        );
       }
     } finally {
       setIsSending(false);
@@ -174,13 +184,16 @@ export default function PhoneVerificationField({
                 setSmsSentMessage("");
 
                 if (!isValidPhone(formatted)) {
-                  setPhoneError("전화번호를 정확히 입력해주세요. 예: 010-1234-5678");
+                  setPhoneError(
+                    "전화번호를 정확히 입력해주세요. 예: 010-1234-5678"
+                  );
                 } else {
                   setPhoneError("");
                 }
               }}
-              className={`w-full h-14 px-5 rounded-full border text-sm ${phoneError ? "border-red-500" : "border-[#B3B3B3]"
-                }`}
+              className={`w-full h-14 px-5 rounded-full border text-sm ${
+                phoneError ? "border-red-500" : "border-[#B3B3B3]"
+              }`}
             />
             <button
               type="button"
@@ -196,8 +209,10 @@ export default function PhoneVerificationField({
           <p className="text-red-500 text-xs pl-2">
             {smsSentMessage} {timeLeft > 0 && ` (${formatTime(timeLeft)})`}
           </p>
-        ) : phoneError && (
-          <p className="text-red-500 text-xs pl-2">{phoneError}</p>
+        ) : (
+          phoneError && (
+            <p className="text-red-500 text-xs pl-2">{phoneError}</p>
+          )
         )}
       </div>
 
@@ -225,9 +240,7 @@ export default function PhoneVerificationField({
       {verificationMessage && (
         <p className="text-green-600 text-xs pl-2">{verificationMessage}</p>
       )}
-      {codeError && (
-        <p className="text-red-500 text-xs pl-2">{codeError}</p>
-      )}
+      {codeError && <p className="text-red-500 text-xs pl-2">{codeError}</p>}
     </>
   );
 }

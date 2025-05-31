@@ -1,44 +1,44 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarProps {
-  /** 선택된 날짜를 부모에게 전달 */
   selectedDate?: Date;
   onSelectDate?: (date: Date) => void;
 }
+
 const WEEK_DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
-export const Calendar: React.FC<CalendarProps> = ({
-  selectedDate,
-  onSelectDate,
-}) => {
+const Calendar: React.FC<CalendarProps> = ({ selectedDate, onSelectDate }) => {
   const [currentYear, setCurrentYear] = useState<number>(
     new Date().getFullYear()
   );
   const [currentMonth, setCurrentMonth] = useState<number>(
     new Date().getMonth()
-  ); // 0-11
+  );
   const [days, setDays] = useState<Date[]>([]);
+  const [selectedInfo, setSelectedInfo] = useState<string | null>(null);
 
-  // 해당 달의 날짜 배열 생성
+  // 예시용 공휴일 / 손없는날
+  const holidays = ["2025-06-06", "2025-06-14"];
+  const luckyDays = ["2025-06-18", "2025-06-30"];
+
   useEffect(() => {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const tempDays: Date[] = [];
 
-    // 달력의 첫 주 시작일(1일의 요일 전날들 포함)
     const startOffset = firstDay.getDay();
     for (let i = startOffset; i > 0; i--) {
       const d = new Date(currentYear, currentMonth, 1 - i);
       tempDays.push(d);
     }
 
-    // 해당 달 모든 날짜
     for (let d = 1; d <= lastDay.getDate(); d++) {
       tempDays.push(new Date(currentYear, currentMonth, d));
     }
 
-    // 마지막 주를 7일로 채우기
     const endOffset = 6 - lastDay.getDay();
     for (let i = 1; i <= endOffset; i++) {
       tempDays.push(new Date(currentYear, currentMonth + 1, i));
@@ -67,7 +67,21 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handleSelect = (date: Date) => {
     onSelectDate?.(date);
+
+    const ymd = date.toISOString().slice(0, 10); // yyyy-MM-dd
+    if (holidays.includes(ymd)) {
+      setSelectedInfo("📌 공휴일입니다. 추가 요금이 발생할 수 있어요!");
+    } else if (luckyDays.includes(ymd)) {
+      setSelectedInfo(
+        "✨ 손 없는 날입니다. 인기가 많아 조기 마감될 수 있어요!"
+      );
+    } else {
+      setSelectedInfo(null);
+    }
   };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // 비교용으로 시간 제거
 
   return (
     <div className="p-4 bg-white shadow-md rounded-2xl">
@@ -91,7 +105,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       </div>
 
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 text-center text-sm font-medium">
+      <div className="grid grid-cols-7 text-center text-sm font-medium mb-1">
         {WEEK_DAYS.map((day) => (
           <div key={day}>{day}</div>
         ))}
@@ -101,24 +115,47 @@ export const Calendar: React.FC<CalendarProps> = ({
       <div className="grid grid-cols-7 gap-1">
         {days.map((dateObj, idx) => {
           const isCurrentMonth = dateObj.getMonth() === currentMonth;
-          const isSelected = selectedDate
-            ? dateObj.toDateString() === selectedDate.toDateString()
-            : false;
+          const isSelected =
+            selectedDate?.toDateString() === dateObj.toDateString();
+          const isPast = dateObj < today;
 
           return (
             <button
               key={idx}
               onClick={() => handleSelect(dateObj)}
-              disabled={!isCurrentMonth}
+              disabled={!isCurrentMonth || isPast}
               className={`aspect-square text-center leading-loose rounded-xl
-                ${isCurrentMonth ? "hover:bg-gray-100" : "text-gray-300"}
-                ${isSelected ? "bg-blue-500 text-white" : ""}`}
+                ${!isCurrentMonth ? "text-gray-300" : ""}
+                ${
+                  isPast
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:bg-gray-100"
+                }
+                ${isSelected ? "bg-blue-500 text-white font-bold" : ""}`}
             >
               {dateObj.getDate()}
             </button>
           );
         })}
       </div>
+
+      {/* 선택된 날짜 설명 */}
+      {selectedInfo && (
+        <div className="mt-3 text-sm text-center text-blue-600 font-medium">
+          {selectedInfo}
+        </div>
+      )}
+
+      {/* 하단 설명 문구 */}
+      <p className="mt-4 text-xs text-gray-500 leading-relaxed text-center">
+        <span className="text-red-500 font-semibold">● 많음</span>,{" "}
+        <span className="text-orange-400 font-semibold">● 보통</span>,{" "}
+        <span className="text-blue-500 font-semibold">● 여유</span>는 신청
+        현황을 나타냅니다.
+        <br />
+        * 회색 날짜는 선택할 수 없어요.
+        <br />* 손없는 날, 공휴일, 주말은 추가 요금이 발생할 수 있어요!
+      </p>
     </div>
   );
 };
