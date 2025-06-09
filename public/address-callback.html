@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>주소 콜백</title>
+  <script>
+    window.onload = function () {
+      const form = document.forms[0];
+      const result = {};
+      for (let i = 0; i < form.elements.length; i++) {
+        const el = form.elements[i];
+        if (el.name && el.value) {
+          result[el.name] = el.value;
+        }
+      }
+      localStorage.setItem('address_result', JSON.stringify(result));
+      window.close();
+    };
+  </script>
+</head>
+
+<body>
+  <form></form>
+</body>
+
+</html>
