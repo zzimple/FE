@@ -59,7 +59,7 @@ export default function BusinessNumberPage() {
 
   const handleNext = () => {
     if (verified) {
-      router.push(`/signup/user-info/owner?bno=${b_no}`);
+      router.push(`/signup/owner?bno=${b_no}`);
     } else {
       alert("사업자 등록번호 인증을 먼저 완료해주세요.");
     }

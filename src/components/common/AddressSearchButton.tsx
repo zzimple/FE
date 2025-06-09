@@ -1,49 +1,59 @@
 "use client";
 
-import { useEffect } from "react";
-
-type Props = {
-  onAddressSelected: (address: string) => void;
-};
-
-declare global {
-  interface Window {
-    daum: any;
-  }
+interface AddressSearchButtonProps {
+  onAddressSelect: (addr: {
+    roadFullAddr: string;
+    roadAddrPart1: string;
+    addrDetail: string;
+    zipNo: string;
+  }) => void;
 }
 
-export default function AddressSearchButton({ onAddressSelected }: Props) {
-  useEffect(() => {
-    // 클라이언트 환경에서만 스크립트 로드
-    if (typeof window !== "undefined" && !window.daum) {
-      const script = document.createElement("script");
-      script.src =
-        "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+const AddressSearchButton = ({ onAddressSelect }: AddressSearchButtonProps) => {
 
-  const handleClick = () => {
-    if (typeof window !== "undefined" && window.daum) {
-      new window.daum.Postcode({
-        oncomplete: function (data: any) {
-          const fullAddress = data.address;
-          onAddressSelected(fullAddress);
-        },
-      }).open();
-    } else {
-      alert("주소 검색 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
-    }
+  const openAddressPopup = () => {
+    const width = 570;
+    const height = 420;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+
+    const confmKey = process.env.NEXT_PUBLIC_JUSO_CONFIRM_KEY;
+
+    const baseUrl =
+      typeof window !== "undefined"
+        ? process.env.NEXT_PUBLIC_BASE_URL ?? window.location.origin
+        : "";
+
+    const returnUrl = encodeURIComponent("http://14.63.178.146:8080/juso/callback");
+
+    // 전역 콜백 지정
+    (window as any).onJusoCallback = (addr: string) => {
+      onAddressSelect(addr);
+    };
+
+    const popupUrl = `https://business.juso.go.kr/addrlink/addrLinkUrl.do?confmKey=${confmKey}&returnUrl=${returnUrl}&resultType=1&useDetailAddr=Y`;
+
+    console.log("주소 팝업 URL:", popupUrl); // ← 이 줄 추가
+    console.log("🔑 confmKey:", confmKey); // null 또는 undefined 나오면 문제
+    console.log("🌐 baseUrl:", baseUrl);
+    console.log("📎 returnUrl:", returnUrl);
+
+    window.open(
+      popupUrl,
+      "주소검색",
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+    );
   };
 
   return (
     <button
       type="button"
-      onClick={handleClick}
-      className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-left text-gray-500"
+      onClick={openAddressPopup}
+      className="h-[32px] px-4 rounded-full bg-[#DBEBFF] text-sm font-bold"
     >
       주소 검색
     </button>
   );
-}
+};
+
+export default AddressSearchButton;

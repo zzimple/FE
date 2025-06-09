@@ -1,4 +1,4 @@
-import api from "@/lib/axios";
+import { publicApi as api } from "@/lib/axios";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
@@ -32,6 +32,9 @@ export default function PhoneVerificationField({
 
   // 전화번호 유효성 검사 함수
   const isValidPhone = (phone: string) => /^010-\d{3,4}-\d{4}$/.test(phone);
+
+  // 인증번호 유효성 검사 함수
+  const isValidVerificationCode = (code: string) => /^\d{6}$/.test(code);
 
   // 자동 하이픈 포매팅 함수
   const formatPhoneNumber = (value: string) => {
@@ -115,7 +118,13 @@ export default function PhoneVerificationField({
 
   const handleVerifyCode = async () => {
     if (!code) {
-      alert("인증번호를 입력해주세요.");
+      setCodeError("인증번호를 입력해주세요.");
+      return;
+    }
+
+
+    if (!isValidVerificationCode(code)) {
+      setCodeError("인증번호는 6자리 숫자여야 합니다.");
       return;
     }
 
@@ -191,9 +200,8 @@ export default function PhoneVerificationField({
                   setPhoneError("");
                 }
               }}
-              className={`w-full h-14 px-5 rounded-full border text-sm ${
-                phoneError ? "border-red-500" : "border-[#B3B3B3]"
-              }`}
+              className={`w-full h-14 px-5 rounded-full border text-sm ${phoneError ? "border-red-500" : "border-[#B3B3B3]"
+                }`}
             />
             <button
               type="button"
@@ -221,10 +229,36 @@ export default function PhoneVerificationField({
         <div className="relative w-full">
           <input
             type="text"
-            placeholder="인증번호 입력"
+            inputMode="numeric"
+            pattern="\d{6}"
+            placeholder="6자리 숫자 입력"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm"
+            onChange={(e) => {
+              const value = e.target.value.slice(0, 6); // 6자리로 제한
+              // 숫자만 입력 가능하도록 제한
+              if (/^\d*$/.test(value)) {
+                setCode(value);
+                if (value && !isValidVerificationCode(value)) {
+                  setCodeError("인증번호는 6자리 숫자여야 합니다.");
+                } else {
+                  setCodeError("");
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              // 숫자, 백스페이스, 딜리트, 방향키만 허용
+              if (
+                !/^\d$/.test(e.key) && // 숫자가 아니고
+                e.key !== "Backspace" && // 백스페이스가 아니고
+                e.key !== "Delete" && // 딜리트가 아니고
+                !e.key.includes("Arrow") // 방향키도 아니면
+              ) {
+                e.preventDefault(); // 입력 막기
+              }
+            }}
+            maxLength={6}
+            className={`w-full h-14 px-5 rounded-full border text-sm ${codeError ? "border-red-500" : "border-[#B3B3B3]"
+              }`}
           />
           <button
             type="button"
@@ -235,7 +269,6 @@ export default function PhoneVerificationField({
           </button>
         </div>
       </div>
-
       {/* 인증 메시지 표시 */}
       {verificationMessage && (
         <p className="text-green-600 text-xs pl-2">{verificationMessage}</p>
