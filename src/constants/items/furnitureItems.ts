@@ -1,0 +1,17 @@
+export const furnitureItems = [
+  { id: "bed", name: "침대", image: "/icons/furniture/Bed.jpeg" },
+  { id: "sofa", name: "쇼파", image: "/icons/furniture/Sofa.jpeg" },
+  { id: "wardrobe_single", name: "옷장-단품", image: "/icons/furniture/WardrobeSing.jpeg" },
+  { id: "wardrobe_combined", name: "옷장-연결장", image: "/icons/furniture/WardrobeCombined.jpeg" },
+  { id: "hanger", name: "행거", image: "/icons/furniture/Hanger.jpeg" },
+  { id: "system_hanger", name: "시스템행거", image: "/icons/furniture/SystemHanger.jpeg" },
+  { id: "dressing_table", name: "화장대", image: "/icons/furniture/DressingTable.jpeg" },
+  { id: "drawer", name: "수납장/서랍장", image: "/icons/furniture/Drawer.jpeg" },
+  { id: "display", name: "진열장", image: "/icons/furniture/Display.jpeg" },
+  { id: "shelf", name: "선반", image: "/icons/furniture/Shelf.jpeg" },
+  { id: "tv_cabinet", name: "거실장/TV장", image: "/icons/furniture/TvCabinet.jpeg" },
+  { id: "bookshelf", name: "책장", image: "/icons/furniture/Bookshelf.jpeg" },
+  { id: "desk", name: "책상", image: "/icons/furniture/Desk.jpeg" },
+  { id: "dining_table", name: "테이블/식탁", image: "/icons/furniture/DiningTable.jpeg" },
+  { id: "chair", name: "의자", image: "/icons/furniture/Chair.jpeg" },
+];
