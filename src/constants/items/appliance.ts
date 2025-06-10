@@ -1,0 +1,17 @@
+export const applianceItems = [
+  { id: "tv", name: "TV", image: "/icons/appliance/Tv.jpeg" },
+  { id: "monitor", name: "모니터", image: "/icons/appliance/Moniter.jpeg" },
+  { id: "pc", name: "PC/데스크탑", image: "/icons/appliance/Pc.jpeg" },
+  { id: "washing_machine", name: "세탁기", image: "/icons/appliance/WashingMachine.jpeg" },
+  { id: "dryer", name: "건조기", image: "/icons/appliance/Dryer.jpeg" },
+  { id: "clothing_care", name: "의류관리기", image: "/icons/appliance/ClothingCare.jpeg" },
+  { id: "refrigerator", name: "냉장고", image: "/icons/appliance/Refrigerator.jpeg" },
+  { id: "microwave", name: "전자레인지", image: "/icons/appliance/Microwave.jpeg" },
+  { id: "water_purifier", name: "정수기", image: "/icons/appliance/WaterPurifier.jpeg" },
+  { id: "aircon", name: "에어컨", image: "/icons/appliance/Aircon.jpeg" },
+  { id: "air_purifier", name: "공기청정기", image: "/icons/appliance/AirPurifier.jpeg" },
+  { id: "massage_chair", name: "안마의자", image: "/icons/appliance/MassageChair.jpeg" },
+  { id: "vacuum_cleaner", name: "청소기", image: "/icons/appliance/VacuumCleaner.jpeg" },
+  { id: "gas_stove", name: "가스레인지", image: "/icons/appliance/GasStove.jpeg" },
+  { id: "fan", name: "선풍기", image: "/icons/appliance/Fan.jpeg" },
+];
