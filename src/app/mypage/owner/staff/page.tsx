@@ -7,7 +7,7 @@ type Status = "APPROVED" | "PENDING" | "REJECTED";
 
 type Employee = {
   staffId: number;
-  userId: number;
+  staffId: number;
   name: string;
   status: Status;
   id: string;
@@ -81,6 +81,7 @@ export default function EmployeeListPage() {
   const [timeoffRequests, setTimeoffRequests] = useState<TimeOffRequest[]>([]);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showInfoMessage, setShowInfoMessage] = useState(false);
   
   // 페이지네이션 상태 추가
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,7 +127,7 @@ export default function EmployeeListPage() {
 
     try {
       const res = await authApi.patch("/staff/approve", {
-        userId: target.userId,
+        staffId: target.staffId,
         status: "APPROVED",
       });
 
@@ -151,7 +152,7 @@ export default function EmployeeListPage() {
 
     try {
       const res = await authApi.patch("/staff/approve", {
-        userId: target.userId,
+        userId: target.staffId,
         status: "REJECTED",
       });
 
@@ -260,7 +261,7 @@ export default function EmployeeListPage() {
           <>
             {/* 우리 직원 */}
             <section className="mb-10">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">우리 직원</h2>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">직원 목록</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {approvedEmployees.length > 0 ? (
                   approvedEmployees.map((emp) => (
@@ -277,7 +278,7 @@ export default function EmployeeListPage() {
                           <p className="text-sm text-gray-500">{emp.id}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{emp.phone}</p>
+                      <p className="text-sm text-gray-600 mb-3">전화번호: {emp.phone}</p>
                       <button className="w-full py-2 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
                         스케줄 보기
                       </button>
