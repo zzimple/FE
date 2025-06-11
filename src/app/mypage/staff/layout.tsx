@@ -4,7 +4,8 @@ import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 const staffTabs = [
-  { label: '내 스케줄 관리', href: '/staff/schedule' },
+  { label: '내 스케줄 관리', href: '/mypage/staff/schedule' },
+  { label: '내 휴무 관리', href: '/mypage/staff/timeoff/request' },
   { label: '나의 정보', href: '/mypage/staff/profile' }
 ];
 
