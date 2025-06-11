@@ -1,11 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ✅ useEffect 추가됨
 import { useRouter } from 'next/navigation';
 
 import { authApi } from "@/lib/axios";
 
-type Status = "APPROVED" | "PENDING" | "REJECTED";
+// ✅ 상태를 한글로 변환하는 함수 추가
+const mapStatusToKorean = (status: Status) => {
+    switch (status) {
+        case 'APPROVED': return '승인';
+        case 'PENDING': return '대기중';
+        case 'REJECTED': return '거절';
+        default: return status;
+    }
+};
 
 const mapToApiType = (koreanType: string): TimeOffType => {
     switch (koreanType) {
@@ -14,6 +22,16 @@ const mapToApiType = (koreanType: string): TimeOffType => {
         case '병가': return 'SICK';
         case '기타': return 'ETC';
         default: return 'ETC'; // fallback
+    }
+};
+
+const mapTypeToKorean = (type: TimeOffType) => {
+    switch (type) {
+        case 'ANNUAL': return '연차';
+        case 'HALF': return '반차';
+        case 'SICK': return '병가';
+        case 'ETC': return '기타';
+        default: return type;
     }
 };
 
@@ -53,6 +71,7 @@ export default function TimeOffRequestPage() {
         }
     };
 
+    // 휴무 신청 완료
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -79,6 +98,23 @@ export default function TimeOffRequestPage() {
         }
     };
 
+
+    // 휴무 내역 가져오기
+    useEffect(() => {
+        const fetchTimeOffHistory = async () => {
+            try {
+                const response = await authApi.get('/staff/time-off/me', {
+                    params: { page: 0, size: 5 }
+                });
+                setTimeOffHistory(response.data.content);
+            } catch (err) {
+                console.error('휴무 내역 조회 실패:', err);
+            }
+        };
+
+        fetchTimeOffHistory();
+    }, []);
+
     return (
         <div className="min-h-screen bg-white">
             <div className="max-w-3xl mx-auto px-4 py-8">
@@ -94,7 +130,7 @@ export default function TimeOffRequestPage() {
                             <input
                                 type="date"
                                 value={startDate}
-                                min={getTodayString()}                                 // ✅ 오늘 이전 비활성화
+                                min={getTodayString()}
                                 onChange={handleStartDateChange}
                                 className="flex-1 h-14 px-4 rounded-full border border-gray-200 text-sm focus:outline-none focus:border-[#2988FF]"
                             />
@@ -177,10 +213,12 @@ export default function TimeOffRequestPage() {
                                                         request.status === '대기중' ? 'bg-yellow-100 text-yellow-600' :
                                                             'bg-red-100 text-red-600'}`}
                                             >
-                                                {request.status}
+                                                {mapStatusToKorean(request.status)} {/* ✅ 상태 한글화 */}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-600 mt-1">{request.type}</p>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {mapTypeToKorean(request.type)}
+                                        </p>
                                         {request.reason && (
                                             <p className="text-sm text-gray-500 mt-2">{request.reason}</p>
                                         )}
