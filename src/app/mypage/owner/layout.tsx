@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 
 const ownerTabs = [
   { label: '견적서', href: '/owner/estimates' },
-  { label: '나의 가게 관리', href: '/mypage/owner/staff' },
+  { label: '직원 관리', href: '/mypage/owner/staff' },
   { label: '매출 관리', href: '/owner/sales' },
   { label: '나의 정보', hrefs: ['/mypage/owner/profile', '/mypage/owner/basicprice'] }
 ];
