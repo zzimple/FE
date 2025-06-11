@@ -5,9 +5,10 @@ import { authApi } from "@/lib/axios";
 
 type Status = "APPROVED" | "PENDING" | "REJECTED";
 
+type TimeOffType = "ANNUAL" | "HALF" | "SICK" | "ETC";
+
 type Employee = {
   staffId: number;
-  userId: number;
   name: string;
   status: Status;
   id: string;
@@ -15,64 +16,29 @@ type Employee = {
 };
 
 type TimeOffRequest = {
-  requestId: number;
-  staffId: number;
+  staffTimeOffId: number;
   staffName: string;
   startDate: string;
   endDate: string;
-  type: string;
+  type: TimeOffType;
   reason?: string;
   status: Status;
 };
 
-const statusToLabel: Record<Status, string> = {
-  APPROVED: "승인 완료",
-  PENDING: "승인 대기 중",
-  REJECTED: "거절됨",
-};
-
-// 예시 데이터
-const MOCK_TIMEOFF_REQUESTS: TimeOffRequest[] = [
-  {
-    requestId: 1,
-    staffId: 1,
-    staffName: "김직원",
-    startDate: "2024-03-20",
-    endDate: "2024-03-20",
-    type: "연차",
-    status: "PENDING"
-  },
-  {
-    requestId: 2,
-    staffId: 2,
-    staffName: "이사원",
-    startDate: "2024-03-25",
-    endDate: "2024-03-26",
-    type: "연차",
-    reason: "개인 사유",
-    status: "APPROVED"
-  },
-  {
-    requestId: 3,
-    staffId: 3,
-    staffName: "박팀원",
-    startDate: "2024-03-22",
-    endDate: "2024-03-22",
-    type: "반차",
-    reason: "병원 진료",
-    status: "PENDING"
-  },
-  {
-    requestId: 4,
-    staffId: 4,
-    staffName: "최대리",
-    startDate: "2024-03-21",
-    endDate: "2024-03-21",
-    type: "병가",
-    reason: "감기 증상",
-    status: "REJECTED"
+const mapTimeOffTypeToKorean = (type: TimeOffType): string => {
+  switch (type) {
+    case "ANNUAL":
+      return "연차";
+    case "HALF":
+      return "반차";
+    case "SICK":
+      return "병가";
+    case "ETC":
+      return "기타";
+    default:
+      return type;
   }
-];
+};
 
 export default function EmployeeListPage() {
   const [activeTab, setActiveTab] = useState<'staff' | 'timeoff'>('staff');
@@ -81,42 +47,47 @@ export default function EmployeeListPage() {
   const [timeoffRequests, setTimeoffRequests] = useState<TimeOffRequest[]>([]);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
-  // 페이지네이션 상태 추가
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const PAGE_SIZE = 6;
 
   useEffect(() => {
-    const fetchStaffList = async () => {
-      try {
-        const res = await authApi.get("/staff/list");
-        const all: Employee[] = res.data.data;
-
-        setApprovedEmployees(all.filter((e) => e.status === "APPROVED"));
-        setPendingEmployees(all.filter((e) => e.status === "PENDING"));
-      } catch (err) {
-        console.error("직원 리스트 불러오기 실패", err);
-        // 에러 시 빈 배열로 설정
-        setApprovedEmployees([]);
-        setPendingEmployees([]);
-      }
-    };
-
-    const fetchTimeoffRequests = async () => {
-      try {
-        // 실제 API 호출 대신 목업 데이터 사용
-        setTimeoffRequests(MOCK_TIMEOFF_REQUESTS);
-      } catch (err) {
-        console.error("휴무 신청 목록 불러오기 실패", err);
-        setTimeoffRequests([]);
-      }
-    };
-
     fetchStaffList();
-    fetchTimeoffRequests();
+    fetchAllTimeoffRequests();
   }, []);
 
+  const fetchAllTimeoffRequests = async () => {
+    try {
+      const [pending, approved, rejected] = await Promise.all([
+        authApi.get("/staff/time-off/list/pending", { params: { page: 0, size: 10 } }),
+        authApi.get("/staff/time-off/list/approved", { params: { page: 0, size: 10 } }),
+        authApi.get("/staff/time-off/list/rejected", { params: { page: 0, size: 10 } }),
+      ]);
+      const combined = [
+        ...pending.data.data.content,
+        ...approved.data.data.content,
+        ...rejected.data.data.content,
+      ];
+      setTimeoffRequests(combined);
+    } catch (err) {
+      console.error("휴무 신청 목록 불러오기 실패", err);
+      setTimeoffRequests([]);
+    }
+  };
+
+
+  const fetchStaffList = async () => {
+    try {
+      const res = await authApi.get("/staff/list");
+      const all: Employee[] = res.data.data;
+
+      setApprovedEmployees(all.filter((e) => e.status === "APPROVED"));
+      setPendingEmployees(all.filter((e) => e.status === "PENDING"));
+    } catch (err) {
+      console.error("직원 리스트 불러오기 실패", err);
+      setApprovedEmployees([]);
+      setPendingEmployees([]);
+    }
+  };
+
+  // 직원 승인 완료
   const handleApprove = async (staffId: number) => {
     setInfoMessage(null);
     setErrorMessage(null);
@@ -126,7 +97,7 @@ export default function EmployeeListPage() {
 
     try {
       const res = await authApi.patch("/staff/approve", {
-        userId: target.userId,
+        staffId: target.staffId,
         status: "APPROVED",
       });
 
@@ -142,6 +113,7 @@ export default function EmployeeListPage() {
     }
   };
 
+  // 직원 승인 거절
   const handleReject = async (staffId: number) => {
     setInfoMessage(null);
     setErrorMessage(null);
@@ -151,7 +123,7 @@ export default function EmployeeListPage() {
 
     try {
       const res = await authApi.patch("/staff/approve", {
-        userId: target.userId,
+        staffId: target.staffId,
         status: "REJECTED",
       });
 
@@ -170,17 +142,13 @@ export default function EmployeeListPage() {
     setErrorMessage(null);
 
     try {
-      const res = await authApi.patch("/timeoff/approve", {
-        requestId,
-        status: "APPROVED",
-      });
-
+      const res = await authApi.patch(`/staff/time-off/decide/${requestId}?status=APPROVED`); // ✅ 수정됨: 올바른 API 사용
       const serverMessage = res.data.message;
       setInfoMessage(serverMessage || "휴무 신청이 승인되었습니다.");
 
       setTimeoffRequests((prev) =>
         prev.map((req) =>
-          req.requestId === requestId ? { ...req, status: "APPROVED" } : req
+          req.staffTimeOffId === requestId ? { ...req, status: "APPROVED" } : req
         )
       );
     } catch (err: any) {
@@ -192,19 +160,14 @@ export default function EmployeeListPage() {
   const handleTimeoffReject = async (requestId: number) => {
     setInfoMessage(null);
     setErrorMessage(null);
-
     try {
-      const res = await authApi.patch("/timeoff/approve", {
-        requestId,
-        status: "REJECTED",
-      });
-
+      const res = await authApi.patch(`/staff/time-off/decide/${requestId}?status=REJECTED`); // ✅ 수정됨
       const serverMessage = res.data.message;
       setInfoMessage(serverMessage || "휴무 신청이 거절되었습니다.");
 
       setTimeoffRequests((prev) =>
         prev.map((req) =>
-          req.requestId === requestId ? { ...req, status: "REJECTED" } : req
+          req.staffTimeOffId === requestId ? { ...req, status: "REJECTED" } : req
         )
       );
     } catch (err: any) {
@@ -223,11 +186,10 @@ export default function EmployeeListPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 성공/에러 메시지 */}
         {(errorMessage || infoMessage) && (
-          <div className={`mb-6 p-4 rounded-lg text-sm ${
-            errorMessage 
-              ? 'bg-red-50 text-red-500 border border-red-100' 
-              : 'bg-blue-50 text-blue-600 border border-blue-100'
-          }`}>
+          <div className={`mb-6 p-4 rounded-lg text-sm ${errorMessage
+            ? 'bg-red-50 text-red-500 border border-red-100'
+            : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }`}>
             {errorMessage || infoMessage}
           </div>
         )}
@@ -236,21 +198,19 @@ export default function EmployeeListPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1.5 mb-6 inline-flex">
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'staff'
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'staff'
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+              }`}
           >
             직원 관리
           </button>
           <button
             onClick={() => setActiveTab('timeoff')}
-            className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${
-              activeTab === 'timeoff'
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={`px-5 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'timeoff'
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+              }`}
           >
             휴무 신청
           </button>
@@ -260,7 +220,7 @@ export default function EmployeeListPage() {
           <>
             {/* 우리 직원 */}
             <section className="mb-10">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">우리 직원</h2>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">직원 목록</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {approvedEmployees.length > 0 ? (
                   approvedEmployees.map((emp) => (
@@ -277,7 +237,7 @@ export default function EmployeeListPage() {
                           <p className="text-sm text-gray-500">{emp.id}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{emp.phone}</p>
+                      <p className="text-sm text-gray-600 mb-3">전화번호: {emp.phone}</p>
                       <button className="w-full py-2 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
                         스케줄 보기
                       </button>
@@ -354,7 +314,7 @@ export default function EmployeeListPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filterTimeoffByStatus('PENDING').map((request) => (
                   <div
-                    key={request.requestId}
+                    key={request.staffTimeOffId}
                     className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-200 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -364,7 +324,7 @@ export default function EmployeeListPage() {
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-900">{request.staffName}</h3>
-                          <p className="text-sm text-gray-500">{request.type}</p>
+                          <p className="text-sm text-gray-500">{mapTimeOffTypeToKorean(request.type)}</p>
                         </div>
                       </div>
                       <span className="text-sm px-2.5 py-1 rounded bg-blue-50 text-blue-600">
@@ -390,13 +350,13 @@ export default function EmployeeListPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => handleTimeoffApprove(request.requestId)}
+                        onClick={() => handleTimeoffApprove(request.staffTimeOffId)}
                         className="py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
                       >
                         승인
                       </button>
                       <button
-                        onClick={() => handleTimeoffReject(request.requestId)}
+                        onClick={() => handleTimeoffReject(request.staffTimeOffId)}
                         className="py-2 text-sm font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                       >
                         거절
@@ -423,7 +383,7 @@ export default function EmployeeListPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filterTimeoffByStatus('APPROVED').map((request) => (
                   <div
-                    key={request.requestId}
+                    key={request.staffTimeOffId}
                     className="bg-white rounded-lg border border-gray-200 p-4"
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -478,7 +438,7 @@ export default function EmployeeListPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filterTimeoffByStatus('REJECTED').map((request) => (
                   <div
-                    key={request.requestId}
+                    key={request.staffTimeOffId}
                     className="bg-white rounded-lg border border-gray-200 p-4"
                   >
                     <div className="flex items-center justify-between mb-3">
