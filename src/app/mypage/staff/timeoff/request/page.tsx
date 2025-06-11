@@ -51,6 +51,9 @@ export default function TimeOffRequestPage() {
     const [reason, setReason] = useState('');
     const [timeOffHistory, setTimeOffHistory] = useState<TimeOffRequest[]>([]);
 
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+
     // ✨ 오늘 날짜를 YYYY-MM-DD 형식으로 가져오는 함수 추가
     const getTodayString = () => {
         const today = new Date();
@@ -71,11 +74,28 @@ export default function TimeOffRequestPage() {
         }
     };
 
-    // 휴무 신청 완료
+     // ✅ 휴무 내역을 가져오는 함수: 외부로 꺼내서 재사용 가능하게 함
+    const fetchTimeOffHistory = async (currentPage = page) => {
+        try {
+            const response = await authApi.get('/staff/time-off/me', {
+                params: { page: currentPage, size: 5 }
+            });
+            setTimeOffHistory(response.data.content);
+            setTotalPages(response.data.totalPages);
+        } catch (err) {
+            console.error('휴무 내역 조회 실패:', err);
+        }
+    };
+
+    // 🔁 페이지 변경될 때마다 불러오기
+    useEffect(() => {
+        fetchTimeOffHistory();
+    }, [page]);
+
+    // ✅ 휴무 신청 후 자동 갱신
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // 기타 선택 시 사유 필수 입력 체크
         if (timeOffType === '기타' && !reason.trim()) {
             alert('기타 휴무의 경우 사유를 반드시 입력해주세요.');
             return;
@@ -91,7 +111,15 @@ export default function TimeOffRequestPage() {
 
             await authApi.post('/staff/time-off/request', payload);
             alert('휴무 신청이 완료되었습니다.');
-            router.refresh();
+
+            // ✅ 리스트 새로고침 (현재 페이지 기준)
+            await fetchTimeOffHistory();
+
+            // ✅ 폼 초기화
+            setStartDate('');
+            setEndDate('');
+            setTimeOffType('연차');
+            setReason('');
         } catch (err) {
             console.error(err);
             alert('휴무 신청에 실패했습니다.');
@@ -104,16 +132,17 @@ export default function TimeOffRequestPage() {
         const fetchTimeOffHistory = async () => {
             try {
                 const response = await authApi.get('/staff/time-off/me', {
-                    params: { page: 0, size: 5 }
+                    params: { page, size: 5 }
                 });
                 setTimeOffHistory(response.data.content);
+                setTotalPages(response.data.totalPages); // 💡 총 페이지 수
             } catch (err) {
                 console.error('휴무 내역 조회 실패:', err);
             }
         };
 
         fetchTimeOffHistory();
-    }, []);
+    }, [page]);
 
     return (
         <div className="min-h-screen bg-white">
@@ -139,6 +168,7 @@ export default function TimeOffRequestPage() {
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
+                                min={startDate || getTodayString()}
                                 className="flex-1 h-14 px-4 rounded-full border border-gray-200 text-sm focus:outline-none focus:border-[#2988FF]"
                             />
                         </div>
@@ -228,6 +258,24 @@ export default function TimeOffRequestPage() {
                         ))}
                     </div>
                 </div>
+            </div>
+            {/* ✅ 페이징 버튼을 리스트 바로 아래에 추가 */}
+            <div className="flex justify-center gap-4 mt-6">
+                <button
+                    disabled={page === 0}
+                    onClick={() => setPage((prev) => prev - 1)}
+                    className="px-4 py-2 rounded bg-gray-100 disabled:opacity-50"
+                >
+                    이전
+                </button>
+                <span className="text-sm">페이지 {page + 1} / {totalPages}</span>
+                <button
+                    disabled={page + 1 >= totalPages}
+                    onClick={() => setPage((prev) => prev + 1)}
+                    className="px-4 py-2 rounded bg-gray-100 disabled:opacity-50"
+                >
+                    다음
+                </button>
             </div>
         </div>
     );
