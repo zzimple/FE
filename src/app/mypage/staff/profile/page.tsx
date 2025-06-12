@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { authApi } from "@/lib/axios";
+import { useRouter } from "next/navigation";
+
 import PasswordEditor from "@/components/mypage/PasswordEditor";
 import EmailEditor from "@/components/mypage/EmailEditor";
+import UnauthorizedPage from "@/components/common/UnauthorizedPage";
 
 export default function StaffProfilePage() {
   const [centerCode, setCenterCode] = useState("");
@@ -39,6 +42,9 @@ export default function StaffProfilePage() {
     }
   };
 
+  const router = useRouter();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // 권한 상태
+
   const [profile, setProfile] = useState({
     name: "",
     login_id: "",
@@ -61,14 +67,31 @@ export default function StaffProfilePage() {
             ownerPhoneNum: res.data.data.ownerPhoneNum || "",
             ownerName: res.data.data.ownerName || ""
           });
+          // ✅ 권한 있음
+          setHasAccess(true);
+        } else {
+          // ✅ 권한 없음
+          setHasAccess(false);
         }
       } catch (e) {
         console.error("프로필 정보 조회 실패", e);
+        // ✅ 에러 시 권한 없음 처리
+        setHasAccess(false);
       }
     };
 
     fetchProfile();
   }, []);
+
+   // 권한 로딩 중인 경우 로딩 표시
+  if (hasAccess === null) {
+    return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+  }
+
+  // 권한 없는 경우
+  if (hasAccess === false) {
+    return <UnauthorizedPage />;
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
