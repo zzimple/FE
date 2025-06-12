@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 
 import { authApi } from "@/lib/axios";
 
-// ✅ 상태를 한글로 변환하는 함수 추가
 const mapStatusToKorean = (status: Status) => {
     switch (status) {
         case 'APPROVED': return '승인';
@@ -74,7 +73,7 @@ export default function TimeOffRequestPage() {
         }
     };
 
-     // ✅ 휴무 내역을 가져오는 함수: 외부로 꺼내서 재사용 가능하게 함
+    // ✅ 휴무 내역을 가져오는 함수: 외부로 꺼내서 재사용 가능하게 함
     const fetchTimeOffHistory = async (currentPage = page) => {
         try {
             const response = await authApi.get('/staff/time-off/me', {
@@ -239,9 +238,12 @@ export default function TimeOffRequestPage() {
                                             </h3>
                                             <span
                                                 className={`px-2 py-1 rounded-full text-xs font-medium
-                          ${request.status === '승인' ? 'bg-green-100 text-green-600' :
-                                                        request.status === '대기중' ? 'bg-yellow-100 text-yellow-600' :
-                                                            'bg-red-100 text-red-600'}`}
+                                                        ${request.status === 'APPROVED'
+                                                        ? 'bg-green-100 text-green-600'   
+                                                        : request.status === 'PENDING'
+                                                            ? 'bg-yellow-100 text-yellow-600' 
+                                                            : 'bg-red-100 text-red-600'      
+                                                    }`}
                                             >
                                                 {mapStatusToKorean(request.status)} {/* ✅ 상태 한글화 */}
                                             </span>
