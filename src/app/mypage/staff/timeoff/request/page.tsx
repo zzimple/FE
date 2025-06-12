@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // ✅ useEffect 추가됨
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { authApi } from "@/lib/axios";
 
-// ✅ 상태를 한글로 변환하는 함수 추가
 const mapStatusToKorean = (status: Status) => {
     switch (status) {
         case 'APPROVED': return '승인';
@@ -63,7 +62,7 @@ export default function TimeOffRequestPage() {
         return `${year}-${month}-${day}`;
     };
 
-    // ✨ 시작일이 변경될 때 종료일 제한을 위한 핸들러 추가
+    // 시작일이 변경될 때 종료일 제한을 위한 핸들러
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newStartDate = e.target.value;
         setStartDate(newStartDate);
@@ -74,7 +73,7 @@ export default function TimeOffRequestPage() {
         }
     };
 
-     // ✅ 휴무 내역을 가져오는 함수: 외부로 꺼내서 재사용 가능하게 함
+    // 휴무 내역을 가져오는 함수
     const fetchTimeOffHistory = async (currentPage = page) => {
         try {
             const response = await authApi.get('/staff/time-off/me', {
@@ -87,15 +86,22 @@ export default function TimeOffRequestPage() {
         }
     };
 
-    // 🔁 페이지 변경될 때마다 불러오기
+    // 페이지 변경될 때마다 불러오기
     useEffect(() => {
         fetchTimeOffHistory();
     }, [page]);
 
-    // ✅ 휴무 신청 후 자동 갱신
+    // 휴무 신청 후 자동 갱신
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 날짜 선택 유효성 검사 
+        if (!startDate || !endDate) {
+            alert('휴무 기간을 선택해주세요.');
+            return;
+        }
+
+        // 기타일 경우 사유 반드시 입력
         if (timeOffType === '기타' && !reason.trim()) {
             alert('기타 휴무의 경우 사유를 반드시 입력해주세요.');
             return;
@@ -112,10 +118,8 @@ export default function TimeOffRequestPage() {
             await authApi.post('/staff/time-off/request', payload);
             alert('휴무 신청이 완료되었습니다.');
 
-            // ✅ 리스트 새로고침 (현재 페이지 기준)
+            // 리스트 새로고침
             await fetchTimeOffHistory();
-
-            // ✅ 폼 초기화
             setStartDate('');
             setEndDate('');
             setTimeOffType('연차');
@@ -239,11 +243,14 @@ export default function TimeOffRequestPage() {
                                             </h3>
                                             <span
                                                 className={`px-2 py-1 rounded-full text-xs font-medium
-                          ${request.status === '승인' ? 'bg-green-100 text-green-600' :
-                                                        request.status === '대기중' ? 'bg-yellow-100 text-yellow-600' :
-                                                            'bg-red-100 text-red-600'}`}
+                                                        ${request.status === 'APPROVED'
+                                                        ? 'bg-green-100 text-green-600'
+                                                        : request.status === 'PENDING'
+                                                            ? 'bg-yellow-100 text-yellow-600'
+                                                            : 'bg-red-100 text-red-600'
+                                                    }`}
                                             >
-                                                {mapStatusToKorean(request.status)} {/* ✅ 상태 한글화 */}
+                                                {mapStatusToKorean(request.status)} 
                                             </span>
                                         </div>
                                         <p className="text-sm text-gray-600 mt-1">
@@ -259,7 +266,6 @@ export default function TimeOffRequestPage() {
                     </div>
                 </div>
             </div>
-            {/* ✅ 페이징 버튼을 리스트 바로 아래에 추가 */}
             <div className="flex justify-center gap-4 mt-6">
                 <button
                     disabled={page === 0}
