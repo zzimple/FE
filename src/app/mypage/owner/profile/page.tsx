@@ -7,8 +7,11 @@ import ExtraChargeSetting from "@/components/mypage/owner/ExtraChargeSetting";
 import BasicItemPriceShortcut from "@/components/mypage/owner/BasicItemPriceShortcut";
 import PasswordEditor from "@/components/mypage/PasswordEditor";
 import EmailEditor from "@/components/mypage/EmailEditor";
+import UnauthorizedPage from "@/components/common/UnauthorizedPage";
 
 export default function OwnerProfilePage() {
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
   const [editingCharges, setEditingCharges] = useState(false);
   const [charges, setCharges] = useState({
     perTruckCharge: 0,
@@ -64,15 +67,28 @@ export default function OwnerProfilePage() {
               addrDetail: res.data.data.addrDetail || ""
             }
           });
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
         }
       } catch (e) {
         console.error("프로필 정보 조회 실패", e);
+        setHasAccess(false);
       }
     };
 
     fetchProfile();
   }, []);
 
+  // 권한 로딩 중인 경우 로딩 표시
+  if (hasAccess === null) {
+    return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+  }
+
+  // 권한 없는 경우
+  if (hasAccess === false) {
+    return <UnauthorizedPage />;
+  }
 
   const handleChargeChange = (field: keyof typeof charges, value: string) => {
     const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10) || 0;
