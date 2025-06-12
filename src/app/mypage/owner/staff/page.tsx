@@ -2,6 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { authApi } from "@/lib/axios";
+import TimeOffModal from '@/components/mypage/owner/staff/TimeOffModal';
+import TimeOffSection from "@/components/mypage/owner/staff/TimeOffSection";
+import PendingStaffSection from "@/components/mypage/owner/staff/PendingStaffSection";
+import ApprovedStaffSection from "@/components/mypage/owner/staff/ApprovedStaffSection";
 
 type Status = "APPROVED" | "PENDING" | "REJECTED";
 
@@ -25,65 +29,61 @@ type TimeOffRequest = {
   status: Status;
 };
 
-const mapTimeOffTypeToKorean = (type: TimeOffType): string => {
-  switch (type) {
-    case "ANNUAL":
-      return "연차";
-    case "HALF":
-      return "반차";
-    case "SICK":
-      return "병가";
-    case "ETC":
-      return "기타";
-    default:
-      return type;
-  }
-};
-
 export default function EmployeeListPage() {
+  // 활성 탭
   const [activeTab, setActiveTab] = useState<'staff' | 'timeoff'>('staff');
+  // 직원 리스트
   const [approvedEmployees, setApprovedEmployees] = useState<Employee[]>([]);
   const [pendingEmployees, setPendingEmployees] = useState<Employee[]>([]);
+
+  // 휴무 요청 전체
   const [timeoffRequests, setTimeoffRequests] = useState<TimeOffRequest[]>([]);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 모달 상태
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [showApprovedModal, setShowApprovedModal] = useState(false);
+  const [showRejectedModal, setShowRejectedModal] = useState(false);
 
   useEffect(() => {
     fetchStaffList();
     fetchAllTimeoffRequests();
   }, []);
 
-  const fetchAllTimeoffRequests = async () => {
-    try {
-      const [pending, approved, rejected] = await Promise.all([
-        authApi.get("/staff/time-off/list/pending", { params: { page: 0, size: 10 } }),
-        authApi.get("/staff/time-off/list/approved", { params: { page: 0, size: 10 } }),
-        authApi.get("/staff/time-off/list/rejected", { params: { page: 0, size: 10 } }),
-      ]);
-      const combined = [
-        ...pending.data.data.content,
-        ...approved.data.data.content,
-        ...rejected.data.data.content,
-      ];
-      setTimeoffRequests(combined);
-    } catch (err) {
-      console.error("휴무 신청 목록 불러오기 실패", err);
-      setTimeoffRequests([]);
-    }
-  };
-
-
+  // 가게 직원 리스트 불러오기 
   const fetchStaffList = async () => {
     try {
-      const res = await authApi.get("/staff/list");
-      const all: Employee[] = res.data.data;
+      const res = await authApi.get<{ data: Employee[] }>("/staff/list");
+      const all = res.data.data;
 
       setApprovedEmployees(all.filter((e) => e.status === "APPROVED"));
       setPendingEmployees(all.filter((e) => e.status === "PENDING"));
-    } catch (err) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("직원 리스트 불러오기 실패", err);
       setApprovedEmployees([]);
       setPendingEmployees([]);
+    }
+  };
+
+  const fetchAllTimeoffRequests = async () => {
+    try {
+      const [pending, approved, rejected] = await Promise.all([
+        authApi.get<{ data: TimeOffRequest[] }>("/staff/time-off/list/pending"),
+        authApi.get<{ data: TimeOffRequest[] }>("/staff/time-off/list/approved"),
+        authApi.get<{ data: TimeOffRequest[] }>("/staff/time-off/list/rejected"),
+      ]);
+      const combined = [
+        ...pending.data.data,
+        ...approved.data.data,
+        ...rejected.data.data,
+      ];
+      setTimeoffRequests(combined);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      console.error("휴무 신청 목록 불러오기 실패", err);
+      setTimeoffRequests([]);
     }
   };
 
@@ -137,40 +137,44 @@ export default function EmployeeListPage() {
     }
   };
 
-  const handleTimeoffApprove = async (requestId: number) => {
+  // 휴무 신청 승인
+  const handleTimeoffApprove = async (staffTimeOffId: number) => {
     setInfoMessage(null);
     setErrorMessage(null);
 
     try {
-      const res = await authApi.patch(`/staff/time-off/decide/${requestId}?status=APPROVED`); // ✅ 수정됨: 올바른 API 사용
+      const res = await authApi.patch(`/staff/time-off/decide/${staffTimeOffId}?status=APPROVED`);
       const serverMessage = res.data.message;
       setInfoMessage(serverMessage || "휴무 신청이 승인되었습니다.");
 
       setTimeoffRequests((prev) =>
         prev.map((req) =>
-          req.staffTimeOffId === requestId ? { ...req, status: "APPROVED" } : req
+          req.staffTimeOffId === staffTimeOffId ? { ...req, status: "APPROVED" } : req
         )
       );
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "휴무 승인 중 오류가 발생했습니다.");
     }
   };
 
-  const handleTimeoffReject = async (requestId: number) => {
+  // 휴무 신청 거절
+  const handleTimeoffReject = async (staffTimeOffId: number) => {
     setInfoMessage(null);
     setErrorMessage(null);
     try {
-      const res = await authApi.patch(`/staff/time-off/decide/${requestId}?status=REJECTED`); // ✅ 수정됨
+      const res = await authApi.patch(`/staff/time-off/decide/${staffTimeOffId}?status=REJECTED`);
       const serverMessage = res.data.message;
       setInfoMessage(serverMessage || "휴무 신청이 거절되었습니다.");
 
       setTimeoffRequests((prev) =>
         prev.map((req) =>
-          req.staffTimeOffId === requestId ? { ...req, status: "REJECTED" } : req
+          req.staffTimeOffId === staffTimeOffId ? { ...req, status: "REJECTED" } : req
         )
       );
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "휴무 거절 중 오류가 발생했습니다.");
     }
@@ -216,272 +220,76 @@ export default function EmployeeListPage() {
           </button>
         </div>
 
-        {activeTab === 'staff' ? (
+        {activeTab === 'staff' && (
           <>
-            {/* 우리 직원 */}
-            <section className="mb-10">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">직원 목록</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {approvedEmployees.length > 0 ? (
-                  approvedEmployees.map((emp) => (
-                    <div
-                      key={emp.staffId}
-                      className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-200 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-medium">
-                          {emp.name[0]}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{emp.name}</h3>
-                          <p className="text-sm text-gray-500">{emp.id}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">전화번호: {emp.phone}</p>
-                      <button className="w-full py-2 text-sm text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
-                        스케줄 보기
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    아직 승인된 직원이 없습니다.
-                  </p>
-                )}
-              </div>
-            </section>
-
-            {/* 승인 대기 직원 */}
-            <section>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">승인 대기 중</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingEmployees.length > 0 ? (
-                  pendingEmployees.map((emp) => (
-                    <div
-                      key={emp.staffId}
-                      className="bg-white rounded-lg border border-gray-200 p-4"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-medium">
-                            {emp.name[0]}
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-gray-900">{emp.name}</h3>
-                            <p className="text-sm text-gray-500">{emp.id}</p>
-                          </div>
-                        </div>
-                        <span className="text-sm text-blue-600 bg-blue-50 px-2.5 py-1 rounded">
-                          대기중
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{emp.phone}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleApprove(emp.staffId)}
-                          className="py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                        >
-                          승인
-                        </button>
-                        <button
-                          onClick={() => handleReject(emp.staffId)}
-                          className="py-2 text-sm font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
-                        >
-                          거절
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    대기 중인 직원이 없습니다.
-                  </p>
-                )}
-              </div>
-            </section>
+            <ApprovedStaffSection employees={approvedEmployees} />
+            <PendingStaffSection
+              employees={pendingEmployees}
+              onApprove={handleApprove}
+              onReject={handleReject}
+            />
           </>
-        ) : (
-          /* 휴무 신청 관리 */
-          <div className="space-y-8">
-            {/* 승인 대기 중 */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">승인 대기 중</h2>
-                <span className="text-sm px-2.5 py-1 rounded bg-blue-50 text-blue-600">
-                  {filterTimeoffByStatus('PENDING').length}건
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filterTimeoffByStatus('PENDING').map((request) => (
-                  <div
-                    key={request.staffTimeOffId}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-200 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-medium">
-                          {request.staffName[0]}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{request.staffName}</h3>
-                          <p className="text-sm text-gray-500">{mapTimeOffTypeToKorean(request.type)}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm px-2.5 py-1 rounded bg-blue-50 text-blue-600">
-                        대기중
-                      </span>
-                    </div>
-                    <div className="space-y-2 mb-3">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {request.startDate}
-                        {request.startDate !== request.endDate && ` ~ ${request.endDate}`}
-                      </div>
-                      {request.reason && (
-                        <div className="flex items-start text-sm text-gray-600">
-                          <svg className="w-4 h-4 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {request.reason}
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleTimeoffApprove(request.staffTimeOffId)}
-                        className="py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                      >
-                        승인
-                      </button>
-                      <button
-                        onClick={() => handleTimeoffReject(request.staffTimeOffId)}
-                        className="py-2 text-sm font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
-                      >
-                        거절
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {filterTimeoffByStatus('PENDING').length === 0 && (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    대기 중인 휴무 신청이 없습니다.
-                  </p>
-                )}
-              </div>
-            </section>
+        )}
 
-            {/* 승인 완료 */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">승인 완료</h2>
-                <span className="text-sm px-2.5 py-1 rounded bg-green-50 text-green-600">
-                  {filterTimeoffByStatus('APPROVED').length}건
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filterTimeoffByStatus('APPROVED').map((request) => (
-                  <div
-                    key={request.staffTimeOffId}
-                    className="bg-white rounded-lg border border-gray-200 p-4"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600 font-medium">
-                          {request.staffName[0]}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{request.staffName}</h3>
-                          <p className="text-sm text-gray-500">{request.type}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm px-2.5 py-1 rounded bg-green-50 text-green-600">
-                        승인 완료
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {request.startDate}
-                        {request.startDate !== request.endDate && ` ~ ${request.endDate}`}
-                      </div>
-                      {request.reason && (
-                        <div className="flex items-start text-sm text-gray-600">
-                          <svg className="w-4 h-4 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {request.reason}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {filterTimeoffByStatus('APPROVED').length === 0 && (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    승인된 휴무 신청이 없습니다.
-                  </p>
-                )}
-              </div>
-            </section>
+        {activeTab === 'timeoff' && (
+          <>
+            <TimeOffSection
+              status="PENDING"
+              title="승인 대기 중"
+              items={filterTimeoffByStatus('PENDING')}
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+              isOpen={showPendingModal}
+              onOpen={() => setShowPendingModal(true)}
+              onClose={() => setShowPendingModal(false)}
+            />
+            <TimeOffSection
+              status="APPROVED"
+              title="승인 완료"
+              items={filterTimeoffByStatus('APPROVED')}
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+              isOpen={showApprovedModal}
+              onOpen={() => setShowApprovedModal(true)}
+              onClose={() => setShowApprovedModal(false)}
+            />
+            <TimeOffSection
+              status="REJECTED"
+              title="거절됨"
+              items={filterTimeoffByStatus('REJECTED')}
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+              isOpen={showRejectedModal}
+              onOpen={() => setShowRejectedModal(true)}
+              onClose={() => setShowRejectedModal(false)}
+            />
 
-            {/* 거절됨 */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">거절됨</h2>
-                <span className="text-sm px-2.5 py-1 rounded bg-red-50 text-red-600">
-                  {filterTimeoffByStatus('REJECTED').length}건
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filterTimeoffByStatus('REJECTED').map((request) => (
-                  <div
-                    key={request.staffTimeOffId}
-                    className="bg-white rounded-lg border border-gray-200 p-4"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-medium">
-                          {request.staffName[0]}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{request.staffName}</h3>
-                          <p className="text-sm text-gray-500">{request.type}</p>
-                        </div>
-                      </div>
-                      <span className="text-sm px-2.5 py-1 rounded bg-red-50 text-red-600">
-                        거절됨
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {request.startDate}
-                        {request.startDate !== request.endDate && ` ~ ${request.endDate}`}
-                      </div>
-                      {request.reason && (
-                        <div className="flex items-start text-sm text-gray-600">
-                          <svg className="w-4 h-4 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {request.reason}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {filterTimeoffByStatus('REJECTED').length === 0 && (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    거절된 휴무 신청이 없습니다.
-                  </p>
-                )}
-              </div>
-            </section>
-          </div>
+            {/* 모달들 */}
+            <TimeOffModal
+              isOpen={showPendingModal}
+              onClose={() => setShowPendingModal(false)}
+              requests={filterTimeoffByStatus('PENDING')}
+              title="대기 중인 휴무 신청"
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+            />
+            <TimeOffModal
+              isOpen={showApprovedModal}
+              onClose={() => setShowApprovedModal(false)}
+              requests={filterTimeoffByStatus('APPROVED')}
+              title="승인된 휴무 신청"
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+            />
+            <TimeOffModal
+              isOpen={showRejectedModal}
+              onClose={() => setShowRejectedModal(false)}
+              requests={filterTimeoffByStatus('REJECTED')}
+              title="거절된 휴무 신청"
+              onApprove={handleTimeoffApprove}
+              onReject={handleTimeoffReject}
+            />
+          </>
         )}
       </div>
     </div>
