@@ -3,20 +3,21 @@
 import React from "react";
 import EstimateList from "@/components/estimate/EstimateList";
 import EstimateSearch from "@/components/estimate/EstimateSearch";
-import { EstimateSearchParams } from "@/types/estimate";
+import { EstimateSearchParams, MoveOption, MoveType } from "@/types/estimate";
+
 
 export default function EstimateListPage() {
     const [searchParams, setSearchParams] = React.useState<EstimateSearchParams>({
         moveYear: "",
         moveMonth: "",
         moveDay: "",
-        moveType: "",
-        moveOption: "",
+        moveType: "" as MoveType, 
+        moveOption: "" as MoveOption,  
         fromRegion1: "",
         fromRegion2: "",
         toRegion1: "",
         toRegion2: "",
-        status: "PENDING",
+        status: "WAITING",
     });
 
     const handleSearch = (params: EstimateSearchParams) => {
