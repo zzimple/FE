@@ -207,10 +207,11 @@ export default function Step8() {
         itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
         notes: NOTES,
-        items: estimateData.data.items.map(item => ({
-            name: item.itemTypeName,
-            price: 0,
-        })),
+        // items: estimateData.data.items.map(item => ({
+        //     name: item.itemTypeName,
+        //     price: 0,
+        // })),
+        items: estimateData.data.items,
     } : null;
 
     // ===== 이벤트 핸들러 =====
@@ -260,7 +261,7 @@ export default function Step8() {
     }
 
 
-        // 시간/거리 포맷팅 헬퍼
+    // 시간/거리 포맷팅 헬퍼
     const formattedTime = duration != null
         ? `${Math.floor(duration / 60)}분`
         : "- 분";
@@ -335,11 +336,12 @@ export default function Step8() {
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <div className="text-sm font-semibold text-gray-900 mb-2">물품 목록</div>
                     <div className="space-y-2">
-                        {reviewData.items.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between">
-                                <span className="text-sm text-gray-700">{item.name}</span>
-                                <span className="text-sm text-blue-600">{item.price.toLocaleString()}원</span>
-                            </div>
+                        {reviewData.items.map(item => (
+                            <li key={item.id} className="flex justify-between text-sm text-gray-700">
+                                {/* 아이템명 x 수량 */}
+                                <span>{item.itemTypeName}</span>
+                                <span>{item.quantity}개</span>
+                            </li>
                         ))}
                     </div>
                 </div>
