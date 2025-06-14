@@ -1,5 +1,4 @@
 import React from "react";
-import { useRouter } from "next/navigation";
 import EstimateCard from "./EstimateCard";
 import Pagination from "@/components/common/Pagination";
 import { Estimate, EstimateSearchParams } from "@/types/estimate";
@@ -7,10 +6,10 @@ import { authApi } from "@/lib/axios";
 
 interface EstimateListProps {
     searchParams: EstimateSearchParams;
+    onSelect: (estimateNo: number) => void; // 수정: 상세 보기 콜백 prop 추가
 }
 
-export default function EstimateList({ searchParams }: EstimateListProps) {
-    const router = useRouter();
+export default function EstimateList({ searchParams, onSelect }: EstimateListProps) {
     const [estimates, setEstimates] = React.useState<Estimate[]>([]);
     const [page, setPage] = React.useState(0);
     const [totalPages, setTotalPages] = React.useState(1);
@@ -54,9 +53,8 @@ export default function EstimateList({ searchParams }: EstimateListProps) {
     }, [fetchEstimates]);
 
     const handleViewDetail = (estimateNo: number) => {
-        router.push(`/estimate/owner/drafts/${estimateNo}`);
+        onSelect(estimateNo); // 수정: 부모로 estimateNo 전달
     };
-
 
     if (isLoading) {
         return (
@@ -77,9 +75,9 @@ export default function EstimateList({ searchParams }: EstimateListProps) {
                 ) : (
                     estimates.map(estimate => (
                         <EstimateCard
-                            key={estimate.estimateNo ?? idx} // ✅ estimateNo를 key로 사용
+                            key={estimate.estimateNo}                               // 수정: estimateNo를 key로 사용
                             estimate={estimate}
-                            onViewDetail={() => handleViewDetail(estimate.estimateNo)} // ✅ estimateNo 사용
+                            onViewDetail={() => handleViewDetail(estimate.estimateNo)}
                         />
                     ))
                 )}
