@@ -82,6 +82,7 @@ interface EstimateResponse {
         }>;
         itemPriceDetails?: Array<{  // 아이템 가격 상세
             itemTypeId: number;
+            itemTypeNmae: string;
             quantity: number;
             basePrice: number;
             extraCharges?: Array<{
@@ -226,6 +227,12 @@ export default function EstimateFinalPage() {
                     `/estimates/owner/drafts/${estimateNo}`
                 );
 
+                // [수정] 3) 이름 맵 생성: items 배열에서 ID->이름 매핑
+                const nameMap: Record<number, string> = draftResp.data.data.items.reduce(
+                    (acc, cur) => ({ ...acc, [cur.itemTypeId]: cur.itemTypeName }),
+                    {}
+                );
+
                 // 3) view estimate 상세 정보 (itemPriceDetails, extraCharges, totalPrice)
                 const viewResp = await authApi.get<EstimateResponse>(
                     `/view/estimate/${estimateNo}`
@@ -240,6 +247,7 @@ export default function EstimateFinalPage() {
                         itemPriceDetails: viewResp.data.data.itemPriceDetails,
                         extraCharges: viewResp.data.data.extraCharges,
                         totalPrice: viewResp.data.data.totalPrice,
+                        nameMap,
                     }
                 });
 
@@ -523,7 +531,7 @@ export default function EstimateFinalPage() {
                                         {/* 기본 가격 */}
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-700">
-                                                ID:{item.itemTypeId} x {item.quantity}개
+                                                {item.itemTypeName} 
                                             </span>
                                             <span className="text-blue-600 font-semibold">
                                                 {item.basePrice.toLocaleString()}원
