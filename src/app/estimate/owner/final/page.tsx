@@ -3,57 +3,14 @@
 import React, { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
 import KakaoMapRoute from "@/components/kakao/KakaoMapRoute ";
-import { useRouter, useSearchParams } from 'next/navigation'; // [수정] useParams 추가
+import { useRouter, useSearchParams } from 'next/navigation'; 
+import type { Address, DetailInfo, Item } from '@/types/estimate';
+import { getCategoryCounts, getItemDetailsNoFrame, formatMoveDateTime, NOTES, formatAddressInfo } from '@/utils/estimateHelpers';
+
 import { authApi } from "@/lib/axios";
 import axios from "axios";
 
-
-// API 응답 데이터 타입 정의
-interface Address {
-    roadFullAddr: string;      // 전체 도로명 주소
-    roadAddrPart1: string;     // 도로명 주소 기본
-    zipNo: string;             // 우편번호
-    entX: string;              // 입구 X좌표
-    entY: string;              // 입구 Y좌표
-    addrDetail: string;        // 상세주소
-}
-
-interface DetailInfo {
-    buildingType: 'VILLA' | 'APARTMENT' | 'HOUSE' | 'OFFICETEL' | 'COMMERCIAL';
-    roomStructure: 'ONE_ROOM' | 'ONE_HALF_ROOM' | 'TWO_ROOM' | 'THREE_ROOM_OR_MORE';
-    sizeOption: string;        // 평수 옵션
-    floor: number;             // 층수
-    hasStairs: boolean;        // 계단 유무
-    hasParking: boolean;       // 주차장 유무
-    elevator: boolean;         // 엘리베이터 유무
-}
-
-interface Item {
-    id: number;                // 아이템 ID
-    itemTypeId: number;        // 아이템 타입 ID
-    itemTypeName: string;      // 아이템 이름
-    category: 'APPLIANCE' | 'FURNITURE' | 'OTHER';
-    quantity: number;          // 수량
-    type: string | null;       // 타입
-    width: string | null;      // 너비
-    height: string | null;     // 높이
-    depth: string | null;      // 깊이
-    material: string | null;   // 재질
-    size: string | null;       // 크기
-    shape: string | null;      // 형태
-    capacity: string | null;   // 용량
-    doorCount: string | null;  // 문 개수
-    unitCount: string | null;  // 유닛 개수
-    frame: string | null;      // 프레임
-    hasGlass: boolean;         // 유리 유무
-    foldable: boolean;         // 접이식 유무
-    hasWheels: boolean;        // 바퀴 유무
-    hasPrinter: boolean;       // 프린터 유무
-    purifierType: string | null; // 정수기 타입
-    specialNote: string | null;  // 특이사항
-}
-
-interface EstimateResponse {
+interface EstimateFinalResponse {
     success: boolean;          // API 호출 성공 여부
     message: string;           // API 응답 메시지
     data: {
@@ -81,93 +38,7 @@ interface ExtraCharge {
     reason: string;
 }
 
-// 카테고리별 아이템 개수 계산 함수
-const getCategoryCounts = (items: Item[]): Record<string, number> => {
-    return items.reduce((acc, item) => {
-        const category = item.category === 'APPLIANCE' ? '가전' :
-            item.category === 'FURNITURE' ? '가구' : '기타';
-        acc[category] = (acc[category] || 0) + item.quantity;
-        return acc;
-    }, {} as Record<string, number>);
-};
-
-// 아이템 세부사항을 문자열로 변환하는 함수
-const getItemDetails = (item: Item): string[] => {
-    const details: string[] = [];
-
-    if (item.type) details.push(`타입: ${item.type}`);
-    if (item.width && item.height && item.depth) {
-        details.push(`크기: ${item.width} x ${item.height} x ${item.depth}`);
-    }
-    if (item.material) details.push(`재질: ${item.material}`);
-    if (item.size) details.push(`사이즈: ${item.size}`);
-    if (item.shape) details.push(`형태: ${item.shape}`);
-    if (item.frame) details.push(`프레임: ${item.frame}`);
-    if (item.width) details.push(`너비: ${item.width}`);
-    if (item.capacity) details.push(`용량: ${item.capacity}`);
-    if (item.doorCount) details.push(`문 개수: ${item.doorCount}`);
-    if (item.unitCount) details.push(`수납장 개수: ${item.unitCount}`);
-    if (item.frame) details.push(`프레임: ${item.frame}`);
-    if (item.hasGlass) details.push('유리 포함');
-    if (item.foldable) details.push('접이식');
-    if (item.hasWheels) details.push('바퀴 있음');
-    if (item.hasPrinter) details.push('프린터 포함');
-    if (item.purifierType) details.push(`정수기 타입: ${item.purifierType}`);
-    if (item.specialNote) details.push(`특이사항: ${item.specialNote}`);
-
-    return details;
-};
-
-// 날짜/시간 포맷팅 함수
-const formatMoveDateTime = (moveDate?: string, moveTime?: string): string => {
-    if (!moveDate || !moveTime) return "";
-
-    // 1) 날짜 포맷 (YYYYMMDD → YYYY.MM.DD)
-    const year = moveDate.slice(0, 4);
-    const month = moveDate.slice(4, 6);
-    const day = moveDate.slice(6, 8);
-    const formattedDate = `${year}.${month}.${day}`;
-
-    // 2) 시간 문자열 추출
-    // ISO (T) 또는 공백 둘 다 처리, 밀리세컨드 제거
-    let rawTime: string;
-    if (moveTime.includes("T")) {
-        rawTime = moveTime.split("T")[1];
-    } else {
-        rawTime = moveTime.split(" ")[1] || moveTime;
-    }
-    rawTime = rawTime.split(".")[0]; // "14:00:00"
-
-    // 3) 시:분만 취하기
-    const [hourStr, minuteStr] = rawTime.split(":");
-    const hour = parseInt(hourStr, 10);
-    const minute = minuteStr.padStart(2, "0");
-
-    // 4) 오전/오후 + 12h→12h 변환
-    const ampm = hour < 12 ? "오전" : "오후";
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-
-    return `${formattedDate} ${ampm} ${displayHour}:${minute}`;
-};
-
-// ===== 상수 =====
-const NOTES = [
-    "사전에 협의되지 않은 항목은 서비스 당일 추가금이 발생할 수 있습니다.",
-    "견적 요청 후 24시간 동안 견적서를 받습니다.",
-    "제출 후 내용을 수정할 수 없습니다.",
-];
-
 const PILL_CLASS = "flex items-center h-12 px-4 gap-2 rounded-full border border-gray-300 bg-white w-full";
-
-const formatAddressInfo = (detailInfo: DetailInfo): string => {
-    const elevatorLabel = detailInfo.elevator ? "O" : "X";
-    return [
-        detailInfo.buildingType,        // 건물 타입 (VILLA 등)
-        detailInfo.sizeOption,          // 평수 옵션
-        `${detailInfo.floor}층`,        // 층수
-        `엘리베이터 ${elevatorLabel}`   // 🚨 엘리베이터 정보 추가
-    ].join(" | ");
-};
 
 export default function EstimateFinalPage() {
     // 상태 관리
@@ -175,7 +46,7 @@ export default function EstimateFinalPage() {
     const [truckCount, setTruckCount] = useState("");        // 트럭 개수
     const [ownerMessage, setOwnerMessage] = useState("");          // 사장님 전달사항
     const [boxCount, setBoxCount] = useState(5);             // 박스 개수
-    const [estimateData, setEstimateData] = useState<EstimateResponse | null>(null); // API 데이터
+    const [estimateData, setEstimateData] = useState<EstimateFinalResponse | null>(null); // API 데이터
     const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
     const [error, setError] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타' | '전체'>('전체');
@@ -204,7 +75,7 @@ export default function EstimateFinalPage() {
 
         const fetchEstimateData = async () => {
             try {
-                const response = await authApi.get<EstimateResponse>(`/estimates/owner/drafts/${estimateNo}`);
+                const response = await authApi.get<EstimateFinalResponse>(`/estimates/owner/drafts/${estimateNo}`);
                 console.log("🔥 moveDate:", response.data.data.moveDate);
                 console.log("🔥 moveTime:", response.data.data.moveTime);
                 setEstimateData(response.data);
@@ -249,7 +120,7 @@ export default function EstimateFinalPage() {
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
-        serviceType: estimateData.data.moveType === "SMALL" ? "가정이사" : "사무실이사",
+        serviceType: estimateData.data.moveType === "SMALL" ? "소형이사" : "가정이사",
         dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
         from: {
             address: estimateData.data.fromAddress.roadFullAddr,
@@ -441,7 +312,7 @@ export default function EstimateFinalPage() {
                                             </span>
                                         </div>
                                         <div className="space-y-1">
-                                            {getItemDetails(item).map((detail, idx) => (
+                                            {getItemDetailsNoFrame(item).map((detail, idx) => (
                                                 <div key={idx} className="text-xs text-gray-600 flex items-center">
                                                     <span className="text-blue-500 mr-1">•</span>
                                                     {detail}

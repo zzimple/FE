@@ -45,3 +45,48 @@ export const STATUS_BADGE_STYLES: Record<EstimateStatus, { bg: string; text: str
     ACCEPTED: { bg: "bg-green-50", text: "text-green-600", label: "수락" },
     REJECTED: { bg: "bg-red-50", text: "text-red-600", label: "거절" },
 }; 
+
+export interface Address {
+  roadFullAddr: string;      // 전체 도로명 주소
+  roadAddrPart1: string;     // 도로명 주소 기본
+  zipNo: string;             // 우편번호
+  entX: string;              // 입구 X좌표
+  entY: string;              // 입구 Y좌표
+  addrDetail: string;        // 상세주소
+}
+
+export interface DetailInfo {
+  buildingType: 'VILLA' | 'APARTMENT' | 'HOUSE' | 'OFFICETEL' | 'COMMERCIAL';
+  roomStructure: 'ONE_ROOM' | 'ONE_HALF_ROOM' | 'TWO_ROOM' | 'THREE_ROOM_OR_MORE';
+  sizeOption: string;        // 평수 옵션
+  floor: number;             // 층수
+  hasStairs: boolean;        // 계단 유무
+  hasParking: boolean;       // 주차장 유무
+  elevator: boolean;         // 엘리베이터 유무
+}
+
+export interface Item {
+  id: number;                // 아이템 ID
+  itemTypeId: number;        // 아이템 타입 ID
+  itemTypeName: string;      // 아이템 이름
+  category: 'APPLIANCE' | 'FURNITURE' | 'OTHER';
+  quantity: number;          // 수량
+  type: string | null;       // 타입
+  width: string | null;      // 너비
+  height: string | null;     // 높이
+  depth: string | null;      // 깊이
+  material: string | null;   // 재질
+  size: string | null;       // 크기
+  shape: string | null;      // 형태
+  capacity: string | null;   // 용량
+  doorCount: string | null;  // 문 개수
+  unitCount: string | null;  // 유닛 개수
+  frame: string | null;      // 프레임
+  hasGlass: boolean;         // 유리 유무
+  foldable: boolean;         // 접이식 유무
+  hasWheels: boolean;        // 바퀴 유무
+  hasPrinter: boolean;       // 프린터 유무
+  purifierType: string | null; // 정수기 타입
+  specialNote: string | null;  // 특이사항
+  requestNote?: string | null; // 고객 요청 메모
+}
