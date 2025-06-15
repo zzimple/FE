@@ -75,6 +75,41 @@ interface EstimateResponse {
     };
 }
 
+// 카테고리별 아이템 개수 계산 함수
+const getCategoryCounts = (items: Item[]): Record<string, number> => {
+    return items.reduce((acc, item) => {
+        const category = item.category === 'APPLIANCE' ? '가전' :
+            item.category === 'FURNITURE' ? '가구' : '기타';
+        acc[category] = (acc[category] || 0) + item.quantity;
+        return acc;
+    }, {} as Record<string, number>);
+};
+
+// 아이템 세부사항을 문자열로 변환하는 함수
+const getItemDetails = (item: Item): string[] => {
+    const details: string[] = [];
+
+    if (item.type) details.push(`타입: ${item.type}`);
+    if (item.width && item.height && item.depth) {
+        details.push(`크기: ${item.width} x ${item.height} x ${item.depth}`);
+    }
+    if (item.material) details.push(`재질: ${item.material}`);
+    if (item.size) details.push(`사이즈: ${item.size}`);
+    if (item.shape) details.push(`형태: ${item.shape}`);
+    if (item.capacity) details.push(`용량: ${item.capacity}`);
+    if (item.doorCount) details.push(`문 개수: ${item.doorCount}`);
+    if (item.unitCount) details.push(`수납장 개수: ${item.unitCount}`);
+    if (item.frame) details.push(`프레임: ${item.frame}`);
+    if (item.hasGlass) details.push('유리 포함');
+    if (item.foldable) details.push('접이식');
+    if (item.hasWheels) details.push('바퀴 있음');
+    if (item.hasPrinter) details.push('프린터 포함');
+    if (item.purifierType) details.push(`정수기 타입: ${item.purifierType}`);
+    if (item.specialNote) details.push(`특이사항: ${item.specialNote}`);
+
+    return details;
+};
+
 // 날짜/시간 포맷팅 함수
 const formatMoveDateTime = (moveDate?: string, moveTime?: string): string => {
     if (!moveDate || !moveTime) return "";
@@ -135,6 +170,8 @@ export default function Step8() {
     const [estimateData, setEstimateData] = useState<EstimateResponse | null>(null); // API 데이터
     const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
     const [error, setError] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타' | '전체'>('전체');
+
 
     const router = useRouter();
 
@@ -312,7 +349,70 @@ export default function Step8() {
                     <p className="text-xs text-blue-500 pl-1">{reviewData.to.info}</p>
                 </div>
 
-                {/* 엘리베이터, 짐 박스, 짐 목록 */}
+                {/* 물품 카테고리별 개수 */}
+                <div className="space-y-1">
+                    <div className="text-sm font-semibold text-gray-900 pl-1">물품 카테고리</div>
+                    <div className="flex gap-2 mb-4">
+                        {['가구', '가전', '기타'].map((category) => (
+                            <button
+                                key={category}
+                                onClick={() => setSelectedCategory(category as '가구' | '가전' | '기타')}
+                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                            ${selectedCategory === category
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+                            >
+                                {category}
+                                <span className="ml-1 text-xs">
+                                    ({getCategoryCounts(reviewData.items)[category] || 0})
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 물품 상세 목록 */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <div className="text-sm font-semibold text-gray-900 mb-2">물품 상세 목록</div>
+                    <div className="space-y-3">
+                        {reviewData.items
+                            .filter(item => {
+                                const category = item.category === 'APPLIANCE' ? '가전' :
+                                    item.category === 'FURNITURE' ? '가구' : '기타';
+                                return category === selectedCategory;
+                            })
+                            .map((item) => (
+                                <div key={item.id} className="border border-gray-200 rounded-lg p-3">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-gray-900">
+                                            {item.itemTypeName} x {item.quantity}개
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {item.category === 'APPLIANCE' ? '가전' :
+                                                item.category === 'FURNITURE' ? '가구' : '기타'}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {getItemDetails(item).map((detail, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600 flex items-center">
+                                                <span className="text-blue-500 mr-1">•</span>
+                                                {detail}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                </div>
+
+
+                {/* 고객님 메모 */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <div className="text-sm font-semibold text-gray-900 mb-2">고객님 메모</div>
+                    <div className="text-sm text-gray-700 whitespace-pre-line">{reviewData.memo}</div>
+                </div>
+
+                {/* 짐 박스, 짐 목록 */}
                 <div className="grid grid-cols-3 gap-2">
                     <div className={PILL_CLASS}>
                         <span className="flex-1 text-sm text-gray-600">짐 박스</span>
@@ -332,25 +432,6 @@ export default function Step8() {
                     </div>
                 </div>
 
-                {/* 물품 목록 */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">물품 목록</div>
-                    <div className="space-y-2">
-                        {reviewData.items.map(item => (
-                            <li key={item.id} className="flex justify-between text-sm text-gray-700">
-                                {/* 아이템명 x 수량 */}
-                                <span>{item.itemTypeName}</span>
-                                <span>{item.quantity}개</span>
-                            </li>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 고객님 메모 */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">고객님 메모</div>
-                    <div className="text-sm text-gray-700 whitespace-pre-line">{reviewData.memo}</div>
-                </div>
 
                 {/* 지도 */}
                 <div>
