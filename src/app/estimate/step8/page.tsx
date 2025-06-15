@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
-import EstimateHeader from "@/components/common/EstimateHeader";
 import KakaoMapRoute from "@/components/kakao/KakaoMapRoute ";
 import { useRouter, useSearchParams } from 'next/navigation'; // [수정] useParams 추가
 import { authApi } from "@/lib/axios";
@@ -72,6 +71,8 @@ interface EstimateResponse {
         leftoverBoxCount: number;  // 잔여 박스 개수
         items: Item[];             // 물품 목록
         customerMemo: string;      // 고객 메모
+        estimatedCost?: number;    // 예상 비용
+        finalPrice?: number;       // 최종 가격
     };
 }
 
@@ -181,6 +182,8 @@ export default function Step8() {
     const [duration, setDuration] = useState<number | null>(null);   // ← 추가
     const [distance, setDistance] = useState<number | null>(null);   // ← 추가
 
+    const [estimatedCost, setEstimatedCost] = useState<number>(0);
+
     // API 데이터 가져오기
     useEffect(() => {
         if (isNaN(estimateNo)) { // [수정] 잘못된 번호 방어 로직 추가
@@ -214,7 +217,21 @@ export default function Step8() {
             }
         };
 
+        // 예상비용 자동 조회 추가
+        const fetchEstimatedCost = async () => {
+            try {
+                const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
+                const items = res.data.data.items || [];
+                const total = items.reduce((sum: number, item: any) => sum + (item.itemTotal || 0), 0);
+                setEstimatedCost(total);
+                console.log("🔥 estimatedCost:", estimatedCost);
+            } catch {
+                setEstimatedCost(0);
+            }
+        };
+
         fetchEstimateData();
+        fetchEstimatedCost(); // 🚩 예상비용 자동 호출 추가
     }, [estimateNo]);
 
     // ===== 데이터 변환 =====
@@ -224,31 +241,27 @@ export default function Step8() {
         from: {
             address: estimateData.data.fromAddress.roadFullAddr,
             info: formatAddressInfo(estimateData.data.fromDetailInfo),
-            coord: {  // 🚀 entX/entY 추가
+            coord: {
                 x: parseFloat(estimateData.data.fromAddress.entX),
                 y: parseFloat(estimateData.data.fromAddress.entY),
             }
         },
-
         to: {
             address: estimateData.data.toAddress.roadFullAddr,
             info: formatAddressInfo(estimateData.data.toDetailInfo),
-            coord: {  // 🚀 entX/entY 추가
+            coord: {
                 x: parseFloat(estimateData.data.toAddress.entX),
                 y: parseFloat(estimateData.data.toAddress.entY),
             }
         },
-
         boxCount: estimateData.data.boxCount || 0,
         leftoverBoxCount: estimateData.data.leftoverBoxCount ?? 0,
         itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
         notes: NOTES,
-        // items: estimateData.data.items.map(item => ({
-        //     name: item.itemTypeName,
-        //     price: 0,
-        // })),
         items: estimateData.data.items,
+        estimatedCost: estimateData.data.estimatedCost || 0,
+        finalPrice: estimateData.data.finalPrice || 0,
     } : null;
 
     // ===== 이벤트 핸들러 =====
@@ -279,8 +292,8 @@ export default function Step8() {
     };
 
     const handleCancel = () => {
-        if (confirm('견적서 작성을 취소하시겠습니까?')) {
-            router.push('/estimate');
+        if (confirm('견적서 작성을 취소하시겠습니까? 입력하신 내용은 저장되지 않습니다.')) {
+            router.push('/estimate/owner/publiclist');
         }
     };
 
@@ -311,7 +324,7 @@ export default function Step8() {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto py-8 px-4">
                 <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 상세</h1>
-                
+
                 <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
                     {/* 서비스 타입 */}
                     <div className="space-y-1">
@@ -356,8 +369,8 @@ export default function Step8() {
                                     key={category}
                                     onClick={() => setSelectedCategory(category as '가구' | '가전' | '기타')}
                                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
-                                        ${selectedCategory === category 
-                                            ? 'bg-blue-500 text-white' 
+                                        ${selectedCategory === category
+                                            ? 'bg-blue-500 text-white'
                                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
                                 >
                                     {category}
@@ -446,8 +459,7 @@ export default function Step8() {
                     <div className="space-y-3">
                         <div>
                             <div className="flex items-center mb-1">
-                                <span className="text-sm font-semibold text-gray-900">예상 비용</span>
-                                <span className="text-xs text-red-500 ml-1">*</span>
+                                <span className="text-sm font-semibold text-gray-900">짐 목록 예상 비용</span>
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -457,6 +469,12 @@ export default function Step8() {
                                 >
                                     책정하기
                                 </Button>
+                                <div className={PILL_CLASS}>
+                                    <span className="flex-1 text-sm text-gray-600">예상 비용</span>
+                                    <div className="text-blue-600 font-semibold text-sm">
+                                        {estimatedCost?.toLocaleString()}원
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -486,10 +504,15 @@ export default function Step8() {
                         </div>
                     </div>
 
-                    {/* 최종 가격 */}
-                    <div className="flex justify-end items-center mt-2">
-                        <span className="text-base font-semibold text-gray-900">최종 가격 : </span>
-                        <span className="ml-2 text-lg font-bold text-blue-600">{cost ? `${cost}원` : "- 원"}</span>
+                    {/* 최종 가격 정보 */}
+                    <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div className="text-sm font-semibold text-blue-900 mb-2">최종 가격 정보</div>
+                        <div className="text-lg font-bold text-blue-600">
+                            {reviewData.finalPrice?.toLocaleString()}원
+                        </div>
+                        <div className="text-xs text-blue-600 mt-1">
+                            * 예상 비용과 최종 가격은 서비스 옵션에 따라 변동될 수 있습니다.
+                        </div>
                     </div>
 
                     {/* 유의사항 */}
@@ -504,13 +527,13 @@ export default function Step8() {
 
                     {/* 버튼 */}
                     <div className="flex gap-2">
-                        <Button 
+                        <Button
                             className="flex-1 h-14 bg-gray-500 text-white"
                             onClick={handleCancel}
                         >
                             작성 안 할래요
                         </Button>
-                        <Button 
+                        <Button
                             className="flex-1 h-14 bg-blue-500 text-white"
                             onClick={handleSubmit}
                         >
