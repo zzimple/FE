@@ -222,7 +222,7 @@ export default function EstimateFinalPage() {
                 console.log("🔥 최종 가격 계산 완료:", calcResp.data);
 
                 // ✅ [수정] 견적서 데이터 다시 불러오기
-                const response = await authApi.get<EstimateResponse>(`/estimates/owner/drafts/${estimateNo}`);
+                const response = await authApi.get<EstimateResponse>(`/view/estimate/${estimateNo}`);
                 console.log("🔥 견적서 불러오기 완료:", response.data);
                 setEstimateData(response.data);
                 setError(null);
@@ -233,23 +233,7 @@ export default function EstimateFinalPage() {
                 setIsLoading(false);
             }
         };
-
-        // // 별도로 예상 비용도 계산 (선택적)
-        // const fetchEstimatedCost = async () => {
-        //     try {
-        //         const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
-        //         const items = res.data.data.items || [];
-        //         const total = items.reduce((sum: number, item: any) => sum + (item.itemTotal || 0), 0);
-        //         setEstimatedCost(total);
-        //         console.log("🔥 estimatedCost:", total);
-        //     } catch (e) {
-        //         console.warn("예상 비용 계산 실패:", e);
-        //         setEstimatedCost(0);
-        //     }
-        // };
-
-        // fetchEstimatedCost(); // [주석] 예상 비용은 참고용 (UI에는 사용 안함)
-        fetchAndCalculate();  // [주석] 최종 가격 계산 및 불러오기
+        fetchAndCalculate(); 
     }, [estimateNo]);
 
 
@@ -277,7 +261,7 @@ export default function EstimateFinalPage() {
         leftoverBoxCount: estimateData.data.leftoverBoxCount ?? 0,
         truckCount: estimateData.data.truckCount,
         ownerMessage: estimateData.data.ownerMessage,
-        itemCount: estimateData.data.items.length,
+        // itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
         notes: NOTES,
         itemPriceDetails: estimateData.data.itemPriceDetails,
@@ -512,13 +496,26 @@ export default function EstimateFinalPage() {
                             <div className="text-sm font-semibold mb-2">물품별 가격</div>
                             <ul className="space-y-2">
                                 {reviewData.itemPriceDetails?.map((item, idx) => (
-                                    <li key={idx} className="flex flex-col gap-1 border-b last:border-b-0 pb-2 last:pb-0">
+                                    <li
+                                        key={idx}
+                                        className="flex flex-col gap-1 border-b last:border-b-0 pb-2 last:pb-0"
+                                    >
+                                        {/* 기본 가격 */}
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-700">ID:{item.itemTypeId} x {item.quantity}개</span>
-                                            <span className="text-blue-600 font-semibold">{item.basePrice.toLocaleString()}원</span>
+                                            <span className="text-gray-700">
+                                                ID:{item.itemTypeId} x {item.quantity}개
+                                            </span>
+                                            <span className="text-blue-600 font-semibold">
+                                                {item.basePrice.toLocaleString()}원
+                                            </span>
                                         </div>
+
+                                        {/* ─── 여기서 extraCharges만 무조건 출력 ─── */}
                                         {item.extraCharges?.map((charge, cidx) => (
-                                            <div key={cidx} className="flex justify-between text-xs text-gray-500 pl-2">
+                                            <div
+                                                key={cidx}
+                                                className="flex justify-between text-xs text-gray-500 pl-2"
+                                            >
                                                 <span>+ {charge.reason}</span>
                                                 <span>+{charge.amount.toLocaleString()}원</span>
                                             </div>
