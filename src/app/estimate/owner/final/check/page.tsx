@@ -302,29 +302,10 @@ export default function EstimateFinalPage() {
     } : null;
 
     // ===== 이벤트 핸들러 =====
-    const handleSubmit = async () => {
-        if (!estimateData) {
-            setError('데이터를 불러오지 못했습니다.');
-            return;
-        }
-
-        try {
-            const response = await authApi.post('/estimates/submit', {
-                estimateNo: estimateData.data.estimateNo,
-                truckCount: parseInt(truckCount),
-                ownerNote,
-            });
-
-            if (response.data.success) {
-                router.push('/estimate/complete');
-            } else {
-                setError('견적서 제출에 실패했습니다.');
-            }
-        } catch (err) {
-            console.error('견적서 제출 중 오류가 발생했습니다:', err);
-            setError('견적서 제출 중 오류가 발생했습니다.');
-        }
-    };
+    const handleSubmit = () => {
+        // API 호출 생략
+        router.push('/estimate/owner/publiclist');
+    }
 
     // ===== 렌더링 =====
     if (isLoading) {
@@ -531,7 +512,7 @@ export default function EstimateFinalPage() {
                                         {/* 기본 가격 */}
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-700">
-                                                {item.itemTypeName} 
+                                                {item.itemTypeName}
                                             </span>
                                             <span className="text-blue-600 font-semibold">
                                                 {item.basePrice.toLocaleString()}원
