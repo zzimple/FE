@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
-import KakaoMapRoute from "@/components/kakao/KakaoMapRoute ";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from "@/lib/axios";
+import axios from "axios";
+import KakaoMapRoute from "@/components/kakao/KakaoMapRoute ";
+
 
 // API 응답 데이터 타입 정의
 interface Address {
@@ -26,44 +28,107 @@ interface DetailInfo {
     elevator: boolean;         // 엘리베이터 유무
 }
 
-interface ExtraCharge {
-    reason: string;
-    amount: number;
-}
-
-interface ItemPriceDetail {
-    itemTypeId: number;
-    quantity: number;
-    basePrice: number;
-    extraCharges: ExtraCharge[];
+interface Item {
+    id: number;                // 아이템 ID
+    itemTypeId: number;        // 아이템 타입 ID
+    itemTypeName: string;      // 아이템 이름
+    category: 'APPLIANCE' | 'FURNITURE' | 'OTHER';
+    quantity: number;          // 수량
+    type: string | null;       // 타입
+    width: string | null;      // 너비
+    height: string | null;     // 높이
+    depth: string | null;      // 깊이
+    material: string | null;   // 재질
+    size: string | null;       // 크기
+    shape: string | null;      // 형태
+    capacity: string | null;   // 용량
+    doorCount: string | null;  // 문 개수
+    unitCount: string | null;  // 유닛 개수
+    frame: string | null;      // 프레임
+    hasGlass: boolean;         // 유리 유무
+    foldable: boolean;         // 접이식 유무
+    hasWheels: boolean;        // 바퀴 유무
+    hasPrinter: boolean;       // 프린터 유무
+    purifierType: string | null; // 정수기 타입
+    specialNote: string | null;  // 특이사항
+    requestNote: string | null;
 }
 
 interface EstimateResponse {
-    success: boolean;
-    code: string;
-    message: string;
+    success: boolean;          // API 호출 성공 여부
+    message: string;           // API 응답 메시지
     data: {
-        estimateNo: number;
-        storeName: string;
-        ownerName: string;
-        ownerPhone: string;
-        userId: number;
-        moveDate: string;
+        estimateNo: number;      // 견적서 번호
+        userId: number;          // 사용자 ID
+        moveDate: string;        // 이사 날짜
         moveTime: string;
         moveType: 'SMALL' | 'FAMILY';
         optionType: 'BASIC' | 'PACKAGING' | 'SEMI_PACKAGING';
-        fromAddress: Address;
-        fromDetailInfo: DetailInfo;
-        toAddress: Address;
-        toDetailInfo: DetailInfo;
-        customerMemo: string;
+        fromAddress: Address;    // 출발지 주소
+        fromDetailInfo: DetailInfo; // 출발지 상세정보
+        toAddress: Address;      // 도착지 주소
+        toDetailInfo: DetailInfo;  // 도착지 상세정보
+        boxCount: number;   // 박스 개수
+        leftoverBoxCount: number;  // 잔여 박스 개수
+        items: Item[];             // 물품 목록
+        customerMemo: string;      // 고객 메모
         truckCount: number;
         ownerMessage: string;
-        itemPriceDetails: ItemPriceDetail[];
-        extraCharges: ExtraCharge[];
-        totalPrice: number;
+        estimatedCost?: number;    // 예상 비용
+        finalPrice?: number;       // 최종 가격
+        extraCharges?: Array<{     // 추가 요금
+            amount: number;
+            reason: string;
+        }>;
+        itemPriceDetails?: Array<{  // 아이템 가격 상세
+            itemTypeId: number;
+            quantity: number;
+            basePrice: number;
+            extraCharges?: Array<{
+                amount: number;
+                reason: string;
+            }>;
+        }>;
+        storeName?: string;        // 매장명
+        ownerName?: string;        // 사장님 이름
+        ownerPhone?: string;       // 사장님 전화번호
     };
 }
+
+// 카테고리별 아이템 개수 계산 함수
+const getCategoryCounts = (items: Item[]): Record<string, number> => {
+    return items.reduce((acc, item) => {
+        const category = item.category === 'APPLIANCE' ? '가전' :
+            item.category === 'FURNITURE' ? '가구' : '기타';
+        acc[category] = (acc[category] || 0) + item.quantity;
+        return acc;
+    }, {} as Record<string, number>);
+};
+
+// 아이템 세부사항을 문자열로 변환하는 함수
+const getItemDetailsNoFrame = (item: Item): string[] => {
+    const details: string[] = [];
+    if (item.type) details.push(`타입: ${item.type}`);
+    if (item.width && item.height && item.depth) {
+        details.push(`크기: ${item.width} x ${item.height} x ${item.depth}`);
+    }
+    if (item.material) details.push(`재질: ${item.material}`);
+    if (item.size) details.push(`사이즈: ${item.size}`);
+    if (item.frame) details.push(`프레임: ${item.frame}`);
+    if (item.width) details.push(`너비: ${item.width}`);
+    if (item.requestNote) details.push(`너비: ${item.requestNote}`);
+    if (item.shape) details.push(`형태: ${item.shape}`);
+    if (item.capacity) details.push(`용량: ${item.capacity}`);
+    if (item.doorCount) details.push(`문 개수: ${item.doorCount}`);
+    if (item.unitCount) details.push(`수납장 개수: ${item.unitCount}`);
+    if (item.hasGlass) details.push('유리 포함');
+    if (item.foldable) details.push('접이식');
+    if (item.hasWheels) details.push('바퀴 있음');
+    if (item.hasPrinter) details.push('프린터 포함');
+    if (item.purifierType) details.push(`정수기 타입: ${item.purifierType}`);
+    if (item.specialNote) details.push(`특이사항: ${item.specialNote}`);
+    return details;
+};
 
 // 날짜/시간 포맷팅 함수
 const formatMoveDateTime = (moveDate?: string, moveTime?: string): string => {
@@ -116,14 +181,23 @@ const formatAddressInfo = (detailInfo: DetailInfo): string => {
     ].join(" | ");
 };
 
+// 카테고리 한글 변환 함수
+const categoryKor = (category: string) => {
+    if (category === 'APPLIANCE') return '가전';
+    if (category === 'FURNITURE') return '가구';
+    return '기타';
+};
+
 export default function EstimateFinalPage() {
     // 상태 관리
+    const [truckCount, setTruckCount] = useState("");        // 트럭 개수
+    const [ownerNote, setOwnerNote] = useState("");          // 사장님 전달사항
     const [estimateData, setEstimateData] = useState<EstimateResponse | null>(null); // API 데이터
     const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
     const [error, setError] = useState<string | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타' | '전체'>('전체');
-    const [duration, setDuration] = useState<number | null>(null);
-    const [distance, setDistance] = useState<number | null>(null);
+    const [duration, setDuration] = useState<number | null>(null);   // 예상 소요 시간
+    const [distance, setDistance] = useState<number | null>(null);   // 예상 거리
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -137,27 +211,48 @@ export default function EstimateFinalPage() {
             return;
         }
 
-        const fetchEstimateData = async () => {
+        const fetchAndCalculate = async () => {
             try {
-                const response = await authApi.get<EstimateResponse>(`/view/estimate/${estimateNo}`);
+                // ✅ [수정] 최종 가격 계산 먼저
+                const calcResp = await authApi.post(`/estimates/owner/drafts/${estimateNo}/calculate-and-save-final`);
+                console.log("🔥 최종 가격 계산 완료:", calcResp.data);
+
+                // ✅ [수정] 견적서 데이터 다시 불러오기
+                const response = await authApi.get<EstimateResponse>(`/estimates/owner/drafts/${estimateNo}`);
                 console.log("🔥 견적서 불러오기 완료:", response.data);
                 setEstimateData(response.data);
                 setError(null);
             } catch (e) {
-                console.error("견적서 조회 실패:", e);
+                console.error("견적서 계산 또는 조회 실패:", e);
                 setError('견적서 정보를 불러오지 못했습니다.');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchEstimateData();
+        // // 별도로 예상 비용도 계산 (선택적)
+        // const fetchEstimatedCost = async () => {
+        //     try {
+        //         const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
+        //         const items = res.data.data.items || [];
+        //         const total = items.reduce((sum: number, item: any) => sum + (item.itemTotal || 0), 0);
+        //         setEstimatedCost(total);
+        //         console.log("🔥 estimatedCost:", total);
+        //     } catch (e) {
+        //         console.warn("예상 비용 계산 실패:", e);
+        //         setEstimatedCost(0);
+        //     }
+        // };
+
+        // fetchEstimatedCost(); // [주석] 예상 비용은 참고용 (UI에는 사용 안함)
+        fetchAndCalculate();  // [주석] 최종 가격 계산 및 불러오기
     }, [estimateNo]);
+
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
         serviceType: estimateData.data.moveType === "SMALL" ? "가정이사" : "사무실이사",
-        dateTime: formatMoveDateTime(estimateData.data.moveDate),
+        dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
         from: {
             address: estimateData.data.fromAddress.roadFullAddr,
             info: formatAddressInfo(estimateData.data.fromDetailInfo),
@@ -174,16 +269,16 @@ export default function EstimateFinalPage() {
                 y: parseFloat(estimateData.data.toAddress.entY),
             }
         },
-        boxCount: 0, // API 응답에 없음
-        leftoverBoxCount: 0, // API 응답에 없음
+        boxCount: estimateData.data.boxCount || 0,
+        leftoverBoxCount: estimateData.data.leftoverBoxCount ?? 0,
         truckCount: estimateData.data.truckCount,
         ownerMessage: estimateData.data.ownerMessage,
-        itemCount: estimateData.data.itemPriceDetails.length,
+        itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
         notes: NOTES,
         extraCharges: estimateData.data.extraCharges,
         itemPriceDetails: estimateData.data.itemPriceDetails,
-        finalPrice: estimateData.data.totalPrice,
+        finalPrice: estimateData.data.finalPrice || 0,
         storeName: estimateData.data.storeName,
         ownerName: estimateData.data.ownerName,
         ownerPhone: estimateData.data.ownerPhone
@@ -192,23 +287,25 @@ export default function EstimateFinalPage() {
     // ===== 이벤트 핸들러 =====
     const handleSubmit = async () => {
         if (!estimateData) {
-            alert('데이터를 불러오지 못했습니다.');
+            setError('데이터를 불러오지 못했습니다.');
             return;
         }
 
         try {
             const response = await authApi.post('/estimates/submit', {
-                estimateNo: estimateData.data.estimateNo
+                estimateNo: estimateData.data.estimateNo,
+                truckCount: parseInt(truckCount),
+                ownerNote,
             });
 
             if (response.data.success) {
                 router.push('/estimate/complete');
             } else {
-                alert('견적서 제출에 실패했습니다.');
+                setError('견적서 제출에 실패했습니다.');
             }
         } catch (err) {
             console.error('견적서 제출 중 오류가 발생했습니다:', err);
-            alert('견적서 제출 중 오류가 발생했습니다.');
+            setError('견적서 제출 중 오류가 발생했습니다.');
         }
     };
 
@@ -225,6 +322,7 @@ export default function EstimateFinalPage() {
         return <div className="min-h-screen flex items-center justify-center">데이터를 불러올 수 없습니다.</div>;
     }
 
+
     // 시간/거리 포맷팅 헬퍼
     const formattedTime = duration != null
         ? `${Math.floor(duration / 60)}분`
@@ -232,6 +330,7 @@ export default function EstimateFinalPage() {
     const formattedDist = distance != null
         ? `${(distance / 1000).toFixed(1)}km`
         : "- km";
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -273,54 +372,57 @@ export default function EstimateFinalPage() {
                         <p className="text-xs text-blue-500">{reviewData.to.info}</p>
                     </div>
 
-                    {/* 물품 상세 목록 */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold">물품 목록</h2>
-                            <div className="flex gap-2">
-                                {(['전체', '가구', '가전', '기타'] as const).map((category) => (
-                                    <button
-                                        key={category}
-                                        onClick={() => setSelectedCategory(category)}
-                                        className={`px-4 py-2 rounded-full text-sm ${
-                                            selectedCategory === category
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        {category}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                    {/* 카테고리 버튼 */}
+                    <div className="flex gap-2 mb-4">
+                        {['가구', '가전', '기타'].map((category) => (
+                            <button
+                                key={category}
+                                onClick={() => setSelectedCategory(category as '가구' | '가전' | '기타')}
+                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                                    ${selectedCategory === category
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+                            >
+                                {category}
+                                <span className="ml-1 text-xs">
+                                    ({getCategoryCounts(estimateData?.data.items || [])[category] || 0})
+                                </span>
+                            </button>
+                        ))}
+                    </div>
 
-                        {/* 아이템 목록 */}
-                        {reviewData?.itemPriceDetails && reviewData.itemPriceDetails.length > 0 && (
-                            <div className="space-y-4">
-                                {reviewData.itemPriceDetails.map((detail, index) => (
-                                    <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    {/* 물품 상세 목록 */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <div className="text-sm font-semibold text-gray-900 mb-2">물품 상세 목록</div>
+                        <div className="space-y-3">
+                            {(estimateData?.data.items || [])
+                                .filter(item => {
+                                    const category = item.category === 'APPLIANCE' ? '가전' :
+                                        item.category === 'FURNITURE' ? '가구' : '기타';
+                                    return category === selectedCategory;
+                                })
+                                .map((item) => (
+                                    <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-white">
                                         <div className="flex justify-between items-center mb-2">
-                                            <span className="font-medium">아이템 #{detail.itemTypeId}</span>
-                                            <span className="text-sm text-gray-500">수량: {detail.quantity}개</span>
+                                            <span className="text-sm font-medium text-gray-900">
+                                                {item.itemTypeName} x {item.quantity}개
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                {item.category === 'APPLIANCE' ? '가전' :
+                                                    item.category === 'FURNITURE' ? '가구' : '기타'}
+                                            </span>
                                         </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-gray-600">기본 가격</span>
-                                            <span className="font-medium">{detail.basePrice.toLocaleString()}원</span>
+                                        <div className="space-y-1">
+                                            {getItemDetailsNoFrame(item).map((detail, idx) => (
+                                                <div key={idx} className="text-xs text-gray-600 flex items-center">
+                                                    <span className="text-blue-500 mr-1">•</span>
+                                                    {detail}
+                                                </div>
+                                            ))}
                                         </div>
-                                        {detail.extraCharges && detail.extraCharges.length > 0 && (
-                                            <div className="mt-2 space-y-1">
-                                                {detail.extraCharges.map((charge, chargeIndex) => (
-                                                    <div key={chargeIndex} className="flex justify-between items-center text-sm">
-                                                        <span className="text-gray-600">{charge.reason}</span>
-                                                        <span className="font-medium">+{charge.amount.toLocaleString()}원</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 ))}
-                            </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* 고객님 메모 */}
@@ -351,7 +453,7 @@ export default function EstimateFinalPage() {
                         <KakaoMapRoute
                             from={reviewData.from.coord}
                             to={reviewData.to.coord}
-                            onStats={(d, m) => {
+                            onStats={(d: number, m: number) => {
                                 setDuration(d);
                                 setDistance(m);
                             }}
@@ -396,7 +498,7 @@ export default function EstimateFinalPage() {
                         </div>
                     </div>
 
-                    {/* 최종 가격 정보 */}
+                      {/* 최종 가격 정보 */}
                     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                         <h2 className="text-xl font-semibold mb-4">최종 가격 정보</h2>
                         <div className="space-y-4">
@@ -452,3 +554,6 @@ export default function EstimateFinalPage() {
     );
 }
 
+function setError(arg0: null) {
+    throw new Error("Function not implemented.");
+}
