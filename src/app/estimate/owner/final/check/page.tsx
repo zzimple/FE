@@ -92,6 +92,7 @@ interface EstimateResponse {
         storeName?: string;        // 매장명
         ownerName?: string;        // 사장님 이름
         ownerPhone?: string;       // 사장님 전화번호
+        totalPrice?: number;       // 총액
     };
 }
 
@@ -192,6 +193,7 @@ export default function EstimateFinalPage() {
     // 상태 관리
     const [truckCount, setTruckCount] = useState("");        // 트럭 개수
     const [ownerNote, setOwnerNote] = useState("");          // 사장님 전달사항
+    const [finalTotal, setFinalTotal] = useState("");
     const [estimateData, setEstimateData] = useState<EstimateResponse | null>(null); // API 데이터
     const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
     const [error, setError] = useState<string | null>(null);
@@ -215,6 +217,8 @@ export default function EstimateFinalPage() {
             try {
                 // ✅ [수정] 최종 가격 계산 먼저
                 const calcResp = await authApi.post(`/estimates/owner/drafts/${estimateNo}/calculate-and-save-final`);
+                setFinalTotal(calcResp.data.data.finalTotal);
+
                 console.log("🔥 최종 가격 계산 완료:", calcResp.data);
 
                 // ✅ [수정] 견적서 데이터 다시 불러오기
@@ -276,9 +280,10 @@ export default function EstimateFinalPage() {
         itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
         notes: NOTES,
-        extraCharges: estimateData.data.extraCharges,
         itemPriceDetails: estimateData.data.itemPriceDetails,
-        finalPrice: estimateData.data.finalPrice || 0,
+        extraCharges: estimateData.data.extraCharges,
+        items: estimateData.data.items,
+        totalPrice: estimateData.data.totalPrice,
         storeName: estimateData.data.storeName,
         ownerName: estimateData.data.ownerName,
         ownerPhone: estimateData.data.ownerPhone
@@ -498,34 +503,52 @@ export default function EstimateFinalPage() {
                         </div>
                     </div>
 
-                      {/* 최종 가격 정보 */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                        <h2 className="text-xl font-semibold mb-4">최종 가격 정보</h2>
-                        <div className="space-y-4">
-                            {/* 추가 요금 */}
-                            {reviewData?.extraCharges && reviewData.extraCharges.length > 0 && (
-                                <div className="border-t pt-4">
-                                    <h3 className="text-lg font-medium mb-3">추가 요금 내역</h3>
-                                    <div className="space-y-2">
-                                        {reviewData.extraCharges.map((charge, index) => (
-                                            <div key={index} className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-600">{charge.reason}</span>
-                                                <span className="font-medium">+{charge.amount.toLocaleString()}원</span>
+                    {/* 최종 가격 정보 */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-6 mt-8">
+                        <h2 className="text-lg font-bold mb-4">최종 가격 정보</h2>
+                        {/* 물품별 가격 상세 */}
+                        {/* 물품별 가격 상세 */}
+                        <div className="mb-6">
+                            <div className="text-sm font-semibold mb-2">물품별 가격</div>
+                            <ul className="space-y-2">
+                                {reviewData.itemPriceDetails?.map((item, idx) => (
+                                    <li key={idx} className="flex flex-col gap-1 border-b last:border-b-0 pb-2 last:pb-0">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-700">ID:{item.itemTypeId} x {item.quantity}개</span>
+                                            <span className="text-blue-600 font-semibold">{item.basePrice.toLocaleString()}원</span>
+                                        </div>
+                                        {item.extraCharges?.map((charge, cidx) => (
+                                            <div key={cidx} className="flex justify-between text-xs text-gray-500 pl-2">
+                                                <span>+ {charge.reason}</span>
+                                                <span>+{charge.amount.toLocaleString()}원</span>
                                             </div>
                                         ))}
-                                    </div>
-                                </div>
-                            )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
 
-                            {/* 총액 */}
-                            <div className="border-t pt-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-lg font-semibold">총액</span>
-                                    <span className="text-xl font-bold text-blue-600">
-                                        {reviewData?.finalPrice.toLocaleString()}원
-                                    </span>
-                                </div>
+                        {/* 추가 요금 내역 */}
+                        {reviewData.extraCharges && reviewData.extraCharges.length > 0 && (
+                            <div className="mb-4">
+                                <div className="text-sm font-semibold mb-2">추가 요금</div>
+                                <ul className="space-y-1">
+                                    {reviewData.extraCharges.map((charge, idx) => (
+                                        <li key={idx} className="flex justify-between text-sm">
+                                            <span className="text-gray-600">{charge.reason}</span>
+                                            <span className="text-blue-600 font-semibold">+{charge.amount.toLocaleString()}원</span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
+                        )}
+
+                        {/* 총액 */}
+                        <div className="flex justify-between items-center border-t pt-4 mt-4">
+                            <span className="text-base font-bold">총액</span>
+                            <span className="text-2xl font-bold text-blue-600">
+                                {finalTotal !== null ? finalTotal.toLocaleString() : '계산 중...'}원
+                            </span>
                         </div>
                     </div>
 
