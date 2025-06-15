@@ -213,28 +213,48 @@ export default function EstimateFinalPage() {
             return;
         }
 
-        const fetchAndCalculate = async () => {
+        const loadAll = async () => {
             try {
-                // ✅ [수정] 최종 가격 계산 먼저
-                const calcResp = await authApi.post(`/estimates/owner/drafts/${estimateNo}/calculate-and-save-final`);
+                // 1) 최종 합계 계산
+                const calcResp = await authApi.post(
+                    `/estimates/owner/drafts/${estimateNo}/calculate-and-save-final`
+                );
                 setFinalTotal(calcResp.data.data.finalTotal);
 
-                console.log("🔥 최종 가격 계산 완료:", calcResp.data);
+                // 2) owner drafts 기본 정보
+                const draftResp = await authApi.get<EstimateResponse>(
+                    `/estimates/owner/drafts/${estimateNo}`
+                );
 
-                // ✅ [수정] 견적서 데이터 다시 불러오기
-                const response = await authApi.get<EstimateResponse>(`/view/estimate/${estimateNo}`);
-                console.log("🔥 견적서 불러오기 완료:", response.data);
-                setEstimateData(response.data);
+                // 3) view estimate 상세 정보 (itemPriceDetails, extraCharges, totalPrice)
+                const viewResp = await authApi.get<EstimateResponse>(
+                    `/view/estimate/${estimateNo}`
+                );
+
+                // 4) 두 응답을 머지해서 state에 저장
+                setEstimateData({
+                    ...draftResp.data,
+                    data: {
+                        ...draftResp.data.data,
+                        // viewResp쪽 data로 덮어쓰기
+                        itemPriceDetails: viewResp.data.data.itemPriceDetails,
+                        extraCharges: viewResp.data.data.extraCharges,
+                        totalPrice: viewResp.data.data.totalPrice,
+                    }
+                });
+
                 setError(null);
-            } catch (e) {
-                console.error("견적서 계산 또는 조회 실패:", e);
-                setError('견적서 정보를 불러오지 못했습니다.');
+            } catch (err) {
+                console.error(err);
+                setError('데이터 로딩 중 오류가 발생했습니다.');
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchAndCalculate(); 
+
+        loadAll();
     }, [estimateNo]);
+
 
 
     // ===== 데이터 변환 =====
