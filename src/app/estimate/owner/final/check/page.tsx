@@ -49,7 +49,7 @@ interface EstimateResponse {
         ownerPhone: string;
         userId: number;
         moveDate: string;
-        moveTime: string;  // ISO 형식의 시간 문자열
+        moveTime: string;
         moveType: 'SMALL' | 'FAMILY';
         optionType: 'BASIC' | 'PACKAGING' | 'SEMI_PACKAGING';
         fromAddress: Address;
@@ -75,16 +75,26 @@ const formatMoveDateTime = (moveDate?: string, moveTime?: string): string => {
     const day = moveDate.slice(6, 8);
     const formattedDate = `${year}.${month}.${day}`;
 
-    // 2) ISO 시간 문자열 파싱
-    const date = new Date(moveTime);
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+    // 2) 시간 문자열 추출
+    // ISO (T) 또는 공백 둘 다 처리, 밀리세컨드 제거
+    let rawTime: string;
+    if (moveTime.includes("T")) {
+        rawTime = moveTime.split("T")[1];
+    } else {
+        rawTime = moveTime.split(" ")[1] || moveTime;
+    }
+    rawTime = rawTime.split(".")[0]; // "14:00:00"
 
-    // 3) 오전/오후 + 12시간제 변환
-    const ampm = hours < 12 ? "오전" : "오후";
-    const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+    // 3) 시:분만 취하기
+    const [hourStr, minuteStr] = rawTime.split(":");
+    const hour = parseInt(hourStr, 10);
+    const minute = minuteStr.padStart(2, "0");
 
-    return `${formattedDate} ${ampm} ${displayHour}:${minutes}`;
+    // 4) 오전/오후 + 12h→12h 변환
+    const ampm = hour < 12 ? "오전" : "오후";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+    return `${formattedDate} ${ampm} ${displayHour}:${minute}`;
 };
 
 // ===== 상수 =====
@@ -111,7 +121,7 @@ export default function EstimateFinalPage() {
     const [estimateData, setEstimateData] = useState<EstimateResponse | null>(null); // API 데이터
     const [isLoading, setIsLoading] = useState(true);        // 로딩 상태
     const [error, setError] = useState<string | null>(null);
-    const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타'>('전체');
+    const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타' | '전체'>('전체');
     const [duration, setDuration] = useState<number | null>(null);
     const [distance, setDistance] = useState<number | null>(null);
 
@@ -147,7 +157,7 @@ export default function EstimateFinalPage() {
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
         serviceType: estimateData.data.moveType === "SMALL" ? "가정이사" : "사무실이사",
-        dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
+        dateTime: formatMoveDateTime(estimateData.data.moveDate),
         from: {
             address: estimateData.data.fromAddress.roadFullAddr,
             info: formatAddressInfo(estimateData.data.fromDetailInfo),
