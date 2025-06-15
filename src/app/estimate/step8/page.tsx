@@ -453,7 +453,7 @@ export default function Step8() {
                                 <Button
                                     className="!h-6 px-2 whitespace-nowrap"
                                     type="button"
-                                    onClick={() => router.push('/estimate/step8/bill')}
+                                    onClick={() => router.push(`/estimate/step8/bill?estimateNo=${estimateNo}`)}
                                 >
                                     책정하기
                                 </Button>
