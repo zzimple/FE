@@ -26,7 +26,7 @@ export default function EstimateListPage() {
     };
 
     const handleSelect = (estimateNo: number) => {
-        router.push(`/estimate/step8?estimateNo=${estimateNo}`);
+        router.push(`/estimate/owner/final?estimateNo=${estimateNo}`);
     };
 
     return (
