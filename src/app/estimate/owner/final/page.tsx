@@ -102,6 +102,8 @@ const getItemDetails = (item: Item): string[] => {
     if (item.material) details.push(`재질: ${item.material}`);
     if (item.size) details.push(`사이즈: ${item.size}`);
     if (item.shape) details.push(`형태: ${item.shape}`);
+    if (item.frame) details.push(`프레임: ${item.frame}`);
+    if (item.width) details.push(`너비: ${item.width}`);
     if (item.capacity) details.push(`용량: ${item.capacity}`);
     if (item.doorCount) details.push(`문 개수: ${item.doorCount}`);
     if (item.unitCount) details.push(`수납장 개수: ${item.unitCount}`);
