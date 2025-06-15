@@ -308,212 +308,216 @@ export default function Step8() {
 
 
     return (
-        <div className="min-h-screen flex flex-col max-w-md mx-auto bg-white">
-            <EstimateHeader step={8} title="견적서" />
-            <main className="flex-1 px-4 py-6 space-y-5">
-                <h2 className="text-center text-lg font-semibold text-gray-900 mb-6">
-                    <span className="text-blue-500">견적서 신청 정보</span>를 마지막으로 확인해주세요.
-                </h2>
-
-                {/* 서비스 타입 */}
-                <div className="space-y-1">
-                    <div className="text-sm font-semibold text-gray-900 pl-1">서비스 타입</div>
-                    <div className={PILL_CLASS}>
-                        <span className="text-sm text-blue-600">{reviewData.serviceType}</span>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-6xl mx-auto py-8 px-4">
+                <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 상세</h1>
+                
+                <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+                    {/* 서비스 타입 */}
+                    <div className="space-y-1">
+                        <div className="text-sm font-semibold text-gray-900">서비스 타입</div>
+                        <div className={PILL_CLASS}>
+                            <span className="text-sm text-blue-600">{reviewData.serviceType}</span>
+                        </div>
                     </div>
-                </div>
 
-                {/* 예약 날짜 및 시간 */}
-                <div className="space-y-1">
-                    <div className="text-sm font-semibold text-gray-900 pl-1">예약 날짜 및 시간</div>
-                    <div className={PILL_CLASS}>
-                        <span className="text-sm">{reviewData.dateTime}</span>
+                    {/* 예약 날짜 및 시간 */}
+                    <div className="space-y-1">
+                        <div className="text-sm font-semibold text-gray-900">예약 날짜 및 시간</div>
+                        <div className={PILL_CLASS}>
+                            <span className="text-sm">{reviewData.dateTime}</span>
+                        </div>
                     </div>
-                </div>
 
-                {/* 출발지 */}
-                <div className="space-y-1">
-                    <div className="text-sm font-semibold text-gray-900 pl-1">출발지</div>
-                    <div className={PILL_CLASS}>
-                        <span className="text-sm">{reviewData.from.address}</span>
+                    {/* 출발지 */}
+                    <div className="space-y-1">
+                        <div className="text-sm font-semibold text-gray-900">출발지</div>
+                        <div className={PILL_CLASS}>
+                            <span className="text-sm">{reviewData.from.address}</span>
+                        </div>
+                        <p className="text-xs text-blue-500">{reviewData.from.info}</p>
                     </div>
-                    <p className="text-xs text-blue-500 pl-1">{reviewData.from.info}</p>
-                </div>
 
-                {/* 도착지 */}
-                <div className="space-y-1">
-                    <div className="text-sm font-semibold text-gray-900 pl-1">도착지</div>
-                    <div className={PILL_CLASS}>
-                        <span className="text-sm">{reviewData.to.address}</span>
+                    {/* 도착지 */}
+                    <div className="space-y-1">
+                        <div className="text-sm font-semibold text-gray-900">도착지</div>
+                        <div className={PILL_CLASS}>
+                            <span className="text-sm">{reviewData.to.address}</span>
+                        </div>
+                        <p className="text-xs text-blue-500">{reviewData.to.info}</p>
                     </div>
-                    <p className="text-xs text-blue-500 pl-1">{reviewData.to.info}</p>
-                </div>
 
-                {/* 물품 카테고리별 개수 */}
-                <div className="space-y-1">
-                    <div className="text-sm font-semibold text-gray-900 pl-1">물품 카테고리</div>
-                    <div className="flex gap-2 mb-4">
-                        {['가구', '가전', '기타'].map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category as '가구' | '가전' | '기타')}
-                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
-                            ${selectedCategory === category
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
-                            >
-                                {category}
-                                <span className="ml-1 text-xs">
-                                    ({getCategoryCounts(reviewData.items)[category] || 0})
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 물품 상세 목록 */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">물품 상세 목록</div>
-                    <div className="space-y-3">
-                        {reviewData.items
-                            .filter(item => {
-                                const category = item.category === 'APPLIANCE' ? '가전' :
-                                    item.category === 'FURNITURE' ? '가구' : '기타';
-                                return category === selectedCategory;
-                            })
-                            .map((item) => (
-                                <div key={item.id} className="border border-gray-200 rounded-lg p-3">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            {item.itemTypeName} x {item.quantity}개
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {item.category === 'APPLIANCE' ? '가전' :
-                                                item.category === 'FURNITURE' ? '가구' : '기타'}
-                                        </span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        {getItemDetails(item).map((detail, idx) => (
-                                            <div key={idx} className="text-xs text-gray-600 flex items-center">
-                                                <span className="text-blue-500 mr-1">•</span>
-                                                {detail}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                    {/* 물품 카테고리별 개수 */}
+                    <div className="space-y-1">
+                        <div className="text-sm font-semibold text-gray-900">물품 카테고리</div>
+                        <div className="flex gap-2 mb-4">
+                            {['가구', '가전', '기타'].map((category) => (
+                                <button
+                                    key={category}
+                                    onClick={() => setSelectedCategory(category as '가구' | '가전' | '기타')}
+                                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                                        ${selectedCategory === category 
+                                            ? 'bg-blue-500 text-white' 
+                                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+                                >
+                                    {category}
+                                    <span className="ml-1 text-xs">
+                                        ({getCategoryCounts(reviewData.items)[category] || 0})
+                                    </span>
+                                </button>
                             ))}
-                    </div>
-                </div>
-
-
-                {/* 고객님 메모 */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div className="text-sm font-semibold text-gray-900 mb-2">고객님 메모</div>
-                    <div className="text-sm text-gray-700 whitespace-pre-line">{reviewData.memo}</div>
-                </div>
-
-                {/* 짐 박스, 짐 목록 */}
-                <div className="grid grid-cols-3 gap-2">
-                    <div className={PILL_CLASS}>
-                        <span className="flex-1 text-sm text-gray-600">짐 박스</span>
-                        <div
-                            className="text-blue-600 underline text-sm bg-transparent outline-none"
-                        >
-                            {reviewData.boxCount}
                         </div>
                     </div>
-                    <div className={PILL_CLASS}>
-                        <span className="flex-1 text-sm text-gray-600">잔짐 박스</span>
-                        <div
-                            className="text-blue-600 underline text-sm"
-                        >
-                            {reviewData.leftoverBoxCount}
-                        </div>
-                    </div>
-                </div>
 
-
-                {/* 지도 */}
-                <div>
-                    <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
-                    <KakaoMapRoute
-                        from={reviewData.from.coord}
-                        to={reviewData.to.coord}
-                        onStats={(d, m) => {
-                            setDuration(d);
-                            setDistance(m);
-                        }}
-                    />
-                    <div className="flex gap-4 mt-2 text-sm text-gray-700">
-                        <div>예상 시간 : <span className="font-semibold">{formattedTime}</span></div>
-                        <div>예상 거리 : <span className="font-semibold">{formattedDist}</span></div>
-                    </div>
-                </div>
-
-                {/* 입력란 */}
-                <div className="space-y-3">
-                    <div>
-                        <div className="flex items-center mb-1">
-                            <span className="text-sm font-semibold text-gray-900">예상 비용</span>
-                            <span className="text-xs text-red-500 ml-1">*</span>
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                className="!h-6 px-2 whitespace-nowrap"
-                                type="button"
-                                onClick={() => router.push('/estimate/step8/bill')}
-                            >
-                                책정하기
-                            </Button>
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-sm font-semibold text-gray-900 mb-1">트럭 개수</div>
-                        <div className="px-3 border rounded-lg">
-                            <select
-                                className="w-full pr-3 py-2 text-sm select-none outline-0"
-                                value={truckCount}
-                                onChange={e => setTruckCount(e.target.value)}
-                            >
-                                <option value="">트럭 개수를 선택하세요</option>
-                                {[...Array(10)].map((_, i) => (
-                                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                    {/* 물품 상세 목록 */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <div className="text-sm font-semibold text-gray-900 mb-2">물품 상세 목록</div>
+                        <div className="space-y-3">
+                            {reviewData.items
+                                .filter(item => {
+                                    const category = item.category === 'APPLIANCE' ? '가전' :
+                                        item.category === 'FURNITURE' ? '가구' : '기타';
+                                    return category === selectedCategory;
+                                })
+                                .map((item) => (
+                                    <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm font-medium text-gray-900">
+                                                {item.itemTypeName} x {item.quantity}개
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                {item.category === 'APPLIANCE' ? '가전' :
+                                                    item.category === 'FURNITURE' ? '가구' : '기타'}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            {getItemDetails(item).map((detail, idx) => (
+                                                <div key={idx} className="text-xs text-gray-600 flex items-center">
+                                                    <span className="text-blue-500 mr-1">•</span>
+                                                    {detail}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
-                            </select>
                         </div>
                     </div>
-                    <div>
-                        <div className="text-sm font-semibold text-gray-900 mb-1">+ 사장님 전달사항</div>
-                        <input
-                            type="text"
-                            className="w-full border rounded-lg px-3 py-2 text-sm"
-                            placeholder="추가 요청사항을 입력하세요"
-                            value={ownerNote}
-                            onChange={e => setOwnerNote(e.target.value)}
+
+                    {/* 고객님 메모 */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <div className="text-sm font-semibold text-gray-900 mb-2">고객님 메모</div>
+                        <div className="text-sm text-gray-700 whitespace-pre-line">{reviewData.memo}</div>
+                    </div>
+
+                    {/* 짐 박스, 짐 목록 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className={PILL_CLASS}>
+                            <span className="flex-1 text-sm text-gray-600">짐 박스</span>
+                            <div className="text-blue-600 underline text-sm bg-transparent outline-none">
+                                {reviewData.boxCount}
+                            </div>
+                        </div>
+                        <div className={PILL_CLASS}>
+                            <span className="flex-1 text-sm text-gray-600">잔짐 박스</span>
+                            <div className="text-blue-600 underline text-sm">
+                                {reviewData.leftoverBoxCount}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 지도 */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-4">
+                        <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
+                        <KakaoMapRoute
+                            from={reviewData.from.coord}
+                            to={reviewData.to.coord}
+                            onStats={(d, m) => {
+                                setDuration(d);
+                                setDistance(m);
+                            }}
                         />
+                        <div className="flex gap-4 mt-2 text-sm text-gray-700">
+                            <div>예상 시간 : <span className="font-semibold">{formattedTime}</span></div>
+                            <div>예상 거리 : <span className="font-semibold">{formattedDist}</span></div>
+                        </div>
+                    </div>
+
+                    {/* 입력란 */}
+                    <div className="space-y-3">
+                        <div>
+                            <div className="flex items-center mb-1">
+                                <span className="text-sm font-semibold text-gray-900">예상 비용</span>
+                                <span className="text-xs text-red-500 ml-1">*</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    className="!h-6 px-2 whitespace-nowrap"
+                                    type="button"
+                                    onClick={() => router.push('/estimate/step8/bill')}
+                                >
+                                    책정하기
+                                </Button>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-sm font-semibold text-gray-900 mb-1">트럭 개수</div>
+                            <div className="px-3 border rounded-lg">
+                                <select
+                                    className="w-full pr-3 py-2 text-sm select-none outline-0"
+                                    value={truckCount}
+                                    onChange={e => setTruckCount(e.target.value)}
+                                >
+                                    <option value="">트럭 개수를 선택하세요</option>
+                                    {[...Array(10)].map((_, i) => (
+                                        <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-sm font-semibold text-gray-900 mb-1">+ 사장님 전달사항</div>
+                            <input
+                                type="text"
+                                className="w-full border rounded-lg px-3 py-2 text-sm"
+                                placeholder="추가 요청사항을 입력하세요"
+                                value={ownerNote}
+                                onChange={e => setOwnerNote(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* 최종 가격 */}
+                    <div className="flex justify-end items-center mt-2">
+                        <span className="text-base font-semibold text-gray-900">최종 가격 : </span>
+                        <span className="ml-2 text-lg font-bold text-blue-600">{cost ? `${cost}원` : "- 원"}</span>
+                    </div>
+
+                    {/* 유의사항 */}
+                    <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
+                        <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
+                        <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
+                            {reviewData.notes.map((note, idx) => (
+                                <li key={idx}>{note}</li>
+                            ))}
+                        </ol>
+                    </div>
+
+                    {/* 버튼 */}
+                    <div className="flex gap-2">
+                        <Button 
+                            className="flex-1 h-14 bg-gray-500 text-white"
+                            onClick={handleCancel}
+                        >
+                            작성 안 할래요
+                        </Button>
+                        <Button 
+                            className="flex-1 h-14 bg-blue-500 text-white"
+                            onClick={handleSubmit}
+                        >
+                            작성 완료
+                        </Button>
                     </div>
                 </div>
-
-                {/* 최종 가격 */}
-                <div className="flex justify-end items-center mt-2">
-                    <span className="text-base font-semibold text-gray-900">최종 가격 : </span>
-                    <span className="ml-2 text-lg font-bold text-blue-600">{cost ? `${cost}원` : "- 원"}</span>
-                </div>
-
-                {/* 유의사항 */}
-                <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
-                    <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
-                    <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-                        {reviewData.notes.map((note, idx) => (
-                            <li key={idx}>{note}</li>
-                        ))}
-                    </ol>
-                </div>
-            </main>
-
-            <div className="flex gap-2 px-4 py-4">
-                <Button className="flex-1 h-14 bg-blue-500 text-white">작성 안 할래요</Button>
-                <Button className="flex-1 h-14 bg-blue-500 text-white">작성 완료</Button>
             </div>
         </div>
     );
