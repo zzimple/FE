@@ -2,25 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { authApi } from "@/lib/axios";
 
-// [추가/수정] 기본금 불러오기용 예시 API 함수 (실제 API로 교체)
-async function fetchDefaultPrices(): Promise<{ [id: number]: number }> {
-    // 실제로는 authApi.get("/owner/my/estimate/default-prices") 등 사용
-    // 예시: { 1: 30000, 2: 50000, 3: 10000 }
-    return {
-        1: 30000,
-        2: 50000,
-        3: 10000,
-    };
-}
-
-const CATEGORY_ORDER = ["가구", "가전", "기타"] as const;
-
+// 타입 정의
 interface EstimateItem {
     itemTypeId: number;
     name: string;
-    category: "가구" | "가전" | "기타";
+    category: string;
 }
 
 interface ExtraCharge {
@@ -28,11 +17,60 @@ interface ExtraCharge {
     amount: number;
 }
 
-interface PricePayload {
+interface PriceItem {
     itemTypeId: number;
     basePrice: number;
-    extraCharges: ExtraCharge[];
+    extraCharges: {
+        amount: number;
+        reason: string;
+    }[];
 }
+
+interface DefaultPriceResponse {
+    estimateNo: number;
+    itemTypeId: number;
+    itemTypeName: string;
+    basePrice: number;
+    extraCharge: number;
+    reason: string;
+}
+
+// API 응답 타입 정의
+interface PriceResponse {
+    success: boolean;
+    message: string;
+    data: {
+        totalAmount: number;
+        items: PriceItem[];
+    };
+}
+
+// 가격 저장 API
+async function savePrices(estimateNo: number, items: PriceItem[]): Promise<PriceResponse> {
+    try {
+        const response = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items`,
+            items.map(item => ({
+                itemTypeId: item.itemTypeId,
+                quantity: 1,
+                basePrice: item.basePrice,
+                extraCharges: item.extraCharges || []
+            }))
+        );
+        return response.data;
+    } catch (error) {
+        console.error("가격 저장 실패:", error);
+        throw error;
+    }
+}
+
+const CATEGORY_ORDER = ["가구", "가전", "기타"] as const;
+
+// 카테고리 매핑 추가
+const CATEGORY_MAP: { [key: string]: string } = {
+    "FURNITURE": "가구",
+    "APPLIANCE": "가전",
+    "OTHER": "기타"
+};
 
 const getImagePath = (category: string, name: string): string => {
     const categoryMap: { [key: string]: string } = {
@@ -89,101 +127,101 @@ const getImagePath = (category: string, name: string): string => {
 };
 
 export default function EstimatePriceByEstimateId() {
-    const dummyEstimateNo = "dummy-123";
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const estimateNo = parseInt(searchParams.get("estimateNo") ?? "", 10);
 
     const [items, setItems] = useState<EstimateItem[]>([]);
     const [priceMap, setPriceMap] = useState<{ [id: number]: number }>({});
     const [extraChargeMap, setExtraChargeMap] = useState<{ [id: number]: ExtraCharge }>({});
     const [showExtra, setShowExtra] = useState<{ [id: number]: boolean }>({});
     const [loading, setLoading] = useState(true);
-    const [totalAmount, setTotalAmount] = useState<number>(0); // [추가] 총 금액 상태
+    const [totalAmount, setTotalAmount] = useState<number>(0);
 
     useEffect(() => {
-        const hardcodedItems: EstimateItem[] = [
-            { itemTypeId: 1, name: "침대", category: "가구" },
-            { itemTypeId: 2, name: "냉장고", category: "가전" },
-            { itemTypeId: 3, name: "거울", category: "기타" },
-        ];
+        const fetchData = async () => {
+            try {
+                // 기본 단가와 추가금까지 한 번에 조회
+                const response = await authApi.get(`/estimates/owner/with-extra/${estimateNo}`);
+                console.log("API 응답 전체:", response.data);
+                console.log("API 응답 데이터:", response.data.data);
 
-        const initPrices: { [id: number]: number } = {};
-        const initExtras: { [id: number]: ExtraCharge } = {};
-        const initShowExtra: { [id: number]: boolean } = {};
+                if (response.data.success && Array.isArray(response.data.data)) {
+                    const estimateItems = response.data.data.map((item: {
+                        itemTypeId: number;
+                        itemTypeName: string;
+                        moveItemCategory: string;
+                        basePrice: number;
+                        extraCharge: number;
+                        reason: string;
+                    }) => ({
+                        itemTypeId: item.itemTypeId,
+                        name: item.itemTypeName,
+                        // moveItemCategory를 소문자로 변환하고 매핑된 카테고리로 변환
+                        category: CATEGORY_MAP[item.moveItemCategory] || "기타"
+                    }));
+                    setItems(estimateItems);
 
-        hardcodedItems.forEach((item) => {
-            initPrices[item.itemTypeId] = 0;
-            initExtras[item.itemTypeId] = { reason: "", amount: 0 };
-            initShowExtra[item.itemTypeId] = false;
-        });
+                    const initPrices: { [id: number]: number } = {};
+                    const initExtras: { [id: number]: ExtraCharge } = {};
+                    const initShowExtra: { [id: number]: boolean } = {};
 
-        setItems(hardcodedItems);
-        setPriceMap(initPrices);
-        setExtraChargeMap(initExtras);
-        setShowExtra(initShowExtra);
-        setLoading(false);
-    }, []);
+                    response.data.data.forEach((item: any) => {
+                        initPrices[item.itemTypeId] = Number(item.basePrice) || 0;
+                        initExtras[item.itemTypeId] = {
+                            reason: item.reason || "",
+                            amount: Number(item.extraCharge) || 0,
+                        };
+                        initShowExtra[item.itemTypeId] = Boolean(item.extraCharge && item.reason);
+                    });
 
-    // [추가/수정] 기본금 불러오기 버튼 핸들러
-    const handleLoadDefaultPrices = async () => {
-        const defaults = await fetchDefaultPrices();
-        setPriceMap((prev) => {
-            const updated = { ...prev };
-            Object.keys(updated).forEach((id) => {
-                const numId = parseInt(id);
-                if (defaults[numId] !== undefined) {
-                    updated[numId] = defaults[numId];
+                    setPriceMap(initPrices);
+                    setExtraChargeMap(initExtras);
+                    setShowExtra(initShowExtra);
+                } else {
+                    console.warn("응답에 data 배열이 없음 또는 실패:", response.data);
                 }
-            });
-            return updated;
-        });
-    };
 
-    const handleSave = async () => {
-        const itemsPayload: PricePayload[] = Object.entries(priceMap).map(([id, basePrice]) => {
-            const itemTypeId = parseInt(id);
-            const extra = extraChargeMap[itemTypeId];
-            return {
-                itemTypeId,
-                basePrice,
-                extraCharges:
-                    showExtra[itemTypeId] && extra?.reason && extra?.amount > 0
-                        ? [{ amount: extra.amount, reason: extra.reason }]
-                        : [],
-            };
-        });
 
-        const payload = {
-            estimateNo: dummyEstimateNo,
-            items: itemsPayload,
+            } catch (error) {
+                console.error("데이터 조회 실패:", error);
+            } finally {
+                setLoading(false);
+            }
         };
 
+        if (!isNaN(estimateNo)) {
+            fetchData();
+        }
+    }, [estimateNo]);
+
+
+    const handleSave = async () => {
         try {
-            // 1. DB에 저장하는 API 호출
-            const saveResponse = await fetch("/api/estimate/save", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
+            setLoading(true);
+            const itemsPayload: PriceItem[] = Object.entries(priceMap).map(([id, basePrice]) => {
+                const itemTypeId = parseInt(id);
+                const extra = extraChargeMap[itemTypeId];
+                return {
+                    itemTypeId,
+                    basePrice,
+                    extraCharges: showExtra[itemTypeId] && extra?.reason && extra?.amount > 0
+                        ? [{ amount: extra.amount, reason: extra.reason }]
+                        : []
+                };
             });
 
-            if (!saveResponse.ok) {
-                throw new Error("저장 실패");
+            const response = await savePrices(estimateNo, itemsPayload);
+            if (response.success) {
+                setTotalAmount(response.data.totalAmount);
+                alert("가격이 성공적으로 저장되었습니다.");
+                router.push(`/estimate/step8?estimateNo=${estimateNo}`);
             }
-
-            // 2. 계산 API 호출하여 총 금액 받아오기
-            const calcResponse = await fetch(`/api/estimate/calculate/${dummyEstimateNo}`);
-            if (!calcResponse.ok) {
-                throw new Error("계산 실패");
-            }
-
-            const { totalAmount } = await calcResponse.json();
-            setTotalAmount(totalAmount); // [추가] 총 금액 상태 업데이트
-
-            // alert 제거
         } catch (error) {
-            console.error("Error:", error);
-            alert("저장 중 오류가 발생했습니다.");
+            console.error("가격 저장 중 오류 발생:", error);
+            alert("가격 저장 중 오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -212,10 +250,10 @@ export default function EstimatePriceByEstimateId() {
 
                 {/* 오른쪽: 기본금 불러오기 버튼 */}
                 <button
-                    onClick={handleLoadDefaultPrices}
+                    onClick={handleSave}
                     className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
                 >
-                    기본금 불러오기
+                    저장하기
                 </button>
             </div>
 
