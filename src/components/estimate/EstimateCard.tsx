@@ -20,7 +20,7 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
     return (
         <div 
             className="group bg-white rounded-xl p-4 hover:shadow-sm transition-all cursor-pointer"
-            onClick={() => onViewDetail(estimate.id)}
+            onClick={() => onViewDetail(estimate.estimateNo)}
         >
             <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
                         {MOVE_TYPE_LABELS[estimate.moveType]}
                     </div>
                     <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium">
-                        {MOVE_OPTION_LABELS[estimate.moveOption]}
+                        {MOVE_OPTION_LABELS[estimate.optionType]}
                     </span>
                 </div>
             </div>
