@@ -275,21 +275,8 @@ export default function EstimatePriceByEstimateId() {
                     기본 단가 및 추가금 입력
                 </h2>
 
-                {/* 오른쪽: 버튼들 */}
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleLoadDefaultPrices}
-                        className="flex items-center bg-blue-50 text-blue-600 px-3 py-2 rounded hover:bg-blue-100"
-                    >
-                        기본 단가 불러오기
-                    </button>
-                    <button
-                        onClick={handleLoadPrices}
-                        className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
-                    >
-                        이전 입력 가져오기
-                    </button>
-                </div>
+                {/* 오른쪽: 빈 공간 */}
+                <div className="w-[100px]" />
             </div>
 
             {loading && <div className="text-center py-8">로딩 중...</div>}
@@ -393,18 +380,43 @@ export default function EstimatePriceByEstimateId() {
                             )}
                         </div>
 
-                        <div className="text-center mt-10">
-                            <button
-                                onClick={handleSave}
-                                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700"
-                            >
-                                저장하기
-                            </button>
-                            {totalAmount > 0 && (
-                                <div className="mt-4 text-lg font-bold text-blue-600">
-                                    물품 총 금액: {totalAmount.toLocaleString()}원
-                                </div>
-                            )}
+                        <div className="mt-10 space-y-6">
+                            {/* 가격 불러오기 버튼들 */}
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    onClick={handleLoadDefaultPrices}
+                                    className="flex items-center gap-2 bg-white border border-blue-200 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                    </svg>
+                                    기본 단가 불러오기
+                                </button>
+                                <button
+                                    onClick={handleLoadPrices}
+                                    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                    </svg>
+                                    이전 입력 가져오기
+                                </button>
+                            </div>
+
+                            {/* 저장 버튼과 총액 */}
+                            <div className="text-center">
+                                <button
+                                    onClick={handleSave}
+                                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                                >
+                                    저장하기
+                                </button>
+                                {totalAmount > 0 && (
+                                    <div className="mt-4 text-lg font-bold text-blue-600">
+                                        물품 총 금액: {totalAmount.toLocaleString()}원
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </>
                 )
