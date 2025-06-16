@@ -67,6 +67,8 @@ export default function EstimateFinalPage() {
 
     // API 데이터 가져오기
     useEffect(() => {
+        const raw = searchParams.get('estimateNo');  // 변경: searchParams에서 직접 추출
+
         if (isNaN(estimateNo)) { // [수정] 잘못된 번호 방어 로직 추가
             setError('잘못된 견적서 번호입니다.');
             setIsLoading(false);
