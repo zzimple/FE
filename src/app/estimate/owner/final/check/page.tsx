@@ -27,6 +27,7 @@ interface EstimateFinalCheckResponse {
         items: Item[];             // 물품 목록
         customerMemo: string;      // 고객 메모
         truckCount: number;
+        truckTotalPrice: number;
         ownerMessage: string;
         estimatedCost?: number;    // 예상 비용
         finalPrice?: number;       // 최종 가격
@@ -92,6 +93,7 @@ export default function EstimateFinalCheckPage() {
                 const draftResp = await authApi.get<EstimateFinalCheckResponse>(
                     `/estimates/owner/drafts/${estimateNo}`
                 );
+                console.log('draftResp truckTotalPrice:', draftResp.data.data.truckTotalPrice);
 
                 // [수정] 3) 이름 맵 생성: items 배열에서 ID->이름 매핑
                 const nameMap: Record<number, string> = draftResp.data.data.items.reduce(
@@ -103,19 +105,23 @@ export default function EstimateFinalCheckPage() {
                 const viewResp = await authApi.get<EstimateFinalCheckResponse>(
                     `/view/estimate/${estimateNo}`
                 );
+                console.log('viewResp truckTotalPrice:', viewResp.data.data.truckTotalPrice);
 
                 // 4) 두 응답을 머지해서 state에 저장
-                setEstimateData({
+                const mergedData = {
                     ...draftResp.data,
                     data: {
                         ...draftResp.data.data,
                         // viewResp쪽 data로 덮어쓰기
                         itemPriceDetails: viewResp.data.data.itemPriceDetails,
                         extraCharges: viewResp.data.data.extraCharges,
+                        truckTotalPrice: viewResp.data.data.truckTotalPrice, // viewResp의 데이터 사용
                         totalPrice: viewResp.data.data.totalPrice,
                         nameMap,
                     }
-                });
+                };
+                console.log('merged truckTotalPrice:', mergedData.data.truckTotalPrice);
+                setEstimateData(mergedData);
 
                 setError(null);
             } catch (err) {
@@ -154,6 +160,7 @@ export default function EstimateFinalCheckPage() {
         boxCount: estimateData.data.boxCount || 0,
         leftoverBoxCount: estimateData.data.leftoverBoxCount ?? 0,
         truckCount: estimateData.data.truckCount,
+        truckTotalPrice: estimateData.data.truckTotalPrice,
         ownerMessage: estimateData.data.ownerMessage,
         // itemCount: estimateData.data.items.length,
         memo: estimateData.data.customerMemo,
@@ -401,19 +408,27 @@ export default function EstimateFinalCheckPage() {
                         </div>
 
                         {/* 추가 요금 내역 */}
-                        {reviewData.extraCharges && reviewData.extraCharges.length > 0 && (
-                            <div className="mb-4">
-                                <div className="text-sm font-semibold mb-2">추가 요금</div>
-                                <ul className="space-y-1">
-                                    {reviewData.extraCharges.map((charge, idx) => (
-                                        <li key={idx} className="flex justify-between text-sm">
-                                            <span className="text-gray-600">{charge.reason}</span>
-                                            <span className="text-blue-600 font-semibold">+{charge.amount.toLocaleString()}원</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                        <div className="mb-4">
+                            <div className="text-sm font-semibold mb-2">추가 요금</div>
+                            <ul className="space-y-1">
+                                {/* 트럭 가격 */}
+                                {estimateData?.data?.truckTotalPrice && estimateData.data.truckTotalPrice > 0 && (
+                                    <li className="flex justify-between text-sm">
+                                        <span className="text-gray-600">트럭 {estimateData.data.truckCount}대</span>
+                                        <span className="text-blue-600 font-semibold">
+                                            {estimateData.data.truckTotalPrice.toLocaleString()}원
+                                        </span>
+                                    </li>
+                                )}
+                                {/* 기존 추가 요금들 */}
+                                {reviewData.extraCharges && reviewData.extraCharges.map((charge, idx) => (
+                                    <li key={idx} className="flex justify-between text-sm">
+                                        <span className="text-gray-600">{charge.reason}</span>
+                                        <span className="text-blue-600 font-semibold">+{charge.amount.toLocaleString()}원</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
 
                         {/* 총액 */}
                         <div className="flex justify-between items-center border-t pt-4 mt-4">
