@@ -93,7 +93,6 @@ export default function EstimateFinalCheckPage() {
                 const draftResp = await authApi.get<EstimateFinalCheckResponse>(
                     `/estimates/owner/drafts/${estimateNo}`
                 );
-                console.log('draftResp truckTotalPrice:', draftResp.data.data.truckTotalPrice);
 
                 // [수정] 3) 이름 맵 생성: items 배열에서 ID->이름 매핑
                 const nameMap: Record<number, string> = draftResp.data.data.items.reduce(
@@ -105,7 +104,6 @@ export default function EstimateFinalCheckPage() {
                 const viewResp = await authApi.get<EstimateFinalCheckResponse>(
                     `/view/estimate/${estimateNo}`
                 );
-                console.log('viewResp truckTotalPrice:', viewResp.data.data.truckTotalPrice);
 
                 // 4) 두 응답을 머지해서 state에 저장
                 const mergedData = {
