@@ -26,13 +26,15 @@ interface PriceItem {
     }[];
 }
 
+// 기본 단가 불러오기 API 응답 타입 추가
 interface DefaultPriceResponse {
-    estimateNo: number;
-    itemTypeId: number;
-    itemTypeName: string;
-    basePrice: number;
-    extraCharge: number;
-    reason: string;
+    success: boolean;
+    message: string;
+    data: Array<{
+        itemTypeId: number;
+        itemTypeName: string;
+        basePrice: number;
+    }>;
 }
 
 // API 응답 타입 정의
@@ -43,6 +45,12 @@ interface PriceResponse {
         totalAmount: number;
         items: PriceItem[];
     };
+}
+
+interface ApiItem {
+    itemTypeId: number;
+    itemTypeName: string;
+    category: string;
 }
 
 // 가격 저장 API
@@ -138,72 +146,15 @@ export default function EstimatePriceByEstimateId() {
     const [loading, setLoading] = useState(true);
     const [totalAmount, setTotalAmount] = useState<number>(0);
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             // 기본 단가와 추가금까지 한 번에 조회
-    //             const response = await authApi.get(`/estimates/owner/with-extra/${estimateNo}`);
-    //             console.log("API 응답 전체:", response.data);
-    //             console.log("API 응답 데이터:", response.data.data);
-
-    //             if (response.data.success && Array.isArray(response.data.data)) {
-    //                 const estimateItems = response.data.data.map((item: {
-    //                     itemTypeId: number;
-    //                     itemTypeName: string;
-    //                     moveItemCategory: string;
-    //                     basePrice: number;
-    //                     extraCharge: number;
-    //                     reason: string;
-    //                 }) => ({
-    //                     itemTypeId: item.itemTypeId,
-    //                     name: item.itemTypeName,
-    //                     // moveItemCategory를 소문자로 변환하고 매핑된 카테고리로 변환
-    //                     category: CATEGORY_MAP[item.moveItemCategory] || "기타"
-    //                 }));
-    //                 setItems(estimateItems);
-
-    //                 const initPrices: { [id: number]: number } = {};
-    //                 const initExtras: { [id: number]: ExtraCharge } = {};
-    //                 const initShowExtra: { [id: number]: boolean } = {};
-
-    //                 response.data.data.forEach((item: any) => {
-    //                     initPrices[item.itemTypeId] = Number(item.basePrice) || 0;
-    //                     initExtras[item.itemTypeId] = {
-    //                         reason: item.reason || "",
-    //                         amount: Number(item.extraCharge) || 0,
-    //                     };
-    //                     initShowExtra[item.itemTypeId] = Boolean(item.extraCharge && item.reason);
-    //                 });
-
-    //                 setPriceMap(initPrices);
-    //                 setExtraChargeMap(initExtras);
-    //                 setShowExtra(initShowExtra);
-    //             } else {
-    //                 console.warn("응답에 data 배열이 없음 또는 실패:", response.data);
-    //             }
-
-
-    //         } catch (error) {
-    //             console.error("데이터 조회 실패:", error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     if (!isNaN(estimateNo)) {
-    //         fetchData();
-    //     }
-    // }, [estimateNo]);
-
     useEffect(() => {
         const fetchItems = async () => {
-            setLoading(true); // ✅ 이거 추가!
+            setLoading(true);
             try {
                 const response = await authApi.get(`/estimates/owner/${estimateNo}/items`);
                 const items = response.data.data?.items || [];
 
                 setItems(
-                    items.map((item: any) => ({
+                    items.map((item: ApiItem) => ({
                         itemTypeId: item.itemTypeId,
                         name: item.itemTypeName,
                         category: CATEGORY_MAP[item.category] || "기타",
@@ -212,7 +163,7 @@ export default function EstimatePriceByEstimateId() {
             } catch (error) {
                 console.error("짐 목록 불러오기 실패:", error);
             } finally {
-                setLoading(false); // ✅ 실패해도 로딩 종료
+                setLoading(false);
             }
         };
 
@@ -220,7 +171,6 @@ export default function EstimatePriceByEstimateId() {
             fetchItems();
         }
     }, [estimateNo]);
-
 
     const handleLoadPrices = async () => {
         try {
@@ -231,7 +181,12 @@ export default function EstimatePriceByEstimateId() {
             const newExtraChargeMap: { [id: number]: ExtraCharge } = {};
             const newShowExtra: { [id: number]: boolean } = {};
 
-            data.forEach((item: any) => {
+            data.forEach((item: {
+                itemTypeId: number;
+                basePrice: number;
+                reason: string;
+                extraCharge: number;
+            }) => {
                 newPriceMap[item.itemTypeId] = item.basePrice || 0;
 
                 const reason = item.reason || "";
@@ -250,6 +205,23 @@ export default function EstimatePriceByEstimateId() {
         }
     };
 
+    // 기본 단가 불러오기 함수 추가
+    const handleLoadDefaultPrices = async () => {
+        try {
+            const response = await authApi.get<DefaultPriceResponse>('/owner/my/estimate/default-prices');
+            if (response.data.success) {
+                const newPriceMap = { ...priceMap };
+                response.data.data.forEach(item => {
+                    newPriceMap[item.itemTypeId] = item.basePrice;
+                });
+                setPriceMap(newPriceMap);
+                alert('기본 단가를 불러왔습니다.');
+            }
+        } catch (error) {
+            console.error('기본 단가 불러오기 실패:', error);
+            alert('기본 단가를 불러오는데 실패했습니다.');
+        }
+    };
 
     const handleSave = async () => {
         try {
@@ -303,13 +275,21 @@ export default function EstimatePriceByEstimateId() {
                     기본 단가 및 추가금 입력
                 </h2>
 
-                {/* 오른쪽: 기본금 불러오기 버튼 */}
-                <button
-                    onClick={handleLoadPrices}
-                    className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
-                >
-                    이전 입력 가져오기
-                </button>
+                {/* 오른쪽: 버튼들 */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleLoadDefaultPrices}
+                        className="flex items-center bg-blue-50 text-blue-600 px-3 py-2 rounded hover:bg-blue-100"
+                    >
+                        기본 단가 불러오기
+                    </button>
+                    <button
+                        onClick={handleLoadPrices}
+                        className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
+                    >
+                        이전 입력 가져오기
+                    </button>
+                </div>
             </div>
 
             {loading && <div className="text-center py-8">로딩 중...</div>}
