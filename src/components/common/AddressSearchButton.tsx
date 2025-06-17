@@ -6,6 +6,8 @@ interface AddressSearchButtonProps {
     roadAddrPart1: string;
     addrDetail: string;
     zipNo: string;
+    entX: string;
+    entY: string;
   }) => void;
 }
 

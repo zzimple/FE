@@ -29,13 +29,19 @@ export default function JusoCallbackPage() {
         const zipNo = params.get("zipNo") || "";
         const addrDetail = params.get("addrDetail") || "";
         const roadAddrPart1 = params.get("roadAddrPart1") || "";
+        const entX = params.get("entX") || "";
+        const entY = params.get("entY") || "";
 
+        console.log("entX", entX);
+        console.log("entY", entY);
 
         console.log("📥 [주소 콜백] 전달받은 주소 정보:");
         console.log(" - roadFullAddr:", roadFullAddr);
         console.log(" - roadAddrPart1:", roadAddrPart1);
         console.log(" - addrDetail:", addrDetail);
         console.log(" - zipNo:", zipNo);
+        // console.log("- entX", entX);
+        // console.log("- entY", entY);
 
         // 부모 창에 주소 정보 전달
         if (window.opener && typeof window.opener.onJusoCallback === "function") {
@@ -44,11 +50,13 @@ export default function JusoCallbackPage() {
                 zipNo,
                 addrDetail,
                 roadAddrPart1: roadAddrPart1,
+                entX,
+                entY,
             });
         }
 
         // ✅ 팝업 창 닫기
-        window.close();
+        // window.close();
     }, []);
 
     return <div>주소를 전달 중입니다...</div>;
