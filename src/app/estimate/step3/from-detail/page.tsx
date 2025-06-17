@@ -47,17 +47,17 @@ export default function FromDetailPage() {
   const [elevator, setElevator] = useState<boolean | null>(null);
 
   const buildingTypes = [
-    "VILLA",
-    "APARTMENT",
-    "HOUSE",
-    "OFFICETEL",
-    "COMMERCIAL",
+    { value: "VILLA", label: "빌라/연립" },
+    { value: "APARTMENT", label: "아파트" },
+    { value: "HOUSE", label: "주택" },
+    { value: "OFFICETEL", label: "오피스텔" },
+    { value: "COMMERCIAL", label: "상가/사무실" },
   ];
   const roomTypes = [
-    "ONE_ROOM",
-    "ONE_HALF_ROOM",
-    "TWO_ROOM",
-    "THREE_ROOM_OR_MORE",
+    { value: "ONE_ROOM", label: "원룸" },
+    { value: "ONE_HALF_ROOM", label: "1.5룸" },
+    { value: "TWO_ROOM", label: "2룸" },
+    { value: "THREE_ROOM_OR_MORE", label: "3룸 이상" },
   ];
   const areaOptions = [
     "10평 이하",
@@ -122,7 +122,6 @@ export default function FromDetailPage() {
       );
 
       if (response.data?.message) {
-        alert("출발지 주소가 성공적으로 저장되었습니다.");
         router.push("/estimate/step3/to-detail");
       } else {
         alert("주소 저장에 실패했습니다.");
@@ -186,18 +185,18 @@ export default function FromDetailPage() {
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">건물 종류</h4>
           <div className="grid grid-cols-3 gap-2">
-            {buildingTypes.map((type) => (
+            {buildingTypes.map(({ value, label }) => (
               <button
-                key={type}
+                key={value}
                 type="button"
-                onClick={() => setBuildingType(type)}
+                onClick={() => setBuildingType(value)}
                 className={`px-3 py-2 text-sm rounded-full border ${
-                  buildingType === type
+                  buildingType === value
                     ? "bg-blue-500 text-white border-blue-500"
                     : "bg-white text-gray-700 border-gray-300"
                 }`}
               >
-                {type}
+                {label}
               </button>
             ))}
           </div>
@@ -206,18 +205,18 @@ export default function FromDetailPage() {
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">방 구조</h4>
           <div className="grid grid-cols-3 gap-2">
-            {roomTypes.map((type) => (
+            {roomTypes.map(({value, label}) => (
               <button
-                key={type}
+                key={value}
                 type="button"
-                onClick={() => setRoomType(type)}
+                onClick={() => setRoomType(value)}
                 className={`px-3 py-2 text-sm rounded-full border ${
-                  roomType === type
+                  roomType === value
                     ? "bg-blue-500 text-white border-blue-500"
                     : "bg-white text-gray-700 border-gray-300"
                 }`}
               >
-                {type}
+                {label}
               </button>
             ))}
           </div>
