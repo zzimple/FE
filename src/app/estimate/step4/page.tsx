@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 
 import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
@@ -13,14 +12,12 @@ import { furnitureItems } from "@/constants/items/furnitureItems";
 import { applianceItems } from "@/constants/items/appliance";
 import { otherItems } from "@/constants/items/otherItems";
 import { MoveCategory } from "@/types/moveItem";
-import { getSelectedItemsFromCookie } from "@/utils/cookies";
 
 type Item = { name: string; image: string };
 
 type SelectedItems = {
   [key in MoveCategory]: Item[];
 };
-
 
 export default function Step4Page() {
   const router = useRouter();
@@ -29,33 +26,33 @@ export default function Step4Page() {
     가전: [],
     기타: [],
   });
-
-  useEffect(() => {
-    const savedItems = getSelectedItemsFromCookie();
-    if (savedItems) {
-      setSelectedItems(savedItems);
-    }
-  }, []);
-
+  const [leftoverBoxCount, setLeftoverBoxCount] = useState(0);
   const [showBoxModal, setShowBoxModal] = useState(false);
-  const [leftoverIndex, setLeftoverIndex] = useState(0);
-  const leftoverBoxOptions = [
-    "0",
-    "1~5",
-    "6~10",
-    "11~15",
-    "16~20",
-    "21~25",
-    "26~30",
-    "31~35",
-    "36~40",
-    "41~45",
-    "46~50",
-  ];
 
   const furnitureRef = useRef<HTMLDivElement>(null);
   const applianceRef = useRef<HTMLDivElement>(null);
   const otherRef = useRef<HTMLDivElement>(null);
+
+  const [activeTab, setActiveTab] = useState<MoveCategory>("가구");
+
+  const categoryRefs = {
+    가구: furnitureRef,
+    가전: applianceRef,
+    기타: otherRef,
+  };
+
+  useEffect(() => {
+    const savedItems = localStorage.getItem("selectedItems");
+    const savedBox = localStorage.getItem("leftoverBoxCount");
+
+    if (savedItems) {
+      setSelectedItems(JSON.parse(savedItems));
+    }
+
+    if (savedBox) {
+      setLeftoverBoxCount(Number(savedBox));
+    }
+  }, []);
 
   const handleSelect = (
     category: MoveCategory,
@@ -78,24 +75,16 @@ export default function Step4Page() {
   };
 
   const handleNext = () => {
-    Cookies.set("selectedItems", JSON.stringify(selectedItems), { path: "/" });
+    localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+    localStorage.setItem("leftoverBoxCount", String(leftoverBoxCount));
     router.push("/estimate/step5");
   };
 
   const handleCategoryScroll = (label: MoveCategory) => {
-    if (label === "가구" && furnitureRef.current) {
-      furnitureRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    } else if (label === "가전" && applianceRef.current) {
-      applianceRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    } else if (label === "기타" && otherRef.current) {
-      otherRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    categoryRefs[label].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   return (
@@ -107,113 +96,63 @@ export default function Step4Page() {
           <span className="text-blue-500">옮길 짐</span>을 선택해주세요.
         </h2>
 
-        {/* 카테고리 탭 */}
         <div className="flex justify-center gap-2 rounded-full py-2 sticky top-0 bg-white z-10">
           {["가구", "가전", "기타"].map((label) => (
             <SelectTab
               key={label}
               label={label}
-              selected={false}
-              onClick={() => handleCategoryScroll(label as MoveCategory)}
+              selected={activeTab === label}
+              onClick={() => {
+                setActiveTab(label as MoveCategory);
+                handleCategoryScroll(label as MoveCategory);
+              }}
             />
           ))}
         </div>
 
-        {/* 전체 짐 목록 */}
         <div className="space-y-8">
-          {/* 가구 */}
-          <div ref={furnitureRef}>
-            <div className="text-lg font-bold mb-2">가구</div>
-            <div className="grid grid-cols-3 gap-4">
-              {furnitureItems.map((item) => {
-                const selected = selectedItems["가구"].some(
-                  (s) => s.name === item.name
-                );
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => handleSelect("가구", item.name, item.image)}
-                    className="relative flex flex-col items-center space-y-2"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className={`w-20 h-20 object-contain rounded-lg border ${
-                        selected ? "border-blue-500" : "border-gray-200"
-                      }`}
-                    />
-                    {selected && (
-                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        ✓
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+          {[
+            { category: "가구", items: furnitureItems, ref: furnitureRef },
+            { category: "가전", items: applianceItems, ref: applianceRef },
+            { category: "기타", items: otherItems, ref: otherRef },
+          ].map(({ category, items, ref }) => (
+            <div key={category} ref={ref}>
+              <div className="text-lg font-bold mb-2 mt-6">{category}</div>
+              <div className="grid grid-cols-3 gap-4">
+                {items.map((item) => {
+                  const selected = selectedItems[category as MoveCategory].some(
+                    (s) => s.name === item.name
+                  );
+                  return (
+                    <button
+                      key={item.name}
+                      onClick={() =>
+                        handleSelect(
+                          category as MoveCategory,
+                          item.name,
+                          item.image
+                        )
+                      }
+                      className="relative flex flex-col items-center space-y-2"
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={`w-20 h-20 object-contain rounded-lg border ${
+                          selected ? "border-blue-500" : "border-gray-200"
+                        }`}
+                      />
+                      {selected && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          {/* 가전 */}
-          <div ref={applianceRef}>
-            <div className="text-lg font-bold mb-2 mt-6">가전</div>
-            <div className="grid grid-cols-3 gap-4">
-              {applianceItems.map((item) => {
-                const selected = selectedItems["가전"].some(
-                  (s) => s.name === item.name
-                );
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => handleSelect("가전", item.name, item.image)}
-                    className="relative flex flex-col items-center space-y-2"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className={`w-20 h-20 object-contain rounded-lg border ${
-                        selected ? "border-blue-500" : "border-gray-200"
-                      }`}
-                    />
-                    {selected && (
-                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        ✓
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {/* 기타 */}
-          <div ref={otherRef}>
-            <div className="text-lg font-bold mb-2 mt-6">기타</div>
-            <div className="grid grid-cols-3 gap-4">
-              {otherItems.map((item) => {
-                const selected = selectedItems["기타"].some(
-                  (s) => s.name === item.name
-                );
-                return (
-                  <button
-                    key={item.name}
-                    onClick={() => handleSelect("기타", item.name, item.image)}
-                    className="relative flex flex-col items-center space-y-2"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className={`w-20 h-20 object-contain rounded-lg border ${
-                        selected ? "border-blue-500" : "border-gray-200"
-                      }`}
-                    />
-                    {selected && (
-                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                        ✓
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* 잔짐 박스 입력란 */}
@@ -244,21 +183,17 @@ export default function Step4Page() {
                 <button
                   className="border border-gray-300 rounded px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
                   onClick={() =>
-                    setLeftoverIndex((prev) => Math.max(0, prev - 1))
+                    setLeftoverBoxCount((prev) => Math.max(0, prev - 1))
                   }
                 >
                   -
                 </button>
                 <span className="w-16 text-center font-bold text-gray-900 text-base">
-                  {leftoverBoxOptions[leftoverIndex]}
+                  {leftoverBoxCount}개
                 </span>
                 <button
                   className="border border-gray-300 rounded px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() =>
-                    setLeftoverIndex((prev) =>
-                      Math.min(leftoverBoxOptions.length - 1, prev + 1)
-                    )
-                  }
+                  onClick={() => setLeftoverBoxCount((prev) => prev + 1)}
                 >
                   +
                 </button>
@@ -272,16 +207,12 @@ export default function Step4Page() {
             넉넉하게 입력해주세요.
           </div>
         </div>
+
         {/* 모달 */}
         {showBoxModal && (
           <ModalWrapper>
             <div className="flex flex-col items-center">
               <div className="flex flex-col items-center mb-4">
-                {/* <img
-                  src="/images/leftoverBox-modal.jpeg"
-                  alt="이사박스"
-                  className="w-40 h-28 object-contain mb-2"
-                /> */}
                 <div className="text-base font-bold mb-1">
                   잔짐 박스 이렇게 입력해주세요!
                 </div>
@@ -302,10 +233,10 @@ export default function Step4Page() {
                 입력 시 참고해주세요!
               </div>
               <div className="text-xs text-gray-600 mb-2 text-center">
-                -부류, 리빙박스, 기타 박스 등 이미 수납되어 있는 잔짐들도 박스
-                수량에 포함시켜주세요.
+                - 부류, 리빙박스, 기타 박스 등 이미 수납되어 있는 잔짐들도
+                포함해주세요.
                 <br />
-                실제 이사를 진행하면, 예상보다 짐이 많습니다.
+                실제 이사를 진행하면 예상보다 짐이 많습니다.
                 <br />
                 박스 수량을 넉넉하게 입력해주세요.
               </div>
