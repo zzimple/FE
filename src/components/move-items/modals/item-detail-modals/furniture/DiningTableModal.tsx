@@ -5,13 +5,15 @@ import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DiningTableModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DiningTableModal = ({ onClose, onSave }: DiningTableModalProps) => {
+const DiningTableModal = ({ onClose, onSave ,itemTypeId}: DiningTableModalProps) => {
   const [type, setType] = useState<string | null>(null);
   const [material, setMaterial] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
@@ -27,20 +29,20 @@ const DiningTableModal = ({ onClose, onSave }: DiningTableModalProps) => {
       />
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={["원형", "사각형", "확장형"]}
+          label="종류"
+          options={["원형", "사각", "접이식", "아일랜드 식탁"]}
           selected={type}
           onSelect={setType}
         />
         <OptionSelector
-          label="재질 선택"
-          options={["원목", "유리", "대리석"]}
+          label="재질"
+          options={["나무", "철제", "유리", "대리석", "기타"]}
           selected={material}
           onSelect={setMaterial}
         />
         <OptionSelector
-          label="사이즈 선택"
-          options={["소형", "중형", "대형"]}
+          label="사이즈"
+          options={["1-2인용", "3-4인용", "5-6인용", "7인 이상"]}
           selected={size}
           onSelect={setSize}
         />
@@ -49,10 +51,13 @@ const DiningTableModal = ({ onClose, onSave }: DiningTableModalProps) => {
           className="w-full bg-blue-500 text-white py-2 rounded mt-6"
           onClick={() =>
             onSave({
+              itemTypeId,
               quantity,
-              type,
-              material,
-              size,
+              etc: {
+                type,
+                material,
+                size,
+              }
             })
           }
         >

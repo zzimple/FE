@@ -5,16 +5,18 @@ import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DressingTableModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DressingTableModal = ({ onClose, onSave }: DressingTableModalProps) => {
+const DressingTableModal = ({ onClose, onSave, itemTypeId }: DressingTableModalProps) => {
+  const [quantity, setQuantity] = useState<number>(1);
   const [type, setType] = useState<string | null>(null);
   const [material, setMaterial] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
 
   return (
     <ModalWrapper>
@@ -27,14 +29,14 @@ const DressingTableModal = ({ onClose, onSave }: DressingTableModalProps) => {
 
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={["거울 일체형", "분리형", "벽걸이"]}
+          label="종류"
+          options={["미니 화장대", "1-2단 서랍형", "3단 이상 서랍형"]}
           selected={type}
           onSelect={setType}
         />
         <OptionSelector
-          label="재질 선택"
-          options={["원목", "MDF", "유리"]}
+          label="재질"
+          options={["플라스틱", "나무", "철제", "기타"]}
           selected={material}
           onSelect={setMaterial}
         />
@@ -43,9 +45,12 @@ const DressingTableModal = ({ onClose, onSave }: DressingTableModalProps) => {
           className="w-full bg-blue-500 text-white py-2 rounded mt-6"
           onClick={() =>
             onSave({
+              itemTypeId,
               quantity,
-              type,
-              material,
+              etc: {
+                type,
+                material, 
+              }
             })
           }
         >

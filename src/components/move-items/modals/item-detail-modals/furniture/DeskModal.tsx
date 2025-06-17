@@ -5,17 +5,19 @@ import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DeskModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DeskModal = ({ onClose, onSave }: DeskModalProps) => {
+const DeskModal = ({ onClose, onSave, itemTypeId }: DeskModalProps) => {
+  const [quantity, setQuantity] = useState<number>(1);
   const [type, setType] = useState<string | null>(null);
   const [width, setWidth] = useState<string | null>(null);
-  const [glass, setGlass] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
+  const [hasGlass, setHasGlass] = useState<string | null>(null);
 
   return (
     <ModalWrapper>
@@ -28,32 +30,35 @@ const DeskModal = ({ onClose, onSave }: DeskModalProps) => {
 
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={["사무용", "학생용", "화장용"]}
+          label="종류"
+          options={["일반","ㄱ자형", "독서실 책상", "책상+서랍", "기타"]}
           selected={type}
           onSelect={setType}
         />
         <OptionSelector
-          label="너비 선택"
-          options={["100cm", "120cm", "140cm"]}
+          label="너비"
+          options={["100cm 미만", "100-150cm", "150cm-200", "200cm 초과"]}
           selected={width}
           onSelect={setWidth}
         />
         <OptionSelector
-          label="유리 여부"
+          label="유리"
           options={["있음", "없음"]}
-          selected={glass}
-          onSelect={setGlass}
+          selected={hasGlass}
+          onSelect={setHasGlass}
         />
 
         <button
           className="w-full bg-blue-500 text-white py-2 rounded mt-6"
           onClick={() =>
             onSave({
+              itemTypeId,
               quantity,
-              type,
-              width,
-              glass,
+              etc: {
+                type,
+                width,
+                hasGlass,
+              }
             })
           }
         >

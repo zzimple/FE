@@ -1,22 +1,23 @@
 // 수납/서랍장
-
 "use client";
 
 import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DrawerModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DrawerModal = ({ onClose, onSave }: DrawerModalProps) => {
+const DrawerModal = ({ onClose, onSave, itemTypeId }: DrawerModalProps) => {
+  const [quantity, setQuantity] = useState<number>(1);
   const [material, setMaterial] = useState<string | null>(null);
   const [width, setWidth] = useState<string | null>(null);
   const [height, setHeight] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
 
   return (
     <ModalWrapper>
@@ -28,19 +29,19 @@ const DrawerModal = ({ onClose, onSave }: DrawerModalProps) => {
       />
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="재질 선택"
-          options={["원목", "플라스틱", "MDF"]}
+          label="재질"
+          options={["플라스틱", "나무", "철제", "기타"]}
           selected={material}
           onSelect={setMaterial}
         />
         <OptionSelector
-          label="너비 선택"
-          options={["60cm", "80cm", "100cm"]}
+          label="너비"
+          options={["50cm 미만", "50-100cm", "100-150cm", "150cm 초과"]}
           selected={width}
           onSelect={setWidth}
         />
         <OptionSelector
-          label="높이 선택"
+          label="높이"
           options={["80cm", "100cm", "120cm"]}
           selected={height}
           onSelect={setHeight}
@@ -50,10 +51,13 @@ const DrawerModal = ({ onClose, onSave }: DrawerModalProps) => {
           className="w-full bg-blue-500 text-white py-2 rounded mt-6"
           onClick={() =>
             onSave({
+              itemTypeId,
               quantity,
-              material,
-              width,
-              height,
+              etc: {
+                material,
+                width,
+                height,  
+              }
             })
           }
         >

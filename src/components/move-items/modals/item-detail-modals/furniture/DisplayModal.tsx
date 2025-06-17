@@ -5,54 +5,58 @@ import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DrawerModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DrawerModal = ({ onClose, onSave }: DrawerModalProps) => {
-  const [material, setMaterial] = useState<string | null>(null);
+const DrawerModal = ({ onClose, onSave,itemTypeId }: DrawerModalProps) => {
+  const [quantity, setQuantity] = useState<number>(1);
   const [width, setWidth] = useState<string | null>(null);
   const [height, setHeight] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
+  const [hasGlass, setHasGlass] = useState<string | null>(null);
 
   return (
     <ModalWrapper>
       <ModalTop
-        title="수납장/서랍장 정보 입력"
+        title="진열장 정보 입력"
         quantity={quantity}
         onQuantityChange={setQuantity}
         onClose={onClose}
       />
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="재질 선택"
-          options={["원목", "플라스틱", "MDF"]}
-          selected={material}
-          onSelect={setMaterial}
-        />
-        <OptionSelector
-          label="너비 선택"
-          options={["60cm", "80cm", "100cm"]}
+          label="너비"
+          options={["50cm 미만", "50-100cm", "100-150cm", "150cm 초과"]}
           selected={width}
           onSelect={setWidth}
         />
         <OptionSelector
-          label="높이 선택"
-          options={["80cm", "100cm", "120cm"]}
+          label="높이"
+          options={["50cm 미만", "50-100cm", "100-150cm", "150cm 초과"]}
           selected={height}
           onSelect={setHeight}
         />
-
+        <OptionSelector
+          label="유리"
+          options={["있음", "없음"]}
+          selected={hasGlass}
+          onSelect={setHasGlass}
+        />
         <button
           className="w-full bg-blue-500 text-white py-2 rounded mt-6"
           onClick={() =>
             onSave({
+              itemTypeId,
               quantity,
-              material,
-              width,
-              height,
+              etc: {
+                hasGlass,
+                width,
+                height,
+              },
             })
           }
         >
