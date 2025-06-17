@@ -5,16 +5,18 @@ import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
 import { useState } from "react";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface WashingMachineModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const WashingMachineModal = ({ onClose }: WashingMachineModalProps) => {
+const WashingMachineModal = ({ onClose, onSave, itemTypeId }: WashingMachineModalProps) => {
+  const [quantity, setQuantity] = useState<number>(1);
   const [type, setType] = useState<string | null>(null);
   const [capacity, setCapacity] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
 
   return (
     <ModalWrapper>
@@ -26,17 +28,35 @@ const WashingMachineModal = ({ onClose }: WashingMachineModalProps) => {
       />
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={["드럼", "통돌이", "일반형"]}
+          label="종류"
+          options={["통돌이", "드럼", "기타"]}
           selected={type}
           onSelect={setType}
         />
         <OptionSelector
-          label="용량 선택"
-          options={["9kg", "12kg", "15kg 이상"]}
+          label="용량"
+          options={["10kg 미만", "10-15kg", "15kg 초과"]}
           selected={capacity}
           onSelect={setCapacity}
         />
+
+      <div className="pt-4">
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              onSave({
+                itemTypeId,
+                quantity,
+                etc: {
+                  type,
+                  capacity,
+                },
+              })
+            }
+          >
+            확인
+          </button>
+        </div>
       </div>
     </ModalWrapper>
   );

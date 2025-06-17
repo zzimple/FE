@@ -6,19 +6,18 @@ import { useState } from "react";
 import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface CurtainModalProps {
   onClose: () => void;
-  onSave: (data: any) => void; // 나중에 필요 시 타입 지정하기
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const CurtainModal = ({ onClose, onSave }: CurtainModalProps) => {
+const CurtainModal = ({ onClose, onSave, itemTypeId }: CurtainModalProps) => {
   const [quantity, setQuantity] = useState(1);
-  const [type, setType] = useState("");
-  const [note, setNote] = useState("");
-
-  const typeOptions = ["암막", "속커튼", "레이스", "블라인드", "기타"];
-  const noteOptions = ["없음", "있음"];
+  const [type, setType] = useState<string | null>(null);
+  const [requestNote, setRequestNote] = useState<string | null>(null);
 
   return (
     <ModalWrapper>
@@ -31,31 +30,41 @@ const CurtainModal = ({ onClose, onSave }: CurtainModalProps) => {
 
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={typeOptions}
+          label="종류"
+          options={["커튼", "블라인드", "버티컬", "기타"]}
           selected={type}
           onSelect={setType}
         />
 
         <OptionSelector
           label="요청사항"
-          options={noteOptions}
-          selected={note}
-          onSelect={setNote}
+          options={[
+            "분리 요청",
+            "설치 요청",
+            "분리/설치 모두 요청",
+            "필요 없음",
+          ]}
+          selected={requestNote}
+          onSelect={setRequestNote}
         />
 
-        <button
-          className="w-full bg-blue-500 text-white py-2 rounded mt-6"
-          onClick={() =>
-            onSave({
-              quantity,
-              type,
-              note,
-            })
-          }
-        >
-          확인
-        </button>
+        <div className="pt-4">
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              onSave({
+                itemTypeId,
+                quantity,
+                etc: {
+                  type,
+                  requestNote
+                },
+              })
+            }
+          >
+            확인
+          </button>
+        </div>
       </div>
     </ModalWrapper>
   );

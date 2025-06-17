@@ -15,10 +15,10 @@ export default function EstimateHeader({ step, title, totalStep = 7 }: Props) {
   const handleBack = () => {
     // if (step > 1) {
     //   router.push(`/estimate/step${step - 1}`); // step3에서 2로
-    if (typeof window !== 'undefined' && window.history.length > 1) {
+    if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
-      router.push('/estimate/step1'); // 히스토리 없을 경우, 일단 step1로 가게 설정함 ~ 나중에 바꿀겨
+      router.push("/estimate/step1"); // 히스토리 없을 경우, 일단 step1로 가게 설정함 ~ 나중에 바꿀겨
     }
   };
 

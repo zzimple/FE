@@ -1,27 +1,25 @@
-// 전자레인지
+// 가스레인지
 "use client";
 
+import { useState } from "react";
 import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
+import { MoveItemDetail } from "@/types/moveItem";
 import OptionSelector from "@/components/move-items/common/OptionSelector";
-import { useState } from "react";
 
 interface MicrowaveModalProps {
   onClose: () => void;
-  onSave: (data: any) => void; 
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const MicrowaveModal = ({ onClose, onSave }: MicrowaveModalProps) => {
+const MicrowaveModal = ({
+  onClose,
+  onSave,
+  itemTypeId,
+}: MicrowaveModalProps) => {
+  const [quantity, setQuantity] = useState(1);
   const [type, setType] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
-
-  const handleSave = () => {
-    onSave({
-      type,
-      quantity,
-    });
-    onClose();
-  };
 
   return (
     <ModalWrapper>
@@ -31,20 +29,30 @@ const MicrowaveModal = ({ onClose, onSave }: MicrowaveModalProps) => {
         onQuantityChange={setQuantity}
         onClose={onClose}
       />
+
       <div className="p-4 space-y-4">
         <OptionSelector
-          label="종류 선택"
-          options={["일반형", "오븐겸용", "기타"]}
+          label="종류"
+          options={["일반형", "오븐형"]}
           selected={type}
           onSelect={setType}
         />
-
-        <button
-          className="w-full mt-6 bg-blue-500 text-white py-2 rounded"
-          onClick={handleSave}
-        >
-          확인
-        </button>
+        <div className="pt-4">
+          <button
+            className="w-full bg-blue-500 text-white py-2 rounded"
+            onClick={() =>
+              onSave({
+                itemTypeId,
+                quantity,
+                etc: {
+                  type,
+                },
+              })
+            }
+          >
+            확인
+          </button>
+        </div>
       </div>
     </ModalWrapper>
   );
