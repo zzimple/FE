@@ -5,13 +5,15 @@
 import { useState } from "react";
 import ModalWrapper from "@/components/move-items/common/ModalWrapper";
 import ModalTop from "@/components/move-items/common/ModalTop";
+import { MoveItemDetail } from "@/types/moveItem";
 
 interface DryingRackModalProps {
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: MoveItemDetail) => void;
+  itemTypeId: number;
 }
 
-const DryingRackModal = ({ onClose, onSave }: DryingRackModalProps) => {
+const DryingRackModal = ({ onClose, onSave, itemTypeId }: DryingRackModalProps) => {
   const [quantity, setQuantity] = useState(1);
 
   return (
@@ -23,10 +25,16 @@ const DryingRackModal = ({ onClose, onSave }: DryingRackModalProps) => {
         onClose={onClose}
       />
 
-      <div className="p-4">
+      <div className="pt-4">
         <button
           className="w-full bg-blue-500 text-white py-2 rounded"
-          onClick={() => onSave({ quantity })}
+          onClick={() =>
+            onSave({
+              itemTypeId,
+              quantity,
+              etc: {},
+            })
+          }
         >
           확인
         </button>
