@@ -125,7 +125,6 @@ export default function Step5Page() {
       ...getFullEtcFields(etc),
     }));
     
-
       const payload = {
         items: formattedItems,
         boxCount,
@@ -210,41 +209,22 @@ export default function Step5Page() {
 
   // 잔짐 박스 불러오기
   useEffect(() => {
-    const count = localStorage.getItem("leftoverBoxCount");
-    if (count) setLeftoverBoxCount(Number(count));
-  }, []);
-  
-  
-  // 일반 박스용
-  const [boxCountIndex, setBoxCountIndex] = useState(0);
-  const boxCounts = [
-    "0",
-    "1~5",
-    "6~10",
-    "11~15",
-    "16~20",
-    "21~25",
-    "26~30",
-    "31~35",
-    "36~40",
-    "41~45",
-    "46~50",
-  ];
+    const storedUuid = localStorage.getItem("uuid");
+    const storedBoxCount = localStorage.getItem("boxCount");
+    const storedLeftoverBoxCount = localStorage.getItem("leftoverBoxCount");
 
-  useEffect(() => {
-    const label = boxCounts[boxCountIndex];
-    let parsed = 0;
-
-    if (label.includes("~")) {
-      const [, end] = label.split("~");
-      parsed = parseInt(end, 10);
+    if (storedUuid) {
+      setUuid(storedUuid);
     } else {
-      parsed = parseInt(label, 10);
+      alert("견적서 UUID가 없습니다. 처음부터 다시 작성해주세요.");
+      router.push("/estimate/start");
     }
 
-    setBoxCount(parsed);
-  }, [boxCountIndex]);
-
+    if (storedBoxCount) setBoxCount(Number(storedBoxCount));
+    if (storedLeftoverBoxCount)
+      setLeftoverBoxCount(Number(storedLeftoverBoxCount));
+  }, [router]);
+  
 
   const handleCategoryScroll = (label: MoveCategory) => {
     if (label === "가구" && furnitureRef.current) {
@@ -401,22 +381,16 @@ export default function Step5Page() {
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   className="border border-gray-300 rounded px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() =>
-                    setBoxCountIndex((prev) => Math.max(0, prev - 1))
-                  }
+                  onClick={() => setBoxCount((prev) => Math.max(0, prev - 1))}
                 >
                   -
                 </button>
                 <span className="w-16 text-center font-bold text-gray-900 text-base">
-                  {boxCounts[boxCountIndex]}
+                  {boxCount}개
                 </span>
                 <button
                   className="border border-gray-300 rounded px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() =>
-                    setBoxCountIndex((prev) =>
-                      Math.min(boxCounts.length - 1, prev + 1)
-                    )
-                  }
+                  onClick={() => setBoxCount((prev) => prev + 1)}
                 >
                   +
                 </button>
