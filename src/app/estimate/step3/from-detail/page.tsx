@@ -1,24 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
 import Button from "@/components/common/Button";
 import AddressSearchButton from "@/components/common/AddressSearchButton";
+import { authApi } from "@/lib/axios";
+import { saveFromAddressToCookie } from "@/utils/cookies";
+
+type JusoCallbackType = {
+  roadFullAddr: string;
+  roadAddrPart1: string;
+  addrDetail: string;
+  zipNo: string;
+  entX: string;
+  entY: string;
+};
+
+declare global {
+  interface Window {
+    onJusoCallback: (data: JusoCallbackType) => void;
+  }
+}
+
+export {};
 
 export default function FromDetailPage() {
   const router = useRouter();
 
-  const [address, setAddress] = useState("");
-  const [detailAddress, setDetailAddress] = useState("");
+  const [roadFullAddr, setRoadFullAddr] = useState("");
+  const [roadAddrPart1, setRoadAddrPart1] = useState("");
+  const [addrDetail, setAddrDetail] = useState("");
+  const [zipNo, setZipNo] = useState("");
+  // const [entX, setEntX] = useState<string | null>(null);
+  // const [entY, setEntY] = useState<string | null>(null);
+  const [entX, setEntX] = useState<string>(""); // 초기값 ""로 설정
+  const [entY, setEntY] = useState<string>("");
+
+
   const [buildingType, setBuildingType] = useState<string | null>(null);
   const [roomType, setRoomType] = useState<string | null>(null);
   const [area, setArea] = useState<string | null>(null);
   const [floor, setFloor] = useState<string | null>(null);
   const [parking, setParking] = useState<"가능" | "불가능" | null>(null);
+  const [stairs, setStairs] = useState<boolean | null>(null);
+  const [elevator, setElevator] = useState<boolean | null>(null);
 
-  const buildingTypes = ["빌라/연립", "아파트", "주택", "오피스텔", "상가"];
-  const roomTypes = ["원룸", "1.5룸", "2룸", "3룸 이상"];
+  const buildingTypes = [
+    "VILLA",
+    "APARTMENT",
+    "HOUSE",
+    "OFFICETEL",
+    "COMMERCIAL",
+  ];
+  const roomTypes = [
+    "ONE_ROOM",
+    "ONE_HALF_ROOM",
+    "TWO_ROOM",
+    "THREE_ROOM_OR_MORE",
+  ];
   const areaOptions = [
     "10평 이하",
     "10-15평",
@@ -29,34 +69,120 @@ export default function FromDetailPage() {
   ];
   const floorOptions = ["1층", "2~3층", "4~5층", "5층 이상", "반지하"];
 
+  useEffect(() => {
+    window.onJusoCallback = ({
+      roadFullAddr,
+      roadAddrPart1,
+      addrDetail,
+      zipNo,
+      entX,
+      entY,
+    }: JusoCallbackType) => {
+      console.log('주소 좌표: ', { entX, entY });
+      setRoadFullAddr(roadFullAddr);
+      setRoadAddrPart1(roadAddrPart1);
+      setAddrDetail(addrDetail);
+      setZipNo(zipNo);
+      setEntX(entX);
+      setEntY(entY);
+    };
+  }, []);
+  
+
+  const handleNext = async () => {
+    const draftId = localStorage.getItem("uuid");
+    if (!draftId) return alert("견적서 ID가 없습니다.");
+
+    const fromAddress = {
+      address: {
+        roadFullAddr,
+        roadAddrPart1,
+        addrDetail,
+        zipNo,
+        entX: entX ?? "",
+        entY: entY ?? "",
+      },
+      detailInfo: {
+        buildingType: buildingType ?? "",
+        roomStructure: roomType ?? "",
+        sizeOption: area ?? "",
+        floor: floor ?? "",
+        hasStairs: stairs ?? false,
+        hasParking: parking === "가능",
+        elevator: elevator ?? false,
+      },
+    };
+
+    try {
+      saveFromAddressToCookie(fromAddress);
+
+      const response = await authApi.post(
+        `/estimates/draft/address?draftId=${draftId}`,
+        { fromAddress }
+      );
+
+      if (response.data?.message) {
+        alert("출발지 주소가 성공적으로 저장되었습니다.");
+        router.push("/estimate/step3/to-detail");
+      } else {
+        alert("주소 저장에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("주소 저장 중 에러:", error);
+      alert("주소 저장 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
       <EstimateProgressHeader step={3} title="출발지 상세" />
 
       <main className="flex-1 px-4 py-6 space-y-6">
-        {/* 출발지 기본 주소 */}
         <div>
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">
-              출발지 주소
-            </label>
-            <AddressSearchButton
-              onAddressSelected={(addr) => setAddress(addr)}
-            />
-            {address && <p className="mt-2 text-sm text-gray-700">{address}</p>}
-          </div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">
+            출발지 주소
+          </label>
+          <AddressSearchButton
+            onAddressSelect={({
+              roadFullAddr,
+              roadAddrPart1,
+              addrDetail,
+              zipNo,
+              entX,
+              entY,
+            }) => {
+              setRoadFullAddr(roadFullAddr);
+              setRoadAddrPart1(roadAddrPart1);
+              setAddrDetail(addrDetail);
+              setZipNo(zipNo);
+              setEntX(entX);
+              setEntY(entY);
+            }}
+          />
         </div>
 
-        {/* 상세주소 입력 */}
         <input
           type="text"
-          placeholder="상세 주소 입력 (동/호수 등)"
-          value={detailAddress}
-          onChange={(e) => setDetailAddress(e.target.value)}
-          className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm text-left text-gray-500"
+          value={roadAddrPart1}
+          readOnly
+          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
+          placeholder="도로명 주소"
+        />
+        <input
+          type="text"
+          value={addrDetail}
+          readOnly
+          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
+          placeholder="상세 주소 (동/호수 등)"
+        />
+        <input
+          type="text"
+          value={zipNo}
+          readOnly
+          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
+          placeholder="우편번호"
         />
 
-        {/* 건물 유형 선택 */}
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">건물 종류</h4>
           <div className="grid grid-cols-3 gap-2">
@@ -77,7 +203,6 @@ export default function FromDetailPage() {
           </div>
         </section>
 
-        {/* 방 구조 선택 */}
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">방 구조</h4>
           <div className="grid grid-cols-3 gap-2">
@@ -98,7 +223,6 @@ export default function FromDetailPage() {
           </div>
         </section>
 
-        {/* 평수 선택 */}
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">평수</h4>
           <select
@@ -117,7 +241,6 @@ export default function FromDetailPage() {
           </select>
         </section>
 
-        {/* 층수 선택 */}
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">층수</h4>
           <select
@@ -136,7 +259,6 @@ export default function FromDetailPage() {
           </select>
         </section>
 
-        {/* 주차 가능 여부 */}
         <section>
           <h4 className="text-sm font-medium mb-2 text-gray-700">
             주차 가능 여부
@@ -158,20 +280,65 @@ export default function FromDetailPage() {
             ))}
           </div>
         </section>
+
+        <section>
+          <h4 className="text-sm font-medium mb-2 text-gray-700">
+            엘리베이터 여부
+          </h4>
+          <div className="flex gap-2">
+            {[true, false].map((val) => (
+              <button
+                key={String(val)}
+                type="button"
+                onClick={() => setElevator(val)}
+                className={`flex-1 py-2 rounded-full border text-sm ${
+                  elevator === val
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-white text-gray-700 border-gray-300"
+                }`}
+              >
+                {val ? "있음" : "없음"}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h4 className="text-sm font-medium mb-2 text-gray-700">계단 여부</h4>
+          <div className="flex gap-2">
+            {[true, false].map((val) => (
+              <button
+                key={String(val)}
+                type="button"
+                onClick={() => setStairs(val)}
+                className={`flex-1 py-2 rounded-full border text-sm ${
+                  stairs === val
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-white text-gray-700 border-gray-300"
+                }`}
+              >
+                {val ? "있음" : "없음"}
+              </button>
+            ))}
+          </div>
+        </section>
       </main>
 
       <div className="px-4 py-6">
         <Button
-          onClick={() => {
-            router.push("/estimate/step4");
-          }}
+        
+          onClick={handleNext}
           disabled={
-            !detailAddress ||
+            !roadFullAddr ||
             !buildingType ||
             !roomType ||
             !area ||
             !floor ||
-            !parking
+            parking === null ||
+            elevator === null ||
+            stairs === null ||
+            entX === "" ||
+            entY === ""
           }
         >
           다음

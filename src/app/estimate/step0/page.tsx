@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/components/common/Button";
-import api from "@/lib/axios";
+import { authApi } from "@/lib/axios";
 import React from "react";
 import { useRouter } from "next/navigation";
 
@@ -11,7 +11,7 @@ export default function Page() {
   const handleNext = async () => {
     try {
       // ✅ UUID 및 토큰 발급 요청
-      const res = await api.post("/estimates/draft/start");
+      const res = await authApi.post("/estimates/draft/start");
       console.log("견적서 초안 응답:", res.data);
 
       const newUuid = res.data.data.draftId;

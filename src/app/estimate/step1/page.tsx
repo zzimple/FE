@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "@/lib/axios";
+import { authApi } from "@/lib/axios";
 import Button from "@/components/common/Button";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,11 @@ export default function Step1Page() {
     }
 
     try {
-      const res = await api.post(`/estimates/draft/move-type?draftId=${uuid}`, {
+      localStorage.setItem(
+        "moveType",
+        selected === "small" ? "소형이사" : "가정이사"
+      );
+      const res = await authApi.post(`/estimates/draft/move-type?draftId=${uuid}`, {
         moveType: selected.toUpperCase(),
       });
 
@@ -47,6 +51,7 @@ export default function Step1Page() {
       alert("이사 유형 저장에 실패했어요. 다시 시도해주세요.");
     }
   };
+
 
   return (
     <div className="min-h-screen flex flex-col w-full max-w-md mx-auto">
