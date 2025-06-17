@@ -33,7 +33,7 @@ const AddressSearchButton = ({ onAddressSelect }: AddressSearchButtonProps) => {
       onAddressSelect(addr);
     };
 
-    const popupUrl = `https://business.juso.go.kr/addrlink/addrLinkUrl.do?confmKey=${confmKey}&returnUrl=${returnUrl}&resultType=1&useDetailAddr=Y`;
+    const popupUrl = `https://business.juso.go.kr/addrlink/addrCoordUrl.do?confmKey=${confmKey}&returnUrl=${returnUrl}&resultType=4&useDetailAddr=Y`;
 
     console.log("주소 팝업 URL:", popupUrl); // ← 이 줄 추가
     console.log("🔑 confmKey:", confmKey); // null 또는 undefined 나오면 문제
