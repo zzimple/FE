@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Button from "@/components/common/Button";
 import KakaoMapRoute from "@/components/kakao/KakaoMapRoute ";
-import { useRouter, useSearchParams } from 'next/navigation'; 
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { Address, DetailInfo, Item } from '@/types/estimate';
 import { getCategoryCounts, getItemDetailsNoFrame, formatMoveDateTime, NOTES, formatAddressInfo } from '@/utils/estimateHelpers';
 
@@ -285,7 +285,7 @@ export default function EstimateFinalPage() {
                                 >
                                     {category}
                                     <span className="ml-1 text-xs">
-                                        ({getCategoryCounts(reviewData.items)[category] || 0})
+                                        ({getCategoryCounts(estimateData?.data.items || [])[category as "가구" | "가전" | "기타"] || 0})
                                     </span>
                                 </button>
                             ))}

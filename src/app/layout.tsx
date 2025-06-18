@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/common/Header";
+import { Suspense } from "react";
 
 // 폰트 변수 선언
 const geistSans = Geist({
@@ -28,7 +29,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Header />
-        <div className="pt-14">{children}</div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className="pt-14">{children}</div>
+        </Suspense>
       </body>
     </html>
   );

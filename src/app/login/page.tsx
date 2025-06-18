@@ -15,7 +15,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!loginId || !password) {
       setError('아이디와 비밀번호를 모두 입력해주세요.');
       return;
@@ -23,41 +22,20 @@ export default function LoginPage() {
 
     setLoading(true);
     setError('');
-
     try {
-      const res = await publicApi.post(
-        '/users/login',
-        {
-          loginId: loginId,
-          password: password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
+      // withCredentials는 이미 publicApi에 설정되어 있습니다.
+      const res = await publicApi.post('/users/login', { loginId, password }); // 수정됨
       const { accessToken } = res.data.data;
-      localStorage.setItem('accessToken', accessToken);
-      router.push('/estimate/step0');
+      localStorage.setItem('accessToken', accessToken); // 수정됨
+      router.push('/estimate/step0'); // 수정됨
     } catch (err: any) {
       const code = err.response?.data?.code;
-      const message = err.response?.data?.message;
-
-      switch (code) {
-        case 'LOGIN_ID_NOT_FOUND':
-        case 'USER_NOT_FOUND':
-        case 'INVALID_PASSWORD':
-          setError('아이디 또는 비밀번호가 올바르지 않습니다.');
-          break;
-        case 'STORE_NOT_FOUND':
-        case 'OWNER_NOT_FOUND':
-          setError('매장 또는 사장님 정보를 찾을 수 없습니다.');
-          break;
-        case 'TOKEN_EXPIRED':
-          setError('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
-          break;
-        default:
-          setError(message || '로그인에 실패했습니다.');
+      if (['LOGIN_ID_NOT_FOUND','USER_NOT_FOUND','INVALID_PASSWORD'].includes(code)) {
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.'); // 수정됨
+      } else if (['STORE_NOT_FOUND','OWNER_NOT_FOUND'].includes(code)) {
+        setError('매장 또는 사장님 정보를 찾을 수 없습니다.'); // 수정됨
+      } else {
+        setError(err.response?.data?.message || '로그인에 실패했습니다.'); // 수정됨
       }
     } finally {
       setLoading(false);

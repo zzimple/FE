@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/axios";
@@ -259,174 +259,176 @@ export default function EstimatePriceByEstimateId() {
     });
 
     return (
-        <div className="max-w-2xl mx-auto py-8">
-            <div className="flex items-center justify-between mb-8">
-                {/* 왼쪽: 이전 페이지 버튼 */}
-                <button
-                    onClick={() => router.push(`/estimate/owner/final?estimateNo=${estimateNo}`)}
-                    className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
-                >
-                    <span className="mr-1">&lt;</span>
-                    이전페이지
-                </button>
+        <Suspense fallback={<div>Loading...</div>}>
+            <div className="max-w-2xl mx-auto py-8">
+                <div className="flex items-center justify-between mb-8">
+                    {/* 왼쪽: 이전 페이지 버튼 */}
+                    <button
+                        onClick={() => router.push(`/estimate/owner/final?estimateNo=${estimateNo}`)}
+                        className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
+                    >
+                        <span className="mr-1">&lt;</span>
+                        이전페이지
+                    </button>
 
-                {/* 가운데: 제목 */}
-                <h2 className="text-lg font-semibold text-center flex-1">
-                    기본 단가 및 추가금 입력
-                </h2>
+                    {/* 가운데: 제목 */}
+                    <h2 className="text-lg font-semibold text-center flex-1">
+                        기본 단가 및 추가금 입력
+                    </h2>
 
-                {/* 오른쪽: 빈 공간 */}
-                <div className="w-[100px]" />
-            </div>
+                    {/* 오른쪽: 빈 공간 */}
+                    <div className="w-[100px]" />
+                </div>
 
-            {loading && <div className="text-center py-8">로딩 중...</div>}
+                {loading && <div className="text-center py-8">로딩 중...</div>}
 
-            {
-                !loading && items.length > 0 && (
-                    <>
-                        <div className="space-y-12">
-                            {CATEGORY_ORDER.map((cat) =>
-                                grouped[cat] && grouped[cat].length > 0 ? (
-                                    <div key={cat}>
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <h3 className="text-base font-bold">{cat}</h3>
-                                            <div className="h-px flex-1 bg-gray-100" />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {grouped[cat].map((item) => (
-                                                <div
-                                                    key={item.itemTypeId}
-                                                    className="flex flex-col items-center justify-between p-5 rounded-2xl bg-white border shadow-sm"
-                                                >
-                                                    <Image
-                                                        src={getImagePath(item.category, item.name)}
-                                                        alt={item.name}
-                                                        width={56}
-                                                        height={56}
-                                                        className="rounded-xl object-cover bg-gray-100"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.src = "/icons/placeholder.jpeg";
-                                                        }}
-                                                    />
-                                                    <span className="text-sm font-medium mt-2">{item.name}</span>
-                                                    <div className="flex items-center w-full mt-3">
-                                                        <input
-                                                            value={priceMap[item.itemTypeId] ?? 0}
-                                                            onChange={(e) =>
-                                                                setPriceMap((prev) => ({
-                                                                    ...prev,
-                                                                    [item.itemTypeId]: parseInt(e.target.value || "0"),
-                                                                }))
-                                                            }
-                                                            className="flex-1 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
-                                                            placeholder="기본 단가"
+                {
+                    !loading && items.length > 0 && (
+                        <>
+                            <div className="space-y-12">
+                                {CATEGORY_ORDER.map((cat) =>
+                                    grouped[cat] && grouped[cat].length > 0 ? (
+                                        <div key={cat}>
+                                            <div className="flex items-center gap-2 mb-6">
+                                                <h3 className="text-base font-bold">{cat}</h3>
+                                                <div className="h-px flex-1 bg-gray-100" />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {grouped[cat].map((item) => (
+                                                    <div
+                                                        key={item.itemTypeId}
+                                                        className="flex flex-col items-center justify-between p-5 rounded-2xl bg-white border shadow-sm"
+                                                    >
+                                                        <Image
+                                                            src={getImagePath(item.category, item.name)}
+                                                            alt={item.name}
+                                                            width={56}
+                                                            height={56}
+                                                            className="rounded-xl object-cover bg-gray-100"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement;
+                                                                target.src = "/icons/placeholder.jpeg";
+                                                            }}
                                                         />
-                                                        <span className="ml-1 text-gray-700">원</span>
-                                                    </div>
-                                                    {!showExtra[item.itemTypeId] ? (
-                                                        <button
-                                                            className="mt-2 text-xs text-blue-600 border border-blue-200 rounded px-2 py-1 hover:bg-blue-50"
-                                                            onClick={() =>
-                                                                setShowExtra((prev) => ({
-                                                                    ...prev,
-                                                                    [item.itemTypeId]: true,
-                                                                }))
-                                                            }
-                                                        >
-                                                            + 추가금
-                                                        </button>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2 w-full mt-2">
+                                                        <span className="text-sm font-medium mt-2">{item.name}</span>
+                                                        <div className="flex items-center w-full mt-3">
                                                             <input
-                                                                type="text"
-                                                                placeholder="사유 (예: 사다리차)"
-                                                                className="flex-[2] min-w-0 px-3 py-2 border rounded"
-                                                                value={extraChargeMap[item.itemTypeId]?.reason || ""}
+                                                                value={priceMap[item.itemTypeId] ?? 0}
                                                                 onChange={(e) =>
-                                                                    setExtraChargeMap((prev) => ({
+                                                                    setPriceMap((prev) => ({
                                                                         ...prev,
-                                                                        [item.itemTypeId]: {
-                                                                            ...prev[item.itemTypeId],
-                                                                            reason: e.target.value,
-                                                                            amount: prev[item.itemTypeId]?.amount || 0,
-                                                                        },
+                                                                        [item.itemTypeId]: parseInt(e.target.value || "0"),
                                                                     }))
                                                                 }
+                                                                className="flex-1 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
+                                                                placeholder="기본 단가"
                                                             />
-                                                            <input
-                                                                placeholder="0"
-                                                                className="flex-[1] min-w-0 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
-                                                                value={extraChargeMap[item.itemTypeId]?.amount || ""}
-                                                                onChange={(e) =>
-                                                                    setExtraChargeMap((prev) => ({
-                                                                        ...prev,
-                                                                        [item.itemTypeId]: {
-                                                                            ...prev[item.itemTypeId],
-                                                                            amount: parseInt(e.target.value || "0"),
-                                                                            reason: prev[item.itemTypeId]?.reason || "",
-                                                                        },
-                                                                    }))
-                                                                }
-                                                            />
-                                                            <span className="ml-1 text-gray-700 whitespace-nowrap">원</span>
+                                                            <span className="ml-1 text-gray-700">원</span>
                                                         </div>
-                                                    )}
-                                                </div>
-                                            ))}
+                                                        {!showExtra[item.itemTypeId] ? (
+                                                            <button
+                                                                className="mt-2 text-xs text-blue-600 border border-blue-200 rounded px-2 py-1 hover:bg-blue-50"
+                                                                onClick={() =>
+                                                                    setShowExtra((prev) => ({
+                                                                        ...prev,
+                                                                        [item.itemTypeId]: true,
+                                                                    }))
+                                                                }
+                                                            >
+                                                                + 추가금
+                                                            </button>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 w-full mt-2">
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="사유 (예: 사다리차)"
+                                                                    className="flex-[2] min-w-0 px-3 py-2 border rounded"
+                                                                    value={extraChargeMap[item.itemTypeId]?.reason || ""}
+                                                                    onChange={(e) =>
+                                                                        setExtraChargeMap((prev) => ({
+                                                                            ...prev,
+                                                                            [item.itemTypeId]: {
+                                                                                ...prev[item.itemTypeId],
+                                                                                reason: e.target.value,
+                                                                                amount: prev[item.itemTypeId]?.amount || 0,
+                                                                            },
+                                                                        }))
+                                                                    }
+                                                                />
+                                                                <input
+                                                                    placeholder="0"
+                                                                    className="flex-[1] min-w-0 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
+                                                                    value={extraChargeMap[item.itemTypeId]?.amount || ""}
+                                                                    onChange={(e) =>
+                                                                        setExtraChargeMap((prev) => ({
+                                                                            ...prev,
+                                                                            [item.itemTypeId]: {
+                                                                                ...prev[item.itemTypeId],
+                                                                                amount: parseInt(e.target.value || "0"),
+                                                                                reason: prev[item.itemTypeId]?.reason || "",
+                                                                            },
+                                                                        }))
+                                                                    }
+                                                                />
+                                                                <span className="ml-1 text-gray-700 whitespace-nowrap">원</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : null
-                            )}
-                        </div>
-
-                        <div className="mt-10 space-y-6">
-                            {/* 가격 불러오기 버튼들 */}
-                            <div className="flex justify-center gap-4">
-                                <button
-                                    onClick={handleLoadDefaultPrices}
-                                    className="flex items-center gap-2 bg-white border border-blue-200 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                    </svg>
-                                    기본 단가 불러오기
-                                </button>
-                                <button
-                                    onClick={handleLoadPrices}
-                                    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                    </svg>
-                                    이전 입력 가져오기
-                                </button>
-                            </div>
-
-                            {/* 저장 버튼과 총액 */}
-                            <div className="text-center">
-                                <button
-                                    onClick={handleSave}
-                                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                                >
-                                    저장하기
-                                </button>
-                                {totalAmount > 0 && (
-                                    <div className="mt-4 text-lg font-bold text-blue-600">
-                                        물품 총 금액: {totalAmount.toLocaleString()}원
-                                    </div>
+                                    ) : null
                                 )}
                             </div>
-                        </div>
-                    </>
-                )
-            }
 
-            {
-                !loading && items.length === 0 && (
-                    <div className="text-center text-gray-400 py-8">짐 목록이 없습니다.</div>
-                )
-            }
-        </div>
+                            <div className="mt-10 space-y-6">
+                                {/* 가격 불러오기 버튼들 */}
+                                <div className="flex justify-center gap-4">
+                                    <button
+                                        onClick={handleLoadDefaultPrices}
+                                        className="flex items-center gap-2 bg-white border border-blue-200 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                        </svg>
+                                        기본 단가 불러오기
+                                    </button>
+                                    <button
+                                        onClick={handleLoadPrices}
+                                        className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                        </svg>
+                                        이전 입력 가져오기
+                                    </button>
+                                </div>
+
+                                {/* 저장 버튼과 총액 */}
+                                <div className="text-center">
+                                    <button
+                                        onClick={handleSave}
+                                        className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                                    >
+                                        저장하기
+                                    </button>
+                                    {totalAmount > 0 && (
+                                        <div className="mt-4 text-lg font-bold text-blue-600">
+                                            물품 총 금액: {totalAmount.toLocaleString()}원
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )
+                }
+
+                {
+                    !loading && items.length === 0 && (
+                        <div className="text-center text-gray-400 py-8">짐 목록이 없습니다.</div>
+                    )
+                }
+            </div>
+        </Suspense>
     );
 }

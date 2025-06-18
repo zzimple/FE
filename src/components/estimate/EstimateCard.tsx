@@ -1,6 +1,6 @@
 import React from "react";
 import { HiOutlineLocationMarker, HiOutlineCalendar, HiOutlineTruck, HiOutlineChevronRight } from "react-icons/hi";
-import { Estimate, MOVE_TYPE_LABELS, MOVE_OPTION_LABELS, STATUS_BADGE_STYLES } from "@/types/estimate";
+import { Estimate, MOVE_TYPE_LABELS, MOVE_OPTION_LABELS, STATUS_BADGE_STYLES, MoveType, MoveOption } from "@/types/estimate";
 
 interface EstimateCardProps {
     estimate: Estimate;
@@ -44,10 +44,10 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
                     </div>
                     <div className="flex items-center gap-1">
                         <HiOutlineTruck className="text-blue-400" />
-                        {MOVE_TYPE_LABELS[estimate.moveType]}
+                        {MOVE_TYPE_LABELS[estimate.moveType as MoveType]}
                     </div>
                     <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium">
-                        {MOVE_OPTION_LABELS[estimate.optionType]}
+                        {MOVE_OPTION_LABELS[estimate.moveOption as MoveOption]}
                     </span>
                 </div>
             </div>

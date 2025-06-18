@@ -22,12 +22,12 @@ export default function PageHeader() {
           <div
             key={page.label}
             className="flex-1 flex flex-col items-center cursor-pointer whitespace-nowrap"
-            onClick={() => router.push(page.path)}
+            onClick={() => router.push(page.href)}
           >
             <span
               className={`
                 text-sm text-center 
-                ${pathname === page.path 
+                ${pathname === page.href 
                   ? 'text-[#2948FF] font-semibold' 
                   : 'text-gray-400'}
               `}
@@ -37,7 +37,7 @@ export default function PageHeader() {
             <div
               className={`
                 w-full h-0.5 mt-1 
-                ${pathname === page.path ? 'bg-[#2948FF]' : 'bg-gray-200'}
+                ${pathname === page.href ? 'bg-[#2948FF]' : 'bg-gray-200'}
               `}
             />
           </div>

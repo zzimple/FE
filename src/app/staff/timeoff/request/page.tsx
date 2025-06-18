@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+
 import { authApi } from "@/lib/axios";
+
+type Status = 'APPROVED' | 'PENDING' | 'REJECTED';
+type TimeOffType = 'ANNUAL' | 'HALF' | 'SICK' | 'ETC';
+
 
 const mapStatusToKorean = (status: Status) => {
     switch (status) {

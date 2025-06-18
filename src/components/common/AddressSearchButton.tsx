@@ -1,14 +1,16 @@
 "use client";
 
+export interface Addr {
+  roadFullAddr: string;
+  roadAddrPart1: string;
+  addrDetail: string;
+  zipNo: string;
+  entX: string;
+  entY: string;
+}
+
 interface AddressSearchButtonProps {
-  onAddressSelect: (addr: {
-    roadFullAddr: string;
-    roadAddrPart1: string;
-    addrDetail: string;
-    zipNo: string;
-    entX: string;
-    entY: string;
-  }) => void;
+  onAddressSelect: (addr: Addr) => void;
 }
 
 const AddressSearchButton = ({ onAddressSelect }: AddressSearchButtonProps) => {
@@ -29,7 +31,7 @@ const AddressSearchButton = ({ onAddressSelect }: AddressSearchButtonProps) => {
     const returnUrl = encodeURIComponent("http://14.63.178.146:8080/juso/callback");
 
     // 전역 콜백 지정
-    (window as any).onJusoCallback = (addr: string) => {
+    (window as any).onJusoCallback = (addr: Addr) => {
       onAddressSelect(addr);
     };
 
