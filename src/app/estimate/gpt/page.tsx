@@ -58,7 +58,7 @@ const getCategoryLabel = (category: string): string => {
         'itemExtraCharges': '물품 추가 요금',
         'extraCharges': '기타 추가 요금',
         'holidayCharge': '공휴일 요금',
-        'goodDayCharge': '길일 요금',
+        'goodDayCharge': '손 없는 날 요금',
         'weekendCharge': '주말 요금',
         'ownerMessage': '사장님 메시지',
         'totalPrice': '총 비용'
@@ -67,14 +67,47 @@ const getCategoryLabel = (category: string): string => {
 };
 
 // 값 포맷팅 함수
-const formatValue = (value: string | number | null): string => {
-    if (value === null || value === undefined) {
-        return '-';
+const formatValue = (value: string | number | null | unknown, category?: string): string => {
+    if (value === null || value === undefined) return '-';
+
+    // 배열인 경우
+    if (Array.isArray(value)) {
+        if (value.length === 0) return '-';
+        if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+            return value.map((item: unknown) => {
+                if (typeof item === 'object' && item !== null && 'amount' in item && 'reason' in item) {
+                    const chargeItem = item as { amount: number; reason: string };
+                    // reason을 무조건 그대로 노출
+                    return `${chargeItem.reason}: ${chargeItem.amount.toLocaleString()}원`;
+                }
+                return JSON.stringify(item);
+            }).join('\n');
+        }
+        return value.join(', ');
     }
+    // 객체인 경우
+    if (typeof value === 'object' && value !== null) {
+        if ('amount' in value && 'reason' in value) {
+            const chargeItem = value as { amount: number; reason: string };
+            return `${chargeItem.reason}: ${chargeItem.amount.toLocaleString()}원`;
+        }
+        return JSON.stringify(value);
+    }
+    // 숫자인 경우 - 카테고리에 따라 단위 결정
     if (typeof value === 'number') {
-        if (value === 0) return '0원';
-        return `${value.toLocaleString()}원`;
+        if (value === 0) {
+            if (category === 'truckCount') return '0대';
+            return '0원';
+        }
+        if (category === 'truckCount') {
+            return `${value.toLocaleString()}대`;
+        } else if (category === 'ownerMessage') {
+            return value.toString();
+        } else {
+            return `${value.toLocaleString()}원`;
+        }
     }
+    // 문자열인 경우
     if (typeof value === 'string') {
         if (value === '') return '-';
         return value;
@@ -214,6 +247,10 @@ export default function EstimateGptPage() {
             };
             
             console.log('📤 GPT 요청 데이터:', gptRequestData);
+            console.log('🔍 extraCharges 상세:', {
+                estimateA_extraCharges: gptRequestData.estimateA.extraCharges,
+                estimateB_extraCharges: gptRequestData.estimateB.extraCharges
+            });
             
             // GPT 분석 요청
             const response = await authApi.post<AnalysisResponse>('/gpt/compare', gptRequestData);
@@ -417,6 +454,18 @@ export default function EstimateGptPage() {
                                         </p>
                                     </div>
 
+                                    {/* 견적서 A/B 가게명 표시 */}
+                                    {/* {selectedEstimates.length === 2 && (
+                                      <div className="flex justify-between mb-4">
+                                        <div className="text-sm font-semibold text-blue-700">
+                                          견적서 A: {estimates.find(e => e.estimateNo === selectedEstimates[0])?.storeName || '-'}
+                                        </div>
+                                        <div className="text-sm font-semibold text-blue-700 text-right">
+                                          견적서 B: {estimates.find(e => e.estimateNo === selectedEstimates[1])?.storeName || '-'}
+                                        </div>
+                                      </div>
+                                    )} */}
+
                                     {/* 비교 테이블 */}
                                     {analysisResult.comparisonTable && analysisResult.comparisonTable.length > 0 && (
                                         <div className="mb-6">
@@ -426,8 +475,12 @@ export default function EstimateGptPage() {
                                                     <thead>
                                                         <tr className="border-b border-gray-200">
                                                             <th className="text-left py-2 px-3 font-medium text-gray-700">구분</th>
-                                                            <th className="text-center py-2 px-3 font-medium text-gray-700">견적서 A</th>
-                                                            <th className="text-center py-2 px-3 font-medium text-gray-700">견적서 B</th>
+                                                            <th className="text-center py-2 px-3 font-medium text-gray-700">
+                                                              {estimates.find(e => e.estimateNo === selectedEstimates[0])?.storeName || '견적서 A'}
+                                                            </th>
+                                                            <th className="text-center py-2 px-3 font-medium text-gray-700">
+                                                              {estimates.find(e => e.estimateNo === selectedEstimates[1])?.storeName || '견적서 B'}
+                                                            </th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -436,11 +489,11 @@ export default function EstimateGptPage() {
                                                                 <td className="py-2 px-3 text-gray-700 font-medium">
                                                                     {getCategoryLabel(item.category)}
                                                                 </td>
-                                                                <td className="py-2 px-3 text-center text-gray-600">
-                                                                    {formatValue(item.estimateA)}
+                                                                <td className="py-2 px-3 text-center text-gray-600 whitespace-pre-line">
+                                                                    {formatValue(item.estimateA, item.category)}
                                                                 </td>
-                                                                <td className="py-2 px-3 text-center text-gray-600">
-                                                                    {formatValue(item.estimateB)}
+                                                                <td className="py-2 px-3 text-center text-gray-600 whitespace-pre-line">
+                                                                    {formatValue(item.estimateB, item.category)}
                                                                 </td>
                                                             </tr>
                                                         ))}
