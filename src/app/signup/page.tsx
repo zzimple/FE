@@ -8,17 +8,22 @@ export default function SignupTypePage() {
   // const router = useRouter;
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-50">
-      <div className="pt-10 w-full max-w-xs">
+      <div className="w-full max-w-xs flex flex-col items-center pt-6">
         <SignupHeader title="회원가입" currentStep={0} />
-        <div className="flex flex-col gap-6 mt-10">
-          <Link href="/signup/owner">
-            <button className="w-full h-14 rounded-full bg-blue-600 text-white text-lg font-semibold shadow hover:bg-blue-700 transition">
-              사장님으로 가입
+      </div>
+      <div className="w-full max-w-xs flex flex-col items-center mt-8">
+        <h1 className="text-2xl font-bold text-center mb-8">
+          어떤 <span className="text-blue-600">유형</span>으로 가입하시나요?
+        </h1>
+        <div className="flex flex-col gap-6 w-full">
+          <Link href="/signup/owner/business-number">
+            <button className="w-full h-14 rounded-full bg-blue-600 text-white text-lg font-semibold shadow-md hover:bg-blue-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400">
+              사장으로 가입하기
             </button>
           </Link>
           <Link href="/signup/customer">
-            <button className="w-full h-14 rounded-full border border-blue-600 bg-white text-blue-600 text-lg font-semibold hover:bg-blue-50 transition">
-              고객님으로 가입
+            <button className="w-full h-14 rounded-full border-2 border-blue-600 bg-white text-blue-600 text-lg font-semibold hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200">
+              고객/직원으로 가입하기
             </button>
           </Link>
         </div>
