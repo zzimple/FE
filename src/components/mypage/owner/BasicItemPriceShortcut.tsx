@@ -9,7 +9,7 @@ export default function BasicItemPriceShortcut() {
     <div className="mb-4">
       <label className="block text-sm font-medium mb-1">물품 기본금 설정</label>
       <div
-        onClick={() => router.push("/mypage/owner/basicprice")}
+        onClick={() => router.push("/owner/profile/basicprice")}
         className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
       >
         <span className="text-sm text-gray-600">기본금 설정하러 가기</span>
