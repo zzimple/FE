@@ -7,7 +7,26 @@ interface RetryableRequestConfig extends AxiosRequestConfig {
   _retry?: boolean; // 수정됨
 }
 
-const BASE_URL = "http://14.63.178.146:8080";
+// const BASE_URL = "http://14.63.178.146:8080";
+// const BASE_URL = "https://api.zzimple.store";
+const BASE_URL = "http://localhost:8080";
+
+const getAccessTokenFromCookie = (): string | null => {
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const trimmedCookie = cookie.trim();
+    if (trimmedCookie.startsWith('accessToken=')) {
+      return trimmedCookie.substring('accessToken='.length);
+    }
+  }
+  return null;
+};
+
+// 쿠키에서 accessToken을 제거하는 함수
+const removeAccessTokenFromCookie = (): void => {
+  document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+};
+
 
 /**
  * 1) authApi: 모든 요청에 accessToken 헤더를 붙이고,
@@ -20,7 +39,8 @@ export const authApi = axios.create({
 });
 
 authApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem("accessToken");
+  const token = getAccessTokenFromCookie();
+
   if (token && config.headers) {
     config.headers["Authorization"] = `Bearer ${token}`; // 수정됨
     console.log("🔐 authApi: Authorization 헤더 설정 완료", token);
@@ -41,14 +61,18 @@ authApi.interceptors.response.use(
         const { data } = await publicApi.post("/users/refresh-token"); // 수정됨
         const newToken = data.accessToken;
 
-        localStorage.setItem("accessToken", newToken); // 수정됨
+        document.cookie = `accessToken=${newToken}; path=/; samesite=strict`;
+
+        // localStorage.setItem("accessToken", newToken); // 수정됨
         originalRequest.headers!["Authorization"] = `Bearer ${newToken}`; // 수정됨
         console.log("🔁 accessToken 재발급 완료, 요청 재시도");
 
         return authApi(originalRequest); // 수정됨
       } catch (refreshError) {
         console.log("❌ refreshToken 만료, 로그인 페이지로 이동");
-        localStorage.removeItem("accessToken"); // 수정됨
+        // 쿠키에서 토큰 제거
+        document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         // window.location.href = "/login"; // 수정됨
         return Promise.reject(refreshError);
       }
@@ -66,3 +90,4 @@ export const publicApi = axios.create({
   headers: { "Content-Type": "application/json" },
   withCredentials: true,   // 수정됨: 사업자번호 인증 등 쿠키 필요 시 자동 전송
 });
+
