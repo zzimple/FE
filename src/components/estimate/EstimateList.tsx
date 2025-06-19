@@ -6,7 +6,7 @@ import { authApi } from "@/lib/axios";
 
 interface EstimateListProps {
     searchParams: EstimateSearchParams;
-    onSelect: (estimateNo: number) => void; // 수정: 상세 보기 콜백 prop 추가
+    onSelect: (estimateNo: number) => void;
 }
 
 export default function EstimateList({ searchParams, onSelect }: EstimateListProps) {
@@ -14,35 +14,38 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
     const [page, setPage] = React.useState(0);
     const [totalPages, setTotalPages] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
 
     const fetchEstimates = React.useCallback(async () => {
         try {
             setIsLoading(true);
+            setError(null);
 
-            // 검색 조건이 있으면 해당 조건으로 검색, 없으면 빈 객체로 모든 데이터 요청
             const response = await authApi.get('/estimates/owner/list/public', {
                 params: {
-                    ...(searchParams.moveYear !== "" && { moveYear: Number(searchParams.moveYear) }),
-                    ...(searchParams.moveMonth !== "" && { moveMonth: Number(searchParams.moveMonth) }),
-                    ...(searchParams.moveDay !== "" && { moveDay: Number(searchParams.moveDay) }),
-                    ...(searchParams.moveType !== "" && { moveType: searchParams.moveType }),
-                    ...(searchParams.moveOption !== "" && { moveOption: searchParams.moveOption }),
-                    ...(searchParams.fromRegion1 !== "" && { fromRegion1: searchParams.fromRegion1 }),
-                    ...(searchParams.fromRegion2 !== "" && { fromRegion2: searchParams.fromRegion2 }),
-                    ...(searchParams.toRegion1 !== "" && { toRegion1: searchParams.toRegion1 }),
-                    ...(searchParams.toRegion2 !== "" && { toRegion2: searchParams.toRegion2 }),
-                    ...(searchParams.status && { status: searchParams.status }),
                     page,
                     size: 10,
+                    request: {
+                        ...(searchParams.moveYear && { moveYear: Number(searchParams.moveYear) }),
+                        ...(searchParams.moveMonth && { moveMonth: Number(searchParams.moveMonth) }),
+                        ...(searchParams.moveDay && { moveDay: Number(searchParams.moveDay) }),
+                        ...(searchParams.moveType && { moveType: searchParams.moveType }),
+                        ...(searchParams.moveOption && { moveOption: searchParams.moveOption }),
+                        ...(searchParams.fromRegion1 && { fromRegion1: searchParams.fromRegion1 }),
+                        ...(searchParams.fromRegion2 && { fromRegion2: searchParams.fromRegion2 }),
+                        ...(searchParams.toRegion1 && { toRegion1: searchParams.toRegion1 }),
+                        ...(searchParams.toRegion2 && { toRegion2: searchParams.toRegion2 }),
+                    }
                 }
             });
 
             const data = response.data.data;
-            setEstimates(Array.isArray(data?.content) ? data.content : []); // ✅ map 오류 방지
-            setTotalPages(response.data.data.totalPages);   // 이전: response.data.totalPages
+            setEstimates(Array.isArray(data?.content) ? data.content : []);
+            setTotalPages(data?.totalPages || 1);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("견적서 목록을 불러오는데 실패했습니다:", error);
+            setError(error?.response?.data?.message || "견적서 목록을 불러오는데 실패했습니다.");
         } finally {
             setIsLoading(false);
         }
@@ -53,7 +56,7 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
     }, [fetchEstimates]);
 
     const handleViewDetail = (estimateNo: number) => {
-        onSelect(estimateNo); // 수정: 부모로 estimateNo 전달
+        onSelect(estimateNo);
     };
 
     if (isLoading) {
@@ -61,6 +64,23 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
             <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
                 <p className="mt-2 text-sm text-gray-500">견적서를 불러오는 중입니다...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-12 bg-red-50 rounded-2xl">
+                <p className="text-red-600 text-sm mb-4">{error}</p>
+                <button
+                    onClick={() => {
+                        setError(null);
+                        fetchEstimates();
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                    다시 시도
+                </button>
             </div>
         );
     }
@@ -73,14 +93,19 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
                         <p className="text-gray-500 text-sm">견적서가 없습니다.</p>
                     </div>
                 ) : (
-                    estimates.map(estimate => (
-                        <EstimateCard
-                            key={estimate.estimateNo}                               // 수정: estimateNo를 key로 사용
-                            estimate={estimate}
-                            onViewDetail={() => handleViewDetail(estimate.estimateNo)}
-                        />
-                    ))
-                )}
+                    <>
+                        {/* ✅ 이 위치에서 console.log로 중복 확인 */}
+                        {console.log("📌 estimateNo 목록:", estimates.map(e => e.estimateNo))}
+                        {estimates.map(estimate => (
+                            <EstimateCard
+                                key={estimate.estimateNo}
+                                estimate={estimate}
+                                onViewDetail={() => handleViewDetail(estimate.estimateNo)}
+                            />
+                        ))}
+
+                    </>
+                )} 
             </div>
 
             <div className="mt-8">
