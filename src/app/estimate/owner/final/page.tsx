@@ -371,23 +371,23 @@ export default function EstimateFinalPage() {
                         {/* 기존 입력 필드들 */}
                         <div className="space-y-3">
                             <div>
-                                <div className="flex items-center mb-1">
+                                <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm font-semibold text-gray-900">짐 목록 예상 비용</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-sm font-semibold text-blue-600">
+                                            {estimatedCost?.toLocaleString()}
+                                        </span>
+                                        <span className="text-sm text-gray-600">원</span>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
                                     <Button
-                                        className="!h-6 px-2 whitespace-nowrap"
+                                        size="small"
                                         type="button"
                                         onClick={() => router.push(`/estimate/owner/final/bill?estimateNo=${estimateNo}`)}
                                     >
                                         책정하기
                                     </Button>
-                                    <div className={PILL_CLASS}>
-                                        <span className="flex-1 text-sm text-gray-600">예상 비용</span>
-                                        <div className="text-blue-600 font-semibold text-sm">
-                                            {estimatedCost?.toLocaleString()}원
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <div>
