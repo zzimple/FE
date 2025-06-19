@@ -23,7 +23,8 @@ export default function InputField({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm focus:outline-none focus:border-[#B3B3B3] focus:ring-1 focus:ring-[#B3B3B3]"
+        className={`w-full h-14 px-5 rounded-full border text-sm transition focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-400
+          ${value ? "border-blue-600" : "border-gray-300"}`}
       />
       {children}
     </div>

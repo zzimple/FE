@@ -88,14 +88,12 @@ export default function Step4Page() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
+    <div className="min-h-screen flex flex-col w-full max-w-md md:max-w-2xl mx-auto bg-white">
       <EstimateHeader step={4} title="짐 목록" />
-
-      <main className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
-        <h2 className="text-base font-semibold text-gray-900 text-center">
-          <span className="text-blue-500">옮길 짐</span>을 선택해주세요.
+      <main className="flex-1 px-4 py-6 flex flex-col justify-center gap-8">
+        <h2 className="text-lg md:text-xl font-bold text-center mt-4 mb-2 text-gray-900">
+          <span className="text-blue-600">옮길 짐</span>을 선택해 주세요.
         </h2>
-
         <div className="flex justify-center gap-2 rounded-full py-2 sticky top-0 bg-white z-10">
           {["가구", "가전", "기타"].map((label) => (
             <SelectTab
@@ -109,7 +107,6 @@ export default function Step4Page() {
             />
           ))}
         </div>
-
         <div className="space-y-8">
           {[
             { category: "가구", items: furnitureItems, ref: furnitureRef },
@@ -118,7 +115,7 @@ export default function Step4Page() {
           ].map(({ category, items, ref }) => (
             <div key={category} ref={ref}>
               <div className="text-lg font-bold mb-2 mt-6">{category}</div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
                 {items.map((item) => {
                   const selected = selectedItems[category as MoveCategory].some(
                     (s) => s.name === item.name
@@ -138,12 +135,14 @@ export default function Step4Page() {
                       <img
                         src={item.image}
                         alt={item.name}
-                        className={`w-20 h-20 object-contain rounded-lg border ${
-                          selected ? "border-blue-500" : "border-gray-200"
+                        className={`w-20 h-20 object-contain rounded-xl border-2 transition-all duration-200 ${
+                          selected
+                            ? "border-blue-500 shadow-lg"
+                            : "border-gray-200"
                         }`}
                       />
                       {selected && (
-                        <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                        <div className="absolute top-2 right-2 flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-base rounded-full shadow-md border-2 border-white">
                           ✓
                         </div>
                       )}
@@ -154,106 +153,57 @@ export default function Step4Page() {
             </div>
           ))}
         </div>
-
         {/* 잔짐 박스 입력란 */}
-        <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-3 w-full max-w-lg mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-lg font-bold text-gray-900">잔짐 박스</div>
-            <button
-              className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition"
-              onClick={() => setShowBoxModal(true)}
-            >
-              짐 박스 입력 방법
-            </button>
-          </div>
-          <div className="flex items-center gap-4">
-            <img
-              src="/images/leftoverBox.jpeg"
-              alt="잔짐 박스"
-              className="w-36 h-28 object-contain rounded border border-gray-200 bg-white"
-            />
-            <div className="flex flex-col gap-1 flex-1">
-              <div className="text-sm font-semibold text-gray-800">
-                이사박스 5호 크기
-              </div>
-              <div className="text-xs text-gray-500">
-                이사할 때 주로 사용하는 크기입니다.
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <button
-                  className="border border-gray-300 rounded px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() =>
-                    setLeftoverBoxCount((prev) => Math.max(0, prev - 1))
-                  }
-                >
-                  -
-                </button>
-                <span className="w-16 text-center font-bold text-gray-900 text-base">
-                  {leftoverBoxCount}개
-                </span>
-                <button
-                  className="border border-gray-300 rounded px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() => setLeftoverBoxCount((prev) => prev + 1)}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500 mt-2 leading-relaxed">
-            • 봉투, 리빙박스, 기타 박스 등이 이미 수납되어 있는 잔짐들도 박스
-            수량에 포함시켜주세요.
-            <br />• 실제 이사를 진행하면 예상보다 짐이 많습니다. 박스 수량을
-            넉넉하게 입력해주세요.
-          </div>
-        </div>
-
-        {/* 모달 */}
-        {showBoxModal && (
-          <ModalWrapper>
-            <div className="flex flex-col items-center">
-              <div className="flex flex-col items-center mb-4">
-                <div className="text-base font-bold mb-1">
-                  잔짐 박스 이렇게 입력해주세요!
-                </div>
-                <div className="text-xs text-gray-600 mb-2 text-center">
-                  가전/가구에 수납된 모든 물건은 별도의 포장이 필요합니다.
-                  <br />
-                  식기류, 주방용품, 욕실용품, 의류 등 잔짐을 박스에 포장했을 때,
-                  <br />
-                  예상수량을 입력해주세요.
-                </div>
-              </div>
-              <img
-                src="/images/leftoverBox-modal.jpeg"
-                alt="박스 내부"
-                className="w-full max-w-xs object-contain mb-4"
-              />
-              <div className="text-base font-bold mb-1">
-                입력 시 참고해주세요!
-              </div>
-              <div className="text-xs text-gray-600 mb-2 text-center">
-                - 부류, 리빙박스, 기타 박스 등 이미 수납되어 있는 잔짐들도
-                포함해주세요.
-                <br />
-                실제 이사를 진행하면 예상보다 짐이 많습니다.
-                <br />
-                박스 수량을 넉넉하게 입력해주세요.
-              </div>
+        <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-lg md:max-w-2xl mx-auto">
+          <img
+            src="/images/leftoverBox.jpeg"
+            alt="잔짐 박스"
+            className="w-36 h-28 object-contain rounded border border-gray-200 bg-white mx-auto md:mx-0"
+          />
+          <div className="flex flex-col gap-1 flex-1 justify-center">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-bold text-gray-900">잔짐 박스</div>
               <button
-                className="mt-2 px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold"
-                onClick={() => setShowBoxModal(false)}
+                className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition"
+                onClick={() => setShowBoxModal(true)}
               >
-                확인
+                짐 박스 입력 방법
               </button>
             </div>
-          </ModalWrapper>
-        )}
+            <div className="text-sm font-semibold text-gray-800">
+              이사박스 5호 크기
+            </div>
+            <div className="text-xs text-gray-500">
+              이사할 때 주로 사용하는 크기입니다.
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                onClick={() =>
+                  setLeftoverBoxCount((prev) => Math.max(0, prev - 1))
+                }
+              >
+                -
+              </button>
+              <span className="w-16 text-center font-bold text-gray-900 text-base">
+                {leftoverBoxCount}개
+              </span>
+              <button
+                className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                onClick={() => setLeftoverBoxCount((prev) => prev + 1)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+        <Button
+          onClick={handleNext}
+          className="w-full h-14 rounded-xl text-lg font-bold mt-2"
+        >
+          다음
+        </Button>
       </main>
-
-      <div className="px-4 py-6">
-        <Button onClick={handleNext}>짐 상세 정보 입력하기</Button>
-      </div>
     </div>
   );
 }

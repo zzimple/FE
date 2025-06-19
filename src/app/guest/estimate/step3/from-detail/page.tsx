@@ -37,7 +37,6 @@ export default function FromDetailPage() {
   const [entX, setEntX] = useState<string>(""); // 초기값 ""로 설정
   const [entY, setEntY] = useState<string>("");
 
-
   const [buildingType, setBuildingType] = useState<string | null>(null);
   const [roomType, setRoomType] = useState<string | null>(null);
   const [area, setArea] = useState<string | null>(null);
@@ -78,7 +77,7 @@ export default function FromDetailPage() {
       entX,
       entY,
     }: JusoCallbackType) => {
-      console.log('주소 좌표: ', { entX, entY });
+      console.log("주소 좌표: ", { entX, entY });
       setRoadFullAddr(roadFullAddr);
       setRoadAddrPart1(roadAddrPart1);
       setAddrDetail(addrDetail);
@@ -87,7 +86,6 @@ export default function FromDetailPage() {
       setEntY(entY);
     };
   }, []);
-  
 
   const handleNext = async () => {
     const draftId = localStorage.getItem("uuid");
@@ -135,10 +133,10 @@ export default function FromDetailPage() {
   return (
     <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
       <EstimateProgressHeader step={3} title="출발지 상세" />
-
-      <main className="flex-1 px-4 py-6 space-y-6">
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">
+      <main className="flex-1 px-4 py-6 flex flex-col justify-center gap-6">
+        {/* 주소 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-4 mb-2">
+          <label className="text-base font-semibold text-gray-700 mb-1 block">
             출발지 주소
           </label>
           <AddressSearchButton
@@ -158,191 +156,185 @@ export default function FromDetailPage() {
               setEntY(entY);
             }}
           />
+          <input
+            type="text"
+            value={roadAddrPart1}
+            readOnly
+            className="w-full px-4 py-3 rounded-xl bg-white text-base"
+            placeholder="도로명 주소"
+          />
+          <input
+            type="text"
+            value={addrDetail}
+            readOnly
+            className="w-full px-4 py-3 rounded-xl bg-white text-base"
+            placeholder="상세 주소 (동/호수 등)"
+          />
+          <input
+            type="text"
+            value={zipNo}
+            readOnly
+            className="w-full px-4 py-3 rounded-xl bg-white text-base"
+            placeholder="우편번호"
+          />
         </div>
-
-        <input
-          type="text"
-          value={roadAddrPart1}
-          readOnly
-          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
-          placeholder="도로명 주소"
-        />
-        <input
-          type="text"
-          value={addrDetail}
-          readOnly
-          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
-          placeholder="상세 주소 (동/호수 등)"
-        />
-        <input
-          type="text"
-          value={zipNo}
-          readOnly
-          className="w-full px-4 py-2 rounded-xl bg-gray-100 text-sm"
-          placeholder="우편번호"
-        />
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">건물 종류</h4>
-          <div className="grid grid-cols-3 gap-2">
+        {/* 건물유형 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">
+            건물 종류
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
             {buildingTypes.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setBuildingType(value)}
-                className={`px-3 py-2 text-sm rounded-full border ${
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
                   buildingType === value
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
                 {label}
               </button>
             ))}
           </div>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">방 구조</h4>
-          <div className="grid grid-cols-3 gap-2">
-            {roomTypes.map(({value, label}) => (
+        </div>
+        {/* 방구조 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">
+            방 구조
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
+            {roomTypes.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setRoomType(value)}
-                className={`px-3 py-2 text-sm rounded-full border ${
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
                   roomType === value
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
                 {label}
               </button>
             ))}
           </div>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">평수</h4>
-          <select
-            value={area || ""}
-            onChange={(e) => setArea(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border text-sm bg-white"
-          >
-            <option value="" disabled>
-              평수를 선택하세요
-            </option>
-            {areaOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+        </div>
+        {/* 평수 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">평수</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {areaOptions.map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setArea(label)}
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
+                  area === label
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                }`}
+              >
+                {label}
+              </button>
             ))}
-          </select>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">층수</h4>
-          <select
-            value={floor || ""}
-            onChange={(e) => setFloor(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border text-sm bg-white"
-          >
-            <option value="" disabled>
-              층수를 선택하세요
-            </option>
-            {floorOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+          </div>
+        </div>
+        {/* 층수 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">층수</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {floorOptions.map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setFloor(label)}
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
+                  floor === label
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                }`}
+              >
+                {label}
+              </button>
             ))}
-          </select>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">
+          </div>
+        </div>
+        {/* 주차 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">
             주차 가능 여부
           </h4>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {["가능", "불가능"].map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setParking(option as "가능" | "불가능")}
-                className={`flex-1 py-2 rounded-full border text-sm ${
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
                   parking === option
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
                 {option}
               </button>
             ))}
           </div>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">
+        </div>
+        {/* 엘리베이터 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">
             엘리베이터 여부
           </h4>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {[true, false].map((val) => (
               <button
                 key={String(val)}
                 type="button"
                 onClick={() => setElevator(val)}
-                className={`flex-1 py-2 rounded-full border text-sm ${
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
                   elevator === val
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
                 {val ? "있음" : "없음"}
               </button>
             ))}
           </div>
-        </section>
-
-        <section>
-          <h4 className="text-sm font-medium mb-2 text-gray-700">계단 여부</h4>
-          <div className="flex gap-2">
+        </div>
+        {/* 계단 카드 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm flex flex-col gap-3 mb-2">
+          <h4 className="text-base font-semibold mb-2 text-gray-700">
+            계단 여부
+          </h4>
+          <div className="grid grid-cols-2 gap-2">
             {[true, false].map((val) => (
               <button
                 key={String(val)}
                 type="button"
                 onClick={() => setStairs(val)}
-                className={`flex-1 py-2 rounded-full border text-sm ${
+                className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${
                   stairs === val
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                 }`}
               >
                 {val ? "있음" : "없음"}
               </button>
             ))}
           </div>
-        </section>
-      </main>
-
-      <div className="px-4 py-6">
+        </div>
         <Button
-        
           onClick={handleNext}
-          disabled={
-            !roadFullAddr ||
-            !buildingType ||
-            !roomType ||
-            !area ||
-            !floor ||
-            parking === null ||
-            elevator === null ||
-            stairs === null ||
-            entX === "" ||
-            entY === ""
-          }
+          className="w-full h-14 rounded-xl text-lg font-bold mt-2"
         >
           다음
         </Button>
-      </div>
+      </main>
     </div>
   );
 }

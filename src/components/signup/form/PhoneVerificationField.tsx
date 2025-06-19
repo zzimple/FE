@@ -122,7 +122,6 @@ export default function PhoneVerificationField({
       return;
     }
 
-
     if (!isValidVerificationCode(code)) {
       setCodeError("인증번호는 6자리 숫자여야 합니다.");
       return;
@@ -188,10 +187,9 @@ export default function PhoneVerificationField({
               placeholder="-없이 입력"
               value={phone}
               onChange={(e) => {
-                const formatted = formatPhoneNumber(e.target.value); // 자동 하이픈 포맷
+                const formatted = formatPhoneNumber(e.target.value);
                 setPhone(formatted);
                 setSmsSentMessage("");
-
                 if (!isValidPhone(formatted)) {
                   setPhoneError(
                     "전화번호를 정확히 입력해주세요. 예: 010-1234-5678"
@@ -200,13 +198,25 @@ export default function PhoneVerificationField({
                   setPhoneError("");
                 }
               }}
-              className={`w-full h-14 px-5 rounded-full border text-sm ${phoneError ? "border-red-500" : "border-[#B3B3B3]"
+              className={`w-full h-14 px-5 rounded-full border text-sm transition focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-400
+                ${
+                  phone
+                    ? "border-blue-600"
+                    : phoneError
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
             />
             <button
               type="button"
               onClick={handleSendSMS}
-              className="absolute top-1/2 right-4 -translate-y-1/2 h-[32px] px-4 rounded-full bg-[#DBEBFF] text-sm font-bold"
+              disabled={isSending || !phone || phoneError}
+              className={`absolute top-1/2 right-4 -translate-y-1/2 h-[36px] px-5 rounded-full text-sm font-bold transition
+                ${
+                  isSending || !phone || phoneError
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
             >
               인증
             </button>
@@ -234,8 +244,7 @@ export default function PhoneVerificationField({
             placeholder="6자리 숫자 입력"
             value={code}
             onChange={(e) => {
-              const value = e.target.value.slice(0, 6); // 6자리로 제한
-              // 숫자만 입력 가능하도록 제한
+              const value = e.target.value.slice(0, 6);
               if (/^\d*$/.test(value)) {
                 setCode(value);
                 if (value && !isValidVerificationCode(value)) {
@@ -246,24 +255,35 @@ export default function PhoneVerificationField({
               }
             }}
             onKeyDown={(e) => {
-              // 숫자, 백스페이스, 딜리트, 방향키만 허용
               if (
-                !/^\d$/.test(e.key) && // 숫자가 아니고
-                e.key !== "Backspace" && // 백스페이스가 아니고
-                e.key !== "Delete" && // 딜리트가 아니고
-                !e.key.includes("Arrow") // 방향키도 아니면
+                !/^\d$/.test(e.key) &&
+                e.key !== "Backspace" &&
+                e.key !== "Delete" &&
+                !e.key.includes("Arrow")
               ) {
-                e.preventDefault(); // 입력 막기
+                e.preventDefault();
               }
             }}
             maxLength={6}
-            className={`w-full h-14 px-5 rounded-full border text-sm ${codeError ? "border-red-500" : "border-[#B3B3B3]"
+            className={`w-full h-14 px-5 rounded-full border text-sm transition focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-600 placeholder-gray-400
+              ${
+                code
+                  ? "border-blue-600"
+                  : codeError
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
           />
           <button
             type="button"
             onClick={handleVerifyCode}
-            className="absolute top-1/2 right-4 -translate-y-1/2 h-[32px] px-4 rounded-full bg-[#DBEBFF] text-sm font-bold"
+            disabled={!code || codeError}
+            className={`absolute top-1/2 right-4 -translate-y-1/2 h-[36px] px-5 rounded-full text-sm font-bold transition
+              ${
+                !code || codeError
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             확인
           </button>
@@ -271,7 +291,7 @@ export default function PhoneVerificationField({
       </div>
       {/* 인증 메시지 표시 */}
       {verificationMessage && (
-        <p className="text-green-600 text-xs pl-2">{verificationMessage}</p>
+        <p className="text-blue-600 text-xs pl-2">{verificationMessage}</p>
       )}
       {codeError && <p className="text-red-500 text-xs pl-2">{codeError}</p>}
     </>

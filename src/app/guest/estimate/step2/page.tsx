@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Calendar from "@/components/common/Calendar";
-import TimeSelect from "@/components/common/TimeSelect";
+import TimePicker from "@/components/common/TimePicker";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
 import Button from "@/components/common/Button";
 import { authApi } from "@/lib/axios";
@@ -23,6 +23,26 @@ export default function Step2Page() {
   const [selectedTime, setSelectedTime] = useState<string>();
   const [holidayInfoList, setHolidayInfoList] = useState<HolidayInfo[]>([]);
   const [currentYM, setCurrentYM] = useState<string>("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  // 시/분 배열 생성
+  const hourOptions = Array.from({ length: 24 }, (_, i) =>
+    i.toString().padStart(2, "0")
+  );
+  const minuteOptions = ["00", "30"];
+
+  function getAmPm(hour: number) {
+    if (hour < 12) return "오전";
+    return "오후";
+  }
+  function formatDisplay(time?: string) {
+    if (!time) return "시간을 선택해주세요";
+    const [h, m] = time.split(":");
+    const hour = parseInt(h, 10);
+    const ampm = getAmPm(hour);
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${ampm} ${displayHour.toString().padStart(2, "0")}:${m}`;
+  }
 
   useEffect(() => {
     const today = new Date();
@@ -101,14 +121,15 @@ export default function Step2Page() {
   return (
     <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
       <EstimateProgressHeader step={2} title="예정일 입력" />
-
-      <main className="flex-1 px-4 py-6 space-y-6">
-        <h2 className="text-base font-semibold text-gray-900 text-center">
-          <span className="text-blue-500">원하시는 날짜와 시간</span>을 선택해
+      <main className="flex-1 px-4 py-6 flex flex-col justify-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mt-4 mb-4 text-gray-900">
+          <span className="text-blue-600">원하시는 날짜와 시간</span>을 선택해
           주세요.
         </h2>
-
-        <div className="rounded-xl border p-4">
+        <p className="text-base sm:text-lg text-gray-600 text-center mb-8">
+          이사 예약을 원하는 날짜와 시간을 입력해 주세요.
+        </p>
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-8 shadow-sm">
           <Calendar
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
@@ -116,28 +137,41 @@ export default function Step2Page() {
             setCurrentYM={setCurrentYM}
           />
         </div>
-
-        <div className="mt-4">
-          <label className="block mb-2 text-sm font-medium text-gray-700">
+        <div className="mb-8">
+          <label className="block mb-2 text-base font-semibold text-gray-700">
             예약 시간
           </label>
-          <TimeSelect
-            options={TIMES}
+          <button
+            type="button"
+            className="w-full h-14 px-5 flex items-center justify-between border rounded-xl text-base font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 transition shadow"
+            onClick={() => setPickerOpen(true)}
+          >
+            <span>{formatDisplay(selectedTime)}</span>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <path
+                d="M6 9l6 6 6-6"
+                stroke="#888"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <TimePicker
             value={selectedTime}
             onChange={setSelectedTime}
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
           />
         </div>
-      </main>
-
-      <div className="px-4 py-6">
         <Button
           onClick={handleConfirm}
           disabled={!selectedDate || !selectedTime}
-          className="w-full"
+          className="w-full h-14 rounded-xl text-lg font-bold mt-2"
         >
           확인
         </Button>
-      </div>
+      </main>
     </div>
   );
 }

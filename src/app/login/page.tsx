@@ -27,7 +27,7 @@ export default function LoginPage() {
       const res = await publicApi.post('/users/login', { loginId, password }); // 수정됨
       const { accessToken } = res.data.data;
       localStorage.setItem('accessToken', accessToken); // 수정됨
-      router.push('/estimate/step0'); // 수정됨
+      router.push('/'); // 수정됨
     } catch (err: any) {
       const code = err.response?.data?.code;
       if (['LOGIN_ID_NOT_FOUND','USER_NOT_FOUND','INVALID_PASSWORD'].includes(code)) {
