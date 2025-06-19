@@ -122,6 +122,7 @@ export default function EstimateFinalPage() {
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
+        estimateNo: estimateData.data.estimateNo,
         serviceType: estimateData.data.moveType === "SMALL" ? "소형이사" : "가정이사",
         dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
         from: {
@@ -352,13 +353,13 @@ export default function EstimateFinalPage() {
                     <div className="bg-white rounded-xl border border-gray-200 p-4">
                         <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
                         <KakaoMapRoute
-                            from={reviewData.from.coord}
-                            to={reviewData.to.coord}
-                            onStats={(d, m) => {
-                                setDuration(d);
-                                setDistance(m);
+                            estimateNo={reviewData.estimateNo}
+                            onStats={(duration, distance) => {
+                                setDuration(duration);
+                                setDistance(distance);
                             }}
                         />
+
                         <div className="flex gap-4 mt-2 text-sm text-gray-700">
                             <div>예상 시간 : <span className="font-semibold">{formattedTime}</span></div>
                             <div>예상 거리 : <span className="font-semibold">{formattedDist}</span></div>

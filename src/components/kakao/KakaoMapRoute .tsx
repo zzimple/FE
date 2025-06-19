@@ -22,21 +22,14 @@ declare global {
 
 interface KakaoMapRouteProps {
   estimateNo: number;
-  from: { x: number; y: number };
-  to: { x: number; y: number };
   onStats?: (durationSec: number, distanceM: number) => void;
 }
 
 
-export default function KakaoMapRoute({ estimateNo, from, to, onStats }: KakaoMapRouteProps) {
+export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!from?.x || !from?.y || !to?.x || !to?.y) {
-      console.warn("❗KakaoMapRoute: from/to 좌표가 부족합니다", { from, to });
-      return;
-    }
-
     // 1) 카카오 SDK 로드
     const script = document.createElement("script");
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_KEY}&autoload=false&libraries=services`;
@@ -46,24 +39,9 @@ export default function KakaoMapRoute({ estimateNo, from, to, onStats }: KakaoMa
       window.kakao.maps.load(async () => {
         const kakao = window.kakao;
 
-        const fx = parseFloat(from.x as any);
-        const fy = parseFloat(from.y as any);
-        const tx = parseFloat(to.x as any);
-        const ty = parseFloat(to.y as any);
-
-        // ✅ [변경된 부분] 중심 좌표 계산 (from과 to의 중간값)
-        const centerX = (fx + tx) / 2;
-        const centerY = (fy + ty) / 2;
-
-        console.log("📍from", from);  // { x: ..., y: ... }
-        console.log("📍to", to);
-        console.log("📍center", centerX, centerY);
-
-
-
         // 2) 지도 생성 (시작 지점은 from)
         const map = new kakao.maps.Map(mapRef.current, {
-          center: new kakao.maps.LatLng(centerY, centerX), // ← 여기 바뀜
+          center: new kakao.maps.LatLng(126, 37), // ← 여기 바뀜
           level: 6,
         });
 
@@ -113,7 +91,7 @@ export default function KakaoMapRoute({ estimateNo, from, to, onStats }: KakaoMa
       });
     };
     document.head.appendChild(script);
-  }, [from, to, estimateNo]);
+  }, [estimateNo]);
 
   return <div ref={mapRef} style={{ width: "100%", height: "300px" }} />;
 }
