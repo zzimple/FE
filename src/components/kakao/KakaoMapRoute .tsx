@@ -8,18 +8,6 @@ declare global {
   interface Window { kakao: any; }
 }
 
-// interface KakaoMapRouteProps {
-//   estimateNo: number;
-//   from: { x: number; y: number };
-//   to: { x: number; y: number };
-//   onStats?: (durationSec: number, distanceM: number) => void;  // ← 추가
-// }
-
-// interface KakaoMapRouteProps {
-//   estimateNo: number;
-//   onStats?: (durationSec: number, distanceM: number) => void;
-// }
-
 interface KakaoMapRouteProps {
   estimateNo: number;
   onStats?: (durationSec: number, distanceM: number) => void;
@@ -41,7 +29,7 @@ export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProp
 
         // 2) 지도 생성 (시작 지점은 from)
         const map = new kakao.maps.Map(mapRef.current, {
-          center: new kakao.maps.LatLng(126, 37), // ← 여기 바뀜
+          center: new kakao.maps.LatLng(37, 126),
           level: 6,
         });
 
@@ -59,6 +47,7 @@ export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProp
 
           // 부모에게 통계 전달
           onStats?.(duration, distance);
+
 
           // 4) Polyline 그리기
           const path = routePoints.map(pt => new kakao.maps.LatLng(pt.y, pt.x));
@@ -91,7 +80,11 @@ export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProp
       });
     };
     document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script); 
+    };
   }, [estimateNo]);
 
-  return <div ref={mapRef} style={{ width: "100%", height: "300px" }} />;
+return <div ref={mapRef} style={{ width: "100%", height: "300px" }} />;
 }
