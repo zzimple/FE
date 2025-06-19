@@ -29,6 +29,12 @@ export default function CustomerHeader() {
             내 견적서
           </Link>
           <Link
+            href="/guest/estimate/received"
+            className="text-gray-700 hover:text-blue-600 font-medium"
+          >
+            받은 견적서
+          </Link>
+          <Link
             href="/"
             className="text-gray-700 hover:text-blue-600 font-medium"
           >
@@ -82,6 +88,13 @@ export default function CustomerHeader() {
               onClick={() => setOpen(false)}
             >
               내 견적서
+            </Link>
+            <Link
+              href="/guest/estimate/received"
+              className="py-3 text-lg font-medium text-gray-800 border-b"
+              onClick={() => setOpen(false)}
+            >
+              받은 견적서
             </Link>
             <Link
               href="/customer/history"
