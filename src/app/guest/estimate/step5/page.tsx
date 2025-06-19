@@ -9,6 +9,9 @@ import { MoveCategory, MoveItemDetail } from "@/types/moveItem";
 import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import { authApi } from "@/lib/axios";
+import { furnitureItems } from "@/constants/items/furnitureItems";
+import { applianceItems } from "@/constants/items/appliance";
+import { otherItems } from "@/constants/items/otherItems";
 
 // 가구
 import BedModal from "@/components/move-items/modals/item-detail-modals/furniture/BedModal";
@@ -86,7 +89,7 @@ function getFullEtcFields(
   }, {} as Record<string, string | number | boolean | null>);
 }
 
-type Item = { name: string; image: string };
+type Item = { name: string; image: string; itemTypeId: number };
 
 type SelectedItems = {
   [key in MoveCategory]: Item[];
@@ -97,7 +100,7 @@ export default function Step5Page() {
 
   const [uuid, setUuid] = useState<string | null>(null);
 
-  const [items, setItems] = useState<MoveItemDetail[]>([]);
+  const [items, setItems] = useState<(MoveItemDetail & { name: string })[]>([]);
   const [boxCount, setBoxCount] = useState(0);
   const [leftoverBoxCount, setLeftoverBoxCount] = useState(0);
   const [requestNote, setRequestNote] = useState<string>("");
@@ -106,16 +109,15 @@ export default function Step5Page() {
     const storedUuid = localStorage.getItem("uuid");
     if (storedUuid) {
       setUuid(storedUuid);
-    }
-    else {
-      alert('견적서 UUID가 없습니다. 처음부터 다시 작성해주세요.');
-      router.push('/estimate/start');
+    } else {
+      alert("견적서 UUID가 없습니다. 처음부터 다시 작성해주세요.");
+      router.push("/estimate/start");
     }
   }, [router]);
 
   const handleSave = async () => {
     if (!uuid) {
-      alert('uuid가 없습니다.');
+      alert("uuid가 없습니다.");
       return;
     }
     const formattedItems = items.map(({ itemTypeId, quantity, etc = {} }) => ({
@@ -123,25 +125,25 @@ export default function Step5Page() {
       quantity,
       ...getFullEtcFields(etc),
     }));
-    
-      const payload = {
-        items: formattedItems,
-        boxCount,
-        leftoverBoxCount,
-        requestNote,
-      };
 
-      try {
-        const res = await authApi.put(
-          `/estimates/draft/move-items?draftId=${uuid}`,
-          payload
-        );
-        console.log("짐 정보 저장 성공", res.data);
-        router.push("/guest/estimate/step6");
-      } catch (err) {
-        console.error("짐 정보 저장 실패", err);
-        alert("짐 정보 저장 중 문제가 발생했어요.");
-      }
+    const payload = {
+      items: formattedItems,
+      boxCount,
+      leftoverBoxCount,
+      requestNote,
+    };
+
+    try {
+      const res = await authApi.put(
+        `/estimates/draft/move-items?draftId=${uuid}`,
+        payload
+      );
+      console.log("짐 정보 저장 성공", res.data);
+      router.push("/guest/estimate/step6");
+    } catch (err) {
+      console.error("짐 정보 저장 실패", err);
+      alert("짐 정보 저장 중 문제가 발생했어요.");
+    }
   };
   const [selectedItems, setSelectedItems] = useState<SelectedItems>({
     가구: [],
@@ -153,7 +155,8 @@ export default function Step5Page() {
   const [openBedModal, setOpenBedModal] = useState(false);
   const [openSofaModal, setOpenSofaModal] = useState(false);
   const [openWardrobeSingModal, setOpenWardrobeSingModal] = useState(false);
-  const [openWardrobeCombinedModal, setOpenWardrobeCombinedModal] = useState(false);
+  const [openWardrobeCombinedModal, setOpenWardrobeCombinedModal] =
+    useState(false);
   const [openDeskModal, setOpenDeskModal] = useState(false);
   const [openDiningTableModal, setOpenDiningTableModal] = useState(false);
   const [openDisplayModal, setOpenDisplayModal] = useState(false);
@@ -223,7 +226,6 @@ export default function Step5Page() {
     if (storedLeftoverBoxCount)
       setLeftoverBoxCount(Number(storedLeftoverBoxCount));
   }, [router]);
-  
 
   const handleCategoryScroll = (label: MoveCategory) => {
     if (label === "가구" && furnitureRef.current) {
@@ -245,13 +247,12 @@ export default function Step5Page() {
     const savedItems = localStorage.getItem("selectedItems");
     if (savedItems) {
       try {
-        const parsed = JSON.parse(savedItems);
-        setSelectedItems(parsed);
+        setSelectedItems(JSON.parse(savedItems));
       } catch (err) {
         console.error("짐 목록 파싱 오류", err);
       }
     }
-  }, []);  
+  }, []);
 
   const handleOpenModal = (itemName: string) => {
     setPendingItem(itemName);
@@ -315,17 +316,33 @@ export default function Step5Page() {
     setTargetItemToDelete(null);
   };
 
+  const simpleItems = ["청소기", "가스레인지", "선풍기", "책", "조명기구"];
+  const isSimpleItem = (item: { name: string }) =>
+    simpleItems.includes(item.name);
+
   return (
-    <div className="min-h-screen bg-white max-w-md mx-auto">
+    <div className="min-h-screen bg-white max-w-md md:max-w-2xl mx-auto">
       <EstimateHeader step={5} title="짐 상세 정보 입력" />
-
-      <div className="px-4 pt-6 pb-20">
-        <p className="text-center font-semibold mb-4">
-          입력할 짐을 선택해주세요
-        </p>
-
+      <div className="px-4 pt-6 pb-20 flex flex-col gap-8">
+        <div className="mb-4">
+          <div className="text-lg font-bold flex items-end gap-1">
+            <span className="text-blue-600">
+              {selectedItems["가구"].length +
+                selectedItems["가전"].length +
+                selectedItems["기타"].length -
+                items.length}
+            </span>
+            <span className="text-black">개 항목이 남았어요.</span>
+          </div>
+          <div className="text-gray-400 text-sm mt-1">
+            추가금이 발생하지 않도록 정확한 정보를 입력해 주세요.
+          </div>
+        </div>
+        <h2 className="text-lg md:text-xl font-bold text-center mt-4 mb-2 text-gray-900">
+          <span className="text-blue-600">입력할 짐</span>을 선택해 주세요.
+        </h2>
         {/* 탭 */}
-        <div className="flex justify-center gap-2 mb-6 sticky top-0 bg-white z-10">
+        <div className="flex justify-center gap-2 rounded-full py-2 mb-2 sticky top-0 bg-white z-10">
           {["가구", "가전", "기타"].map((label) => (
             <SelectTab
               key={label}
@@ -335,46 +352,333 @@ export default function Step5Page() {
             />
           ))}
         </div>
-
         {/* 전체 짐 목록 */}
         <div className="space-y-8">
           {/* 가구 */}
           <div ref={furnitureRef}>
-            <div className="text-lg font-bold mb-2">가구</div>
-            {selectedItems["가구"].map((item) => (
-              <ItemCard
-                key={item.name}
-                icon={item.image}
-                onEdit={() => handleOpenModal(item.name)}
-                onDelete={() => handleDeleteClick("가구", item.name)}
-              />
-            ))}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-lg font-bold">가구</div>
+              <div className="text-base font-semibold text-blue-600">
+                {
+                  items.filter((i) =>
+                    selectedItems["가구"].some((s) => s.name === i.name)
+                  ).length
+                }
+                /{selectedItems["가구"].length}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedItems["가구"].map((item) => {
+                const detail = items.find((i) => i.name === item.name);
+                return (
+                  <div
+                    key={`${"가구"}-${item.name}`}
+                    className="w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => handleDeleteClick("가구", item.name)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                      >
+                        ×
+                      </button>
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-20 h-20 object-contain ml-0 mr-3"
+                      />
+                      {detail && (
+                        <div className="flex gap-2 items-center ml-auto">
+                          <button
+                            onClick={() => handleOpenModal(item.name)}
+                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                          >
+                            옵션 변경
+                          </button>
+                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? {
+                                          ...i,
+                                          quantity: Math.max(1, i.quantity - 1),
+                                        }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              -
+                            </button>
+                            <span className="mx-2 w-7 text-center font-bold text-lg">
+                              {detail.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? { ...i, quantity: i.quantity + 1 }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {!detail && (
+                        <button
+                          onClick={() => handleOpenModal(item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                      {detail &&
+                        Object.values(detail.etc || {}).filter(Boolean).length >
+                          0 &&
+                        Object.values(detail.etc || {})
+                          .filter(Boolean)
+                          .map((v, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                            >
+                              {v}
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {/* 가전 */}
           <div ref={applianceRef}>
-            <div className="text-lg font-bold mb-2 mt-6">가전</div>
-            {selectedItems["가전"].map((item) => (
-              <ItemCard
-                key={item.name}
-                icon={item.image}
-                onEdit={() => handleOpenModal(item.name)}
-                onDelete={() => handleDeleteClick("가전", item.name)}
-              />
-            ))}
+            <div className="flex items-center justify-between mb-2 mt-6">
+              <div className="text-lg font-bold">가전</div>
+              <div className="text-base font-semibold text-blue-600">
+                {
+                  items.filter((i) =>
+                    selectedItems["가전"].some((s) => s.name === i.name)
+                  ).length
+                }
+                /{selectedItems["가전"].length}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedItems["가전"].map((item) => {
+                const detail = items.find((i) => i.name === item.name);
+                return (
+                  <div
+                    key={`${"가전"}-${item.name}`}
+                    className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => handleDeleteClick("가전", item.name)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                      >
+                        ×
+                      </button>
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-20 h-20 object-contain ml-0 mr-3"
+                      />
+                      {detail && (
+                        <div className="flex gap-2 items-center ml-auto">
+                          <button
+                            onClick={() => handleOpenModal(item.name)}
+                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                          >
+                            옵션 변경
+                          </button>
+                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? {
+                                          ...i,
+                                          quantity: Math.max(1, i.quantity - 1),
+                                        }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              -
+                            </button>
+                            <span className="mx-2 w-7 text-center font-bold text-lg">
+                              {detail.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? { ...i, quantity: i.quantity + 1 }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {!detail && (
+                        <button
+                          onClick={() => handleOpenModal(item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                      {detail &&
+                        Object.values(detail.etc || {}).filter(Boolean).length >
+                          0 &&
+                        Object.values(detail.etc || {})
+                          .filter(Boolean)
+                          .map((v, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                            >
+                              {v}
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {/* 기타 */}
           <div ref={otherRef}>
-            <div className="text-lg font-bold mb-2 mt-6">기타</div>
-            {selectedItems["기타"].map((item) => (
-              <ItemCard
-                key={item.name}
-                icon={item.image}
-                onEdit={() => handleOpenModal(item.name)}
-                onDelete={() => handleDeleteClick("기타", item.name)}
-              />
-            ))}
+            <div className="flex items-center justify-between mb-2 mt-6">
+              <div className="text-lg font-bold">기타</div>
+              <div className="text-base font-semibold text-blue-600">
+                {
+                  items.filter((i) =>
+                    selectedItems["기타"].some((s) => s.name === i.name)
+                  ).length
+                }
+                /{selectedItems["기타"].length}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedItems["기타"].map((item) => {
+                const detail = items.find((i) => i.name === item.name);
+                return (
+                  <div
+                    key={`${"기타"}-${item.name}`}
+                    className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => handleDeleteClick("기타", item.name)}
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                      >
+                        ×
+                      </button>
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-20 h-20 object-contain ml-0 mr-3"
+                      />
+                      {detail && (
+                        <div className="flex gap-2 items-center ml-auto">
+                          <button
+                            onClick={() => handleOpenModal(item.name)}
+                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                          >
+                            옵션 변경
+                          </button>
+                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? {
+                                          ...i,
+                                          quantity: Math.max(1, i.quantity - 1),
+                                        }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              -
+                            </button>
+                            <span className="mx-2 w-7 text-center font-bold text-lg">
+                              {detail.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setItems((prev) =>
+                                  prev.map((i) =>
+                                    i.name === item.name
+                                      ? { ...i, quantity: i.quantity + 1 }
+                                      : i
+                                  )
+                                )
+                              }
+                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {!detail && (
+                        <button
+                          onClick={() => handleOpenModal(item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                      {detail &&
+                        Object.values(detail.etc || {}).filter(Boolean).length >
+                          0 &&
+                        Object.values(detail.etc || {})
+                          .filter(Boolean)
+                          .map((v, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                            >
+                              {v}
+                            </div>
+                          ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             {/* 짐 박스 입력 UI */}
-            <div className="flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm w-full max-w-[400px] h-[90px] mx-auto mb-3">
+            <div className="flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm w-full max-w-[400px] h-[90px] mx-auto mb-3 mt-4">
               <img
                 src="/images/leftoverBox.jpeg"
                 alt="짐 박스"
@@ -385,7 +689,7 @@ export default function Step5Page() {
               </span>
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  className="border border-gray-300 rounded px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                  className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
                   onClick={() => setBoxCount((prev) => Math.max(0, prev - 1))}
                 >
                   -
@@ -394,28 +698,55 @@ export default function Step5Page() {
                   {boxCount}개
                 </span>
                 <button
-                  className="border border-gray-300 rounded px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                  className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
                   onClick={() => setBoxCount((prev) => prev + 1)}
                 >
                   +
                 </button>
               </div>
             </div>
+            {/* 메모 입력란 */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                사장님께 전달할 요청사항
+              </label>
+              <textarea
+                value={requestNote}
+                onChange={(e) => setRequestNote(e.target.value)}
+                placeholder="예시) 추가 짐과 반려동물이 있어요. "
+                className="w-full border border-gray-300 rounded-lg p-2 text-sm resize-none h-24"
+                maxLength={200}
+              />
+              <div className="text-right text-xs text-gray-400 mt-1">
+                {requestNote.length}/200
+              </div>
+            </div>
+            <Button
+              onClick={() => {
+                const allFilled = ["가구", "가전", "기타"].every((cat) =>
+                  selectedItems[cat as MoveCategory].every((item) =>
+                    items.find((i) => i.name === item.name)
+                  )
+                );
+                if (!allFilled) {
+                  // 토스트 안내
+                  alert("세부 옵션을 입력해 주세요.");
+                  return;
+                }
+                handleSave();
+              }}
+              disabled={
+                !["가구", "가전", "기타"].every((cat) =>
+                  selectedItems[cat as MoveCategory].every((item) =>
+                    items.find((i) => i.name === item.name)
+                  )
+                )
+              }
+              className="w-full h-14 rounded-xl text-lg font-bold mt-2"
+            >
+              다음
+            </Button>
           </div>
-        </div>
-
-        {/* 메모 입력란  */}
-
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            사장님께 전달할 요청사항
-          </label>
-          <textarea
-            value={requestNote}
-            onChange={(e) => setRequestNote(e.target.value)}
-            placeholder="예시) 추가 짐과 반려동물이 있어요. "
-            className="w-full border border-gray-300 rounded-lg p-2 text-sm resize-none h-24"
-          />
         </div>
       </div>
 
@@ -437,7 +768,10 @@ export default function Step5Page() {
           itemTypeId={1001}
           onClose={() => setOpenBedModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "침대"),
+              { ...data, name: "침대" },
+            ]);
             console.log("침대 data", data);
             setOpenBedModal(false);
           }}
@@ -449,7 +783,10 @@ export default function Step5Page() {
           itemTypeId={1002}
           onClose={() => setOpenSofaModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "쇼파"),
+              { ...data, name: "쇼파" },
+            ]);
             console.log("쇼파 data", data);
             setOpenSofaModal(false);
           }}
@@ -461,7 +798,10 @@ export default function Step5Page() {
           itemTypeId={1003}
           onClose={() => setOpenWardrobeSingModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "옷장-단품"),
+              { ...data, name: "옷장-단품" },
+            ]);
             console.log("옷장-단품 data", data);
             setOpenWardrobeSingModal(false);
           }}
@@ -473,7 +813,10 @@ export default function Step5Page() {
           itemTypeId={1004}
           onClose={() => setOpenWardrobeCombinedModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "옷장-연결장"),
+              { ...data, name: "옷장-연결장" },
+            ]);
             console.log("옷장-연결장 data", data);
             setOpenWardrobeCombinedModal(false);
           }}
@@ -484,7 +827,10 @@ export default function Step5Page() {
           itemTypeId={1005}
           onClose={() => setOpenHangerModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "행거"),
+              { ...data, name: "행거" },
+            ]);
             console.log("행거 data", data);
             setOpenHangerModal(false);
           }}
@@ -496,7 +842,10 @@ export default function Step5Page() {
           itemTypeId={1006}
           onClose={() => setOpenSystemHangerModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "시스템행거"),
+              { ...data, name: "시스템행거" },
+            ]);
             setOpenSystemHangerModal(false);
           }}
         />
@@ -507,7 +856,10 @@ export default function Step5Page() {
           itemTypeId={1007}
           onClose={() => setOpenDressingTableModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "화장대"),
+              { ...data, name: "화장대" },
+            ]);
             console.log("화장대 data", data);
             setOpenDressingTableModal(false);
           }}
@@ -519,7 +871,10 @@ export default function Step5Page() {
           itemTypeId={1008}
           onClose={() => setOpenDrawerModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "수납장/서랍장"),
+              { ...data, name: "수납장/서랍장" },
+            ]);
             console.log("수납장/서랍장 data", data);
             setOpenDrawerModal(false);
           }}
@@ -531,7 +886,10 @@ export default function Step5Page() {
           itemTypeId={1009}
           onClose={() => setOpenDisplayModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "진열장"),
+              { ...data, name: "진열장" },
+            ]);
             console.log("장식장 data", data);
             setOpenDisplayModal(false);
           }}
@@ -543,7 +901,10 @@ export default function Step5Page() {
           itemTypeId={1010}
           onClose={() => setOpenShelfModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "선반"),
+              { ...data, name: "선반" },
+            ]);
             console.log("선반 data", data);
             setOpenShelfModal(false);
           }}
@@ -555,7 +916,10 @@ export default function Step5Page() {
           itemTypeId={1011}
           onClose={() => setOpenTvCabinetModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "거실장/TV장"),
+              { ...data, name: "거실장/TV장" },
+            ]);
             console.log("거실장/TV장 data", data);
             setOpenTvCabinetModal(false);
           }}
@@ -567,7 +931,10 @@ export default function Step5Page() {
           itemTypeId={1012}
           onClose={() => setOpenBookshelfModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "책장"),
+              { ...data, name: "책장" },
+            ]);
             console.log("책장 data", data);
             setOpenBookshelfModal(false);
           }}
@@ -579,7 +946,10 @@ export default function Step5Page() {
           itemTypeId={1013}
           onClose={() => setOpenDeskModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "책상"),
+              { ...data, name: "책상" },
+            ]);
             console.log("책상 data", data);
             setOpenDeskModal(false);
           }}
@@ -591,7 +961,10 @@ export default function Step5Page() {
           itemTypeId={1014}
           onClose={() => setOpenDiningTableModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "테이블/식탁"),
+              { ...data, name: "테이블/식탁" },
+            ]);
             console.log("식탁 data", data);
             setOpenDiningTableModal(false);
           }}
@@ -603,7 +976,10 @@ export default function Step5Page() {
           itemTypeId={1015}
           onClose={() => setOpenChairModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "의자"),
+              { ...data, name: "의자" },
+            ]);
             console.log("의자 data", data);
             setOpenChairModal(false);
           }}
@@ -617,7 +993,10 @@ export default function Step5Page() {
           itemTypeId={2001}
           onClose={() => setOpenTvModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "TV"),
+              { ...data, name: "TV" },
+            ]);
             console.log("TV data", data);
             setOpenTvModal(false);
           }}
@@ -629,7 +1008,10 @@ export default function Step5Page() {
           itemTypeId={2002}
           onClose={() => setOpenMoniterModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "모니터"),
+              { ...data, name: "모니터" },
+            ]);
             console.log("모니터 data", data);
             setOpenMoniterModal(false);
           }}
@@ -641,7 +1023,10 @@ export default function Step5Page() {
           itemTypeId={2003}
           onClose={() => setOpenPcModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "PC/데스크탑"),
+              { ...data, name: "PC/데스크탑" },
+            ]);
             console.log("PC/데스크탑 data", data);
             setOpenPcModal(false);
           }}
@@ -653,7 +1038,10 @@ export default function Step5Page() {
           itemTypeId={2004}
           onClose={() => setOpenWashingMachineModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "세탁기"),
+              { ...data, name: "세탁기" },
+            ]);
             console.log("세탁기 data", data);
             setOpenWashingMachineModal(false);
           }}
@@ -665,7 +1053,10 @@ export default function Step5Page() {
           itemTypeId={2005}
           onClose={() => setOpenDryerModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "건조기"),
+              { ...data, name: "건조기" },
+            ]);
             console.log("건조기 data", data);
             setOpenDryerModal(false);
           }}
@@ -677,7 +1068,10 @@ export default function Step5Page() {
           itemTypeId={2006}
           onClose={() => setOpenVacuumCleanerModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "청소기"),
+              { ...data, name: "청소기" },
+            ]);
             console.log("청소기 data", data);
             setOpenVacuumCleanerModal(false);
           }}
@@ -689,7 +1083,10 @@ export default function Step5Page() {
           itemTypeId={2007}
           onClose={() => setOpenClothingCareModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "의류관리기"),
+              { ...data, name: "의류관리기" },
+            ]);
             console.log("의류관리기 data", data);
             setOpenClothingCareModal(false);
           }}
@@ -701,7 +1098,10 @@ export default function Step5Page() {
           itemTypeId={2008}
           onClose={() => setOpenRefrigeratorModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "냉장고"),
+              { ...data, name: "냉장고" },
+            ]);
             console.log("냉장고 data", data);
             setOpenRefrigeratorModal(false);
           }}
@@ -713,7 +1113,10 @@ export default function Step5Page() {
           itemTypeId={2009}
           onClose={() => setOpenMicrowaveModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "전자레인지"),
+              { ...data, name: "전자레인지" },
+            ]);
             console.log("전자레인지 data", data);
             setOpenMicrowaveModal(false);
           }}
@@ -725,7 +1128,10 @@ export default function Step5Page() {
           itemTypeId={2010}
           onClose={() => setOpenGasStoveModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "가스레인지"),
+              { ...data, name: "가스레인지" },
+            ]);
             console.log("가스레인지 data", data);
             setOpenGasStoveModal(false);
           }}
@@ -737,7 +1143,10 @@ export default function Step5Page() {
           itemTypeId={2011}
           onClose={() => setOpenWaterPurifierModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "정수기"),
+              { ...data, name: "정수기" },
+            ]);
             console.log("정수기 data", data);
             setOpenWaterPurifierModal(false);
           }}
@@ -749,7 +1158,10 @@ export default function Step5Page() {
           itemTypeId={2012}
           onClose={() => setOpenAirconModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "에어컨"),
+              { ...data, name: "에어컨" },
+            ]);
             console.log("에어컨 data", data);
             setOpenAirconModal(false);
           }}
@@ -761,7 +1173,10 @@ export default function Step5Page() {
           itemTypeId={2013}
           onClose={() => setOpenAirPurifierModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "공기청정기"),
+              { ...data, name: "공기청정기" },
+            ]);
             console.log("공기청정기 data", data);
             setOpenAirPurifierModal(false);
           }}
@@ -773,7 +1188,10 @@ export default function Step5Page() {
           itemTypeId={2014}
           onClose={() => setOpenFanModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "선풍기"),
+              { ...data, name: "선풍기" },
+            ]);
             console.log("선풍기 data", data);
             setOpenFanModal(false);
           }}
@@ -785,7 +1203,10 @@ export default function Step5Page() {
           itemTypeId={2015}
           onClose={() => setOpenMassageChairModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "안마의자"),
+              { ...data, name: "안마의자" },
+            ]);
             console.log("안마의자 data", data);
             setOpenMassageChairModal(false);
           }}
@@ -799,7 +1220,10 @@ export default function Step5Page() {
           itemTypeId={3001}
           onClose={() => setOpenMirrorModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "거울"),
+              { ...data, name: "거울" },
+            ]);
             console.log("거울 data", data);
             setOpenMirrorModal(false);
           }}
@@ -811,7 +1235,10 @@ export default function Step5Page() {
           itemTypeId={3002}
           onClose={() => setOpenCurtainModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "커튼"),
+              { ...data, name: "커튼" },
+            ]);
             console.log("커튼 data", data);
             setOpenCurtainModal(false);
           }}
@@ -823,7 +1250,10 @@ export default function Step5Page() {
           itemTypeId={3003}
           onClose={() => setOpenDryingRackModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "빨래건조대"),
+              { ...data, name: "빨래건조대" },
+            ]);
             console.log("빨래건조대 data", data);
             setOpenDryingRackModal(false);
           }}
@@ -835,7 +1265,10 @@ export default function Step5Page() {
           itemTypeId={3004}
           onClose={() => setOpenCarrierModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "캐리어"),
+              { ...data, name: "캐리어" },
+            ]);
             console.log("캐리어 data", data);
             setOpenCarrierModal(false);
           }}
@@ -847,7 +1280,10 @@ export default function Step5Page() {
           itemTypeId={3005}
           onClose={() => setOpenFitnessModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "운동기구"),
+              { ...data, name: "운동기구" },
+            ]);
             console.log("운동기구 data", data);
             setOpenFitnessModal(false);
           }}
@@ -859,7 +1295,10 @@ export default function Step5Page() {
           itemTypeId={3006}
           onClose={() => setOpenBookModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "책"),
+              { ...data, name: "책" },
+            ]);
             console.log("책 data", data);
             setOpenBookModal(false);
           }}
@@ -871,7 +1310,10 @@ export default function Step5Page() {
           itemTypeId={3007}
           onClose={() => setOpenPlantPotModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "화분"),
+              { ...data, name: "화분" },
+            ]);
             console.log("화분 data", data);
             setOpenPlantPotModal(false);
           }}
@@ -883,7 +1325,10 @@ export default function Step5Page() {
           itemTypeId={3008}
           onClose={() => setOpenBidetModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "비데"),
+              { ...data, name: "비데" },
+            ]);
             console.log("비데 data", data);
             setOpenBidetModal(false);
           }}
@@ -895,17 +1340,15 @@ export default function Step5Page() {
           itemTypeId={3009}
           onClose={() => setOpenLightModal(false)}
           onSave={(data) => {
-            setItems((prev) => [...prev, data]);
+            setItems((prev) => [
+              ...prev.filter((i) => i.name !== "조명"),
+              { ...data, name: "조명" },
+            ]);
             console.log("조명 data", data);
             setOpenLightModal(false);
           }}
         />
       )}
-
-      {/* 하단 다음 버튼 */}
-      <div className="fixed bottom-0 inset-x-0 mx-auto max-w-md bg-white px-4 py-4 z-20">
-        <Button onClick={handleSave}>다음</Button>
-      </div>
     </div>
   );
 }
