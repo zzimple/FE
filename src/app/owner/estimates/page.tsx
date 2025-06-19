@@ -72,7 +72,44 @@ export default function OwnerConfirmedEstimatesPage() {
             });
 
             if (response.data.success) {
-                setEstimates(response.data.data.content || []);
+                console.log('API Response:', response.data.data.content);
+                
+                // API 응답 데이터를 프론트엔드 구조에 맞게 변환
+                const processedEstimates = (response.data.data.content || []).map((item: any) => {
+                    // moveDate를 년, 월, 일로 분리 (YYYYMMDD 형식)
+                    const moveDateStr = item.moveDate?.toString() || '';
+                    const moveYear = moveDateStr.length >= 4 ? parseInt(moveDateStr.substring(0, 4)) : new Date().getFullYear();
+                    const moveMonth = moveDateStr.length >= 6 ? parseInt(moveDateStr.substring(4, 6)) : 1;
+                    const moveDay = moveDateStr.length >= 8 ? parseInt(moveDateStr.substring(6, 8)) : 1;
+                    
+                    // 주소를 지역으로 변환 (간단한 파싱)
+                    const fromRegion1 = item.roadFullAddr1?.split(' ')[0] || '';
+                    const fromRegion2 = item.roadFullAddr1?.split(' ')[1] || '';
+                    const toRegion1 = item.roadFullAddr2?.split(' ')[0] || '';
+                    const toRegion2 = item.roadFullAddr2?.split(' ')[1] || '';
+                    
+                    return {
+                        estimateNo: item.estimateNo || 0,
+                        moveYear,
+                        moveMonth,
+                        moveDay,
+                        moveType: item.moveType || '',
+                        moveOption: item.optionType || '', // optionType을 moveOption으로 매핑
+                        fromRegion1,
+                        fromRegion2,
+                        toRegion1,
+                        toRegion2,
+                        status: 'CONFIRMED' as const, // 이 페이지는 확정된 견적서만 조회하므로
+                        // ConfirmedEstimate의 추가 필드들
+                        guestName: item.guestName,
+                        guestPhone: item.guestPhone,
+                        confirmedAt: item.confirmedAt,
+                        totalPrice: item.totalPrice,
+                        assignedStaff: item.assignedStaff
+                    };
+                });
+                
+                setEstimates(processedEstimates);
                 setTotalPages(response.data.data.totalPages || 1);
                 setTotalCount(response.data.data.totalElements || 0);
             } else {
@@ -130,7 +167,7 @@ export default function OwnerConfirmedEstimatesPage() {
     }, [estimates, filters]);
 
     const handleViewDetail = (estimateNo: number) => {
-        router.push(`/estimate/owner/final/check?estimateNo=${estimateNo}`);
+        router.push(`/owner/estimates/detail?estimateNo=${estimateNo}`);
     };
 
     const handleRefresh = () => {
@@ -156,13 +193,47 @@ export default function OwnerConfirmedEstimatesPage() {
         setShowAssignModal(true);
         
         try {
-            // 사용 가능한 직원 목록 조회
-            const response = await authApi.get('/owner/staff/available');
+            // API 요청 정보 출력
+            const requestUrl = `/owner/schedule/${estimate.estimateNo}/available-staff`;
+            console.log('=== 직원 조회 디버깅 ===');
+            console.log('요청 URL:', requestUrl);
+            console.log('견적서 정보:', {
+                estimateNo: estimate.estimateNo,
+                moveDate: `${estimate.moveYear}-${estimate.moveMonth}-${estimate.moveDay}`,
+                moveType: estimate.moveType,
+                moveOption: estimate.moveOption
+            });
+            
+            const response = await authApi.get(requestUrl);
+            
+            // API 응답 상세 정보 출력
+            console.log('응답 상태:', response.status);
+            console.log('응답 데이터:', response.data);
+            
             if (response.data.success) {
-                setAvailableStaff(response.data.data);
+                // API 응답 데이터 구조 확인
+                console.log('직원 데이터 상세:', JSON.stringify(response.data.data, null, 2));
+                
+                // API 응답 구조에 맞게 변환
+                const staffList = (response.data.data || []).map((staff: any) => {
+                    console.log('개별 직원 데이터:', staff);
+                    return {
+                        id: staff.staffId,
+                        name: staff.staffName,
+                        phone: staff.staffPhoneNum,
+                        isAvailable: true // 목록에 있는 직원은 모두 가용한 것으로 간주
+                    };
+                });
+                
+                console.log('변환된 직원 목록:', staffList);
+                setAvailableStaff(staffList);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('직원 목록 조회 실패:', error);
+            if (error.response) {
+                console.error('에러 응답:', error.response.data);
+                console.error('에러 상태:', error.response.status);
+            }
             alert('직원 목록을 불러오는데 실패했습니다.');
         }
     };
@@ -175,20 +246,35 @@ export default function OwnerConfirmedEstimatesPage() {
 
         setIsAssigning(true);
         try {
-            const response = await authApi.post(`/estimates/${selectedEstimate.estimateNo}/assign-staff`, {
-                staffId: selectedStaffId
-            });
+            // staffId를 query parameter로 전송
+            const response = await authApi.post(
+                `/owner/schedule/${selectedEstimate.estimateNo}/assign`,
+                null,  // body는 null
+                {
+                    params: {
+                        staffId: selectedStaffId.toString(),
+                        workDate: `${selectedEstimate.moveYear}-${String(selectedEstimate.moveMonth).padStart(2, '0')}-${String(selectedEstimate.moveDay).padStart(2, '0')}`
+                    }
+                }
+            );
 
             if (response.data.success) {
                 alert('직원 배정이 완료되었습니다.');
                 setShowAssignModal(false);
+                setSelectedEstimate(null);
+                setSelectedStaffId(null);
                 fetchConfirmedEstimates(); // 목록 새로고침
+            } else {
+                alert(response.data.message || '직원 배정에 실패했습니다.');
+            }
+        } catch (error: any) {
+            console.error('직원 배정 실패:', error);
+            if (error.response) {
+                console.error('에러 응답:', error.response.data);
+                alert(error.response.data.message || '직원 배정에 실패했습니다.');
             } else {
                 alert('직원 배정에 실패했습니다.');
             }
-        } catch (error) {
-            console.error('직원 배정 실패:', error);
-            alert('직원 배정에 실패했습니다.');
         } finally {
             setIsAssigning(false);
         }
@@ -407,10 +493,6 @@ export default function OwnerConfirmedEstimatesPage() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-gray-500">이사 날짜:</span>
-                                                <span className="font-medium text-gray-900">
-                                                    {estimate.moveYear}-{estimate.moveMonth}-{estimate.moveDay}
-                                                </span>
                                             </div>
                                             {estimate.totalPrice && (
                                                 <div className="flex items-center gap-2 md:col-span-2">
@@ -493,34 +575,47 @@ export default function OwnerConfirmedEstimatesPage() {
                         </div>
 
                         <div className="space-y-2 max-h-60 overflow-y-auto">
-                            {availableStaff.length === 0 ? (
-                                <p className="text-sm text-gray-500 text-center py-4">
-                                    사용 가능한 직원이 없습니다.
-                                </p>
+                            {availableStaff.filter(staff => staff.isAvailable).length === 0 ? (
+                                <div className="text-center py-4">
+                                    <p className="text-sm text-gray-500 mb-2">
+                                        해당 날짜에 배정 가능한 직원이 없습니다.
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                        이사 날짜: {selectedEstimate?.moveYear}년 {selectedEstimate?.moveMonth}월 {selectedEstimate?.moveDay}일
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        직원의 스케줄을 확인해주세요.
+                                    </p>
+                                </div>
                             ) : (
-                                availableStaff.map(staff => (
-                                    <label
-                                        key={staff.id}
-                                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                                            selectedStaffId === staff.id
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="staff"
-                                            value={staff.id}
-                                            checked={selectedStaffId === staff.id}
-                                            onChange={(e) => setSelectedStaffId(Number(e.target.value))}
-                                            className="mr-3"
-                                        />
-                                        <div>
-                                            <div className="font-medium text-gray-900">{staff.name}</div>
-                                            <div className="text-sm text-gray-500">{staff.phone}</div>
-                                        </div>
-                                    </label>
-                                ))
+                                availableStaff
+                                    .filter(staff => staff.isAvailable)
+                                    .map(staff => (
+                                        <label
+                                            key={staff.id}
+                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                                                selectedStaffId === staff.id
+                                                    ? 'border-blue-500 bg-blue-50'
+                                                    : 'border-gray-200 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="staff"
+                                                value={staff.id}
+                                                checked={selectedStaffId === staff.id}
+                                                onChange={(e) => setSelectedStaffId(Number(e.target.value))}
+                                                className="mr-3"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-medium text-gray-900">{staff.name}</div>
+                                                <div className="text-sm text-gray-500">{staff.phone}</div>
+                                            </div>
+                                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                                사용 가능
+                                            </div>
+                                        </label>
+                                    ))
                             )}
                         </div>
 
