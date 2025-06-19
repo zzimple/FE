@@ -1,6 +1,6 @@
 export type MoveType = "SMALL" | "FAMILY" ;
 export type MoveOption = "BASIC" | "PACKAGING" | "SEMI_PACKAGING" ;
-export type EstimateStatus = "WAITING" | "ACCEPTED" | "REJECTED";
+export type EstimateStatus = "WAITING" | "ACCEPTED" | "REJECTED" | "CONFIRMED" | "COMPLETED";
 
 export interface Estimate {
     estimateNo: number;
@@ -26,7 +26,7 @@ export interface EstimateSearchParams {
     fromRegion2: string;
     toRegion1: string;
     toRegion2: string;
-    status: EstimateStatus;
+    // status: EstimateStatus;
 }
 
 export const MOVE_TYPE_LABELS: Record<MoveType, string> = {
@@ -44,6 +44,8 @@ export const STATUS_BADGE_STYLES: Record<EstimateStatus, { bg: string; text: str
     WAITING: { bg: "bg-yellow-50", text: "text-yellow-600", label: "대기중" },
     ACCEPTED: { bg: "bg-green-50", text: "text-green-600", label: "수락" },
     REJECTED: { bg: "bg-red-50", text: "text-red-600", label: "거절" },
+    CONFIRMED: { bg: "bg-blue-50", text: "text-blue-600", label: "확정" },
+    COMPLETED: { bg: "bg-purple-50", text: "text-purple-600", label: "완료" },
 }; 
 
 export interface Address {
