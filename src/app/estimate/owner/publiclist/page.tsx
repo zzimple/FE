@@ -1,14 +1,17 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import EstimateList from "@/components/estimate/EstimateList";
 import EstimateSearch from "@/components/estimate/EstimateSearch";
 import { EstimateSearchParams, MoveOption, MoveType } from "@/types/estimate";
+import { useRouter, useSearchParams } from "next/navigation";
+
 
 export default function EstimateListPage() {
     const router = useRouter();
-    const [searchParams, setSearchParams] = React.useState<EstimateSearchParams>({
+    const searchParams = useSearchParams();
+
+    const [searchParamState, setSearchParamState] = React.useState<EstimateSearchParams>({
         moveYear: "",
         moveMonth: "",
         moveDay: "",
@@ -18,16 +21,16 @@ export default function EstimateListPage() {
         fromRegion2: "",
         toRegion1: "",
         toRegion2: "",
-        status: "WAITING",
+        // status: "WAITING",
     });
 
     const handleSearch = (params: EstimateSearchParams) => {
-        setSearchParams(params);
+        setSearchParamState(params);
     };
 
-    const handleSelect = (estimateNo: number) => {
+    function handleSelect(estimateNo: number): void {
         router.push(`/estimate/owner/final?estimateNo=${estimateNo}`);
-    };
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">

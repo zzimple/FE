@@ -122,6 +122,7 @@ export default function EstimateFinalPage() {
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
+        estimateNo: estimateData.data.estimateNo,
         serviceType: estimateData.data.moveType === "SMALL" ? "소형이사" : "가정이사",
         dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
         from: {
@@ -352,13 +353,13 @@ export default function EstimateFinalPage() {
                     <div className="bg-white rounded-xl border border-gray-200 p-4">
                         <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
                         <KakaoMapRoute
-                            from={reviewData.from.coord}
-                            to={reviewData.to.coord}
-                            onStats={(d, m) => {
-                                setDuration(d);
-                                setDistance(m);
+                            estimateNo={reviewData.estimateNo}
+                            onStats={(duration, distance) => {
+                                setDuration(duration);
+                                setDistance(distance);
                             }}
                         />
+
                         <div className="flex gap-4 mt-2 text-sm text-gray-700">
                             <div>예상 시간 : <span className="font-semibold">{formattedTime}</span></div>
                             <div>예상 거리 : <span className="font-semibold">{formattedDist}</span></div>
@@ -370,23 +371,23 @@ export default function EstimateFinalPage() {
                         {/* 기존 입력 필드들 */}
                         <div className="space-y-3">
                             <div>
-                                <div className="flex items-center mb-1">
+                                <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm font-semibold text-gray-900">짐 목록 예상 비용</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-sm font-semibold text-blue-600">
+                                            {estimatedCost?.toLocaleString()}
+                                        </span>
+                                        <span className="text-sm text-gray-600">원</span>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
                                     <Button
-                                        className="!h-6 px-2 whitespace-nowrap"
+                                        size="small"
                                         type="button"
                                         onClick={() => router.push(`/estimate/owner/final/bill?estimateNo=${estimateNo}`)}
                                     >
                                         책정하기
                                     </Button>
-                                    <div className={PILL_CLASS}>
-                                        <span className="flex-1 text-sm text-gray-600">예상 비용</span>
-                                        <div className="text-blue-600 font-semibold text-sm">
-                                            {estimatedCost?.toLocaleString()}원
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -420,49 +421,50 @@ export default function EstimateFinalPage() {
                         <div className="bg-gray-50 rounded-xl p-4 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-semibold text-gray-900">추가금 항목</h3>
-                                <div className="text-sm text-gray-500">
-                                    총 {extraCharges.reduce((sum, charge) => sum + charge.amount, 0).toLocaleString()}원
+                                <div className="flex items-center gap-1">
+                                    <span className="text-sm font-semibold text-blue-600">
+                                        {extraCharges.reduce((sum, charge) => sum + charge.amount, 0).toLocaleString()}
+                                    </span>
+                                    <span className="text-sm text-gray-600">원</span>
                                 </div>
                             </div>
 
                             {/* 추가금 입력 폼 */}
-                            <div className="flex gap-2">
-                                <div className="flex-1">
-                                    <input
-                                        type="text"
-                                        className="w-full border rounded-lg px-3 py-2 text-sm"
-                                        placeholder="추가금 사유"
-                                        value={newChargeReason}
-                                        onChange={e => setNewChargeReason(e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <input
-                                        className="w-full border rounded-lg px-3 py-2 text-sm"
-                                        placeholder="금액"
-                                        value={newChargeAmount}
-                                        onChange={e => setNewChargeAmount(e.target.value)}
-                                    />
-                                </div>
-                                <Button
-                                    className="!h-10 px-4 whitespace-nowrap"
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                                    placeholder="추가금 사유"
+                                    value={newChargeReason}
+                                    onChange={e => setNewChargeReason(e.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-[100px] border rounded-lg px-3 py-2 text-sm"
+                                    placeholder="금액"
+                                    value={newChargeAmount}
+                                    onChange={e => setNewChargeAmount(e.target.value)}
+                                />
+                                <button
                                     onClick={handleAddExtraCharge}
+                                    className="px-4 py-2 bg-[#2988FF] text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
                                 >
                                     추가
-                                </Button>
+                                </button>
                             </div>
 
                             {/* 추가금 목록 */}
                             <div className="space-y-2">
                                 {extraCharges.map((charge, index) => (
                                     <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg border">
-                                        <div className="flex-1">
-                                            <div className="text-sm font-medium text-gray-900">{charge.reason}</div>
-                                        </div>
+                                        <div className="text-sm font-medium text-gray-900">{charge.reason}</div>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-sm font-semibold text-blue-600">
-                                                {charge.amount.toLocaleString()}원
-                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-sm font-semibold text-blue-600">
+                                                    {charge.amount.toLocaleString()}
+                                                </span>
+                                                <span className="text-sm text-gray-600">원</span>
+                                            </div>
                                             <button
                                                 onClick={() => handleRemoveExtraCharge(index)}
                                                 className="text-gray-400 hover:text-red-500"

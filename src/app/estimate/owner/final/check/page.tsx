@@ -66,14 +66,15 @@ export default function EstimateFinalCheckPage() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const estimateNo = parseInt(searchParams.get("estimateNo") ?? "", 10);
+    const estimateNoParam = searchParams.get("estimateNo");
+    const estimateNo = estimateNoParam ? parseInt(estimateNoParam, 10) : null;
 
     const hasCalculated = useRef(false);
 
 
     // API 데이터 가져오기
     useEffect(() => {
-        if (isNaN(estimateNo)) {
+        if (!estimateNo || isNaN(estimateNo) || estimateNo <= 0) {
             setError('잘못된 견적서 번호입니다.');
             setIsLoading(false);
             return;
@@ -89,7 +90,7 @@ export default function EstimateFinalCheckPage() {
                     setFinalTotal(calcResp.data.data.finalTotal);
                 }
 
-                // 2) owner drafts 기본 정보
+                // owner drafts 기본 정보만 가져오기
                 const draftResp = await authApi.get<EstimateFinalCheckResponse>(
                     `/estimates/owner/drafts/${estimateNo}`
                 );
@@ -137,6 +138,8 @@ export default function EstimateFinalCheckPage() {
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
+        estimateNo: estimateData.data.estimateNo,
+
         serviceType: estimateData.data.moveType === "SMALL" ? "소형이사" : "가정이사",
         dateTime: formatMoveDateTime(estimateData.data.moveDate, estimateData.data.moveTime),
         from: {
@@ -321,13 +324,13 @@ export default function EstimateFinalCheckPage() {
                         <div className="bg-white rounded-xl border border-gray-200 p-4">
                             <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
                             <KakaoMapRoute
-                                from={reviewData.from.coord}
-                                to={reviewData.to.coord}
-                                onStats={(d: number, m: number) => {
-                                    setDuration(d);
-                                    setDistance(m);
+                                estimateNo={reviewData.estimateNo}
+                                onStats={(duration, distance) => {
+                                    setDuration(duration);
+                                    setDistance(distance);
                                 }}
                             />
+
                             <div className="flex gap-4 mt-2 text-sm text-gray-700">
                                 <div>예상 시간 : <span className="font-semibold">{formattedTime}</span></div>
                                 <div>예상 거리 : <span className="font-semibold">{formattedDist}</span></div>
@@ -462,8 +465,4 @@ export default function EstimateFinalCheckPage() {
             </div>
         </Suspense>
     );
-}
-
-function setError(arg0: null) {
-    throw new Error("Function not implemented.");
 }
