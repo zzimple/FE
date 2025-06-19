@@ -8,7 +8,6 @@ import PhoneVerificationField from "@/components/signup/form/PhoneVerificationFi
 import TermsAgreement from "@/components/signup/form/TermsAgreementProps";
 import { publicApi as api } from "@/lib/axios";
 import axios from "axios";
-import ToggleButtonGroup from "@/components/common/ToggleButtonGroup";
 
 // 비밀번호 유효성 검사 함수를 컴포넌트 외부로 이동
 const validatePassword = (password: string) => {
@@ -16,7 +15,7 @@ const validatePassword = (password: string) => {
     length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
-    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
   };
 };
 
@@ -48,7 +47,9 @@ export default function UserSignupPage() {
 
   const [passwordMismatchError, setPasswordMismatchError] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [passwordValidations, setPasswordValidations] = useState(() => validatePassword(""));
+  const [passwordValidations, setPasswordValidations] = useState(() =>
+    validatePassword("")
+  );
 
   const [isduplicate, setIsduplicate] = useState(false);
   const [checkResult, setCheckResult] = useState<null | boolean>(null);
@@ -181,14 +182,14 @@ export default function UserSignupPage() {
         <SignupHeader title="회원가입" currentStep={1} />
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-[320px] sm:max-w-md md:max-w-lg">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[320px] sm:max-w-md md:max-w-lg"
+      >
         <div className="space-y-4 sm:space-y-5">
           {/* 이름 */}
           <div className="mb-3 sm:mb-4">
-            <InputField label="이름" 
-            value={userName} 
-            onChange={setUserName} 
-            />
+            <InputField label="이름" value={userName} onChange={setUserName} />
           </div>
 
           {/* 전화번호 + 인증번호*/}
@@ -219,21 +220,34 @@ export default function UserSignupPage() {
                     setCheckResult(null);
                     setCheckErrorMsg("");
                   }}
-                  className="w-full h-14 px-5 rounded-full border border-[#B3B3B3] text-sm sm:text-base"
+                  className={`w-full h-14 px-5 rounded-full border text-sm sm:text-base transition focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 placeholder-gray-400
+                    ${
+                      loginId
+                        ? "border-blue-600"
+                        : checkErrorMsg
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                 />
                 <button
                   type="button"
                   onClick={handleCheckDuplicate}
                   disabled={isduplicate || loginId.trim().length === 0}
-                  className="absolute top-1/2 right-2 sm:right-3 -translate-y-1/2 h-7 sm:h-8 px-3 sm:px-4 rounded-full bg-[#DBEBFF] text-xs sm:text-sm font-bold whitespace-nowrap"
+                  className={`absolute top-1/2 right-2 sm:right-3 -translate-y-1/2 h-8 px-4 rounded-full text-xs sm:text-sm font-bold transition
+                    ${
+                      isduplicate || loginId.trim().length === 0
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
                 >
                   {isduplicate ? "..." : "중복 확인"}
                 </button>
               </div>
               {checkResult !== null && (
                 <p
-                  className={`text-xs sm:text-sm mt-2 ${checkResult ? "text-red-500" : "text-green-600"
-                    }`}
+                  className={`text-xs sm:text-sm mt-2 ${
+                    checkResult ? "text-red-500" : "text-green-600"
+                  }`}
                 >
                   {checkResult
                     ? "이미 사용 중인 아이디입니다."
@@ -241,7 +255,9 @@ export default function UserSignupPage() {
                 </p>
               )}
               {checkErrorMsg && (
-                <p className="text-xs sm:text-sm mt-2 text-red-500">{checkErrorMsg}</p>
+                <p className="text-xs sm:text-sm mt-2 text-red-500">
+                  {checkErrorMsg}
+                </p>
               )}
             </div>
           </div>
@@ -256,19 +272,43 @@ export default function UserSignupPage() {
             />
             <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2 px-1">
               <p className="text-xs sm:text-sm text-gray-500">비밀번호 조건:</p>
-              <div className={`flex items-center gap-2 text-xs sm:text-sm ${passwordValidations.length ? "text-green-600" : "text-gray-400"}`}>
+              <div
+                className={`flex items-center gap-2 text-xs sm:text-sm ${
+                  passwordValidations.length
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              >
                 <span>{passwordValidations.length ? "✓" : "○"}</span>
                 <span>8자 이상</span>
               </div>
-              <div className={`flex items-center gap-2 text-xs sm:text-sm ${passwordValidations.uppercase ? "text-green-600" : "text-gray-400"}`}>
+              <div
+                className={`flex items-center gap-2 text-xs sm:text-sm ${
+                  passwordValidations.uppercase
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              >
                 <span>{passwordValidations.uppercase ? "✓" : "○"}</span>
                 <span>영문 대문자 포함</span>
               </div>
-              <div className={`flex items-center gap-2 text-xs sm:text-sm ${passwordValidations.lowercase ? "text-green-600" : "text-gray-400"}`}>
+              <div
+                className={`flex items-center gap-2 text-xs sm:text-sm ${
+                  passwordValidations.lowercase
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              >
                 <span>{passwordValidations.lowercase ? "✓" : "○"}</span>
                 <span>영문 소문자 포함</span>
               </div>
-              <div className={`flex items-center gap-2 text-xs sm:text-sm ${passwordValidations.special ? "text-green-600" : "text-gray-400"}`}>
+              <div
+                className={`flex items-center gap-2 text-xs sm:text-sm ${
+                  passwordValidations.special
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              >
                 <span>{passwordValidations.special ? "✓" : "○"}</span>
                 <span>특수문자 포함</span>
               </div>
@@ -306,21 +346,44 @@ export default function UserSignupPage() {
               }}
             />
             {emailError && (
-              <p className="text-red-500 text-xs sm:text-sm mt-2 px-1">{emailError}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-2 px-1">
+                {emailError}
+              </p>
             )}
           </div>
 
           {/* 회원 유형 선택 */}
-          <ToggleButtonGroup<UserRole>
-            label="회원 유형 선택"
-            options={[
-              { value: "GUEST", label: "고객" },
-              { value: "STAFF", label: "직원" }
-            ]}
-            value={userRole}
-            onChange={setUserRole}
-            className="mb-3 sm:mb-4"
-          />
+          <div className="mb-3 sm:mb-4">
+            <p className="text-sm font-bold mb-2">회원 유형 선택</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setUserRole("GUEST")}
+                className={`flex-1 h-12 rounded-full border text-base font-semibold transition-all duration-200
+                  ${
+                    userRole === "GUEST"
+                      ? "bg-blue-600 text-white border-blue-600 scale-105 shadow"
+                      : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
+                  }
+                `}
+              >
+                고객
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserRole("STAFF")}
+                className={`flex-1 h-12 rounded-full border text-base font-semibold transition-all duration-200
+                  ${
+                    userRole === "STAFF"
+                      ? "bg-blue-600 text-white border-blue-600 scale-105 shadow"
+                      : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
+                  }
+                `}
+              >
+                직원
+              </button>
+            </div>
+          </div>
 
           {/* 약관 동의 */}
           <div className="mb-5 sm:mb-6">
@@ -338,18 +401,30 @@ export default function UserSignupPage() {
           <button
             type="submit"
             className={`w-full h-11 sm:h-12 rounded-full 
-              ${checkResult === false &&
-              userName &&
-              isVerified &&
-              isduplicate &&
-              isPasswordValid(passwordValidations) &&
-              password === passwordConfirm &&
-              agreeTerms &&
-              agreePrivacy &&
-              userRole
-              ? "bg-[#2948FF] text-white"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ${
+                userName &&
+                isVerified &&
+                checkResult === false &&
+                isPasswordValid(passwordValidations) &&
+                password === passwordConfirm &&
+                agreeTerms &&
+                agreePrivacy &&
+                userRole
+                  ? "bg-[#2948FF] text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
               } text-sm sm:text-base font-medium`}
+            disabled={
+              !(
+                userName &&
+                isVerified &&
+                checkResult === false &&
+                isPasswordValid(passwordValidations) &&
+                password === passwordConfirm &&
+                agreeTerms &&
+                agreePrivacy &&
+                userRole
+              )
+            }
           >
             회원가입 완료
           </button>
@@ -357,4 +432,4 @@ export default function UserSignupPage() {
       </form>
     </main>
   );
-} 
+}
