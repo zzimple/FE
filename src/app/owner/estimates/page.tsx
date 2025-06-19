@@ -72,7 +72,44 @@ export default function OwnerConfirmedEstimatesPage() {
             });
 
             if (response.data.success) {
-                setEstimates(response.data.data.content || []);
+                console.log('API Response:', response.data.data.content);
+                
+                // API 응답 데이터를 프론트엔드 구조에 맞게 변환
+                const processedEstimates = (response.data.data.content || []).map((item: any) => {
+                    // moveDate를 년, 월, 일로 분리 (YYYYMMDD 형식)
+                    const moveDateStr = item.moveDate?.toString() || '';
+                    const moveYear = moveDateStr.length >= 4 ? parseInt(moveDateStr.substring(0, 4)) : new Date().getFullYear();
+                    const moveMonth = moveDateStr.length >= 6 ? parseInt(moveDateStr.substring(4, 6)) : 1;
+                    const moveDay = moveDateStr.length >= 8 ? parseInt(moveDateStr.substring(6, 8)) : 1;
+                    
+                    // 주소를 지역으로 변환 (간단한 파싱)
+                    const fromRegion1 = item.roadFullAddr1?.split(' ')[0] || '';
+                    const fromRegion2 = item.roadFullAddr1?.split(' ')[1] || '';
+                    const toRegion1 = item.roadFullAddr2?.split(' ')[0] || '';
+                    const toRegion2 = item.roadFullAddr2?.split(' ')[1] || '';
+                    
+                    return {
+                        estimateNo: item.estimateNo || 0,
+                        moveYear,
+                        moveMonth,
+                        moveDay,
+                        moveType: item.moveType || '',
+                        moveOption: item.optionType || '', // optionType을 moveOption으로 매핑
+                        fromRegion1,
+                        fromRegion2,
+                        toRegion1,
+                        toRegion2,
+                        status: 'CONFIRMED' as const, // 이 페이지는 확정된 견적서만 조회하므로
+                        // ConfirmedEstimate의 추가 필드들
+                        guestName: item.guestName,
+                        guestPhone: item.guestPhone,
+                        confirmedAt: item.confirmedAt,
+                        totalPrice: item.totalPrice,
+                        assignedStaff: item.assignedStaff
+                    };
+                });
+                
+                setEstimates(processedEstimates);
                 setTotalPages(response.data.data.totalPages || 1);
                 setTotalCount(response.data.data.totalElements || 0);
             } else {
@@ -407,10 +444,6 @@ export default function OwnerConfirmedEstimatesPage() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-gray-500">이사 날짜:</span>
-                                                <span className="font-medium text-gray-900">
-                                                    {estimate.moveYear}-{estimate.moveMonth}-{estimate.moveDay}
-                                                </span>
                                             </div>
                                             {estimate.totalPrice && (
                                                 <div className="flex items-center gap-2 md:col-span-2">
