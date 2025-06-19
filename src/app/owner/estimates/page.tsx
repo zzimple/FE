@@ -218,9 +218,9 @@ export default function OwnerConfirmedEstimatesPage() {
                 const staffList = (response.data.data || []).map((staff: any) => {
                     console.log('개별 직원 데이터:', staff);
                     return {
-                        id: staff.staffId || staff.id,
-                        name: staff.staffName || staff.name,
-                        phone: staff.staffPhoneNum || staff.phoneNum || staff.phone,
+                        id: staff.staffId,
+                        name: staff.staffName,
+                        phone: staff.staffPhoneNum,
                         isAvailable: true // 목록에 있는 직원은 모두 가용한 것으로 간주
                     };
                 });
@@ -246,20 +246,35 @@ export default function OwnerConfirmedEstimatesPage() {
 
         setIsAssigning(true);
         try {
-            const response = await authApi.post(`/estimates/${selectedEstimate.estimateNo}/assign-staff`, {
-                staffId: selectedStaffId
-            });
+            // staffId를 query parameter로 전송
+            const response = await authApi.post(
+                `/owner/schedule/${selectedEstimate.estimateNo}/assign`,
+                null,  // body는 null
+                {
+                    params: {
+                        staffId: selectedStaffId.toString(),
+                        workDate: `${selectedEstimate.moveYear}-${String(selectedEstimate.moveMonth).padStart(2, '0')}-${String(selectedEstimate.moveDay).padStart(2, '0')}`
+                    }
+                }
+            );
 
             if (response.data.success) {
                 alert('직원 배정이 완료되었습니다.');
                 setShowAssignModal(false);
+                setSelectedEstimate(null);
+                setSelectedStaffId(null);
                 fetchConfirmedEstimates(); // 목록 새로고침
+            } else {
+                alert(response.data.message || '직원 배정에 실패했습니다.');
+            }
+        } catch (error: any) {
+            console.error('직원 배정 실패:', error);
+            if (error.response) {
+                console.error('에러 응답:', error.response.data);
+                alert(error.response.data.message || '직원 배정에 실패했습니다.');
             } else {
                 alert('직원 배정에 실패했습니다.');
             }
-        } catch (error) {
-            console.error('직원 배정 실패:', error);
-            alert('직원 배정에 실패했습니다.');
         } finally {
             setIsAssigning(false);
         }
