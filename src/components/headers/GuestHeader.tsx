@@ -3,126 +3,167 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function CustomerHeader() {
+export default function GuestHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="w-full bg-white shadow fixed top-0 left-0 z-30">
-      <div className="flex items-center justify-between px-4 py-3 h-14">
+    <header className="w-full bg-white shadow fixed top-0 left-0 z-30 font-pretendard">
+      <div className="flex items-center justify-between px-6 md:px-12 py-4 h-20">
         {/* 로고 */}
-        <Link href="/customer" className="text-xl font-bold text-blue-600">
+        <Link
+          href="/guest"
+          className="text-2xl md:text-3xl font-extrabold text-[#3454FF] tracking-tight select-none"
+          style={{ fontFamily: "Pretendard, sans-serif" }}
+        >
           ZZIMPLE
         </Link>
-
-        {/* 데스크톱 메뉴 */}
-        <nav className="hidden md:flex items-center space-x-6">
+        {/* 데스크탑 메뉴 */}
+        <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/guest/estimate/step1"
-            className="text-gray-700 hover:text-blue-600 font-medium"
+            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
           >
             견적서 작성
           </Link>
           <Link
             href="/guest/estimate"
-            className="text-gray-700 hover:text-blue-600 font-medium"
+            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
           >
             내 견적서
           </Link>
           <Link
             href="/guest/estimate/received"
-            className="text-gray-700 hover:text-blue-600 font-medium"
+            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
           >
             받은 견적서
           </Link>
           <Link
-            href="/"
-            className="text-gray-700 hover:text-blue-600 font-medium"
-          >
-            이사 내역
-          </Link>
-          <Link
             href="/guest/profile"
-            className="text-gray-700 hover:text-blue-600 font-medium"
+            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
           >
             내 정보
           </Link>
         </nav>
-
         {/* 햄버거 버튼 */}
         <button
-          className="md:hidden text-2xl text-gray-700 focus:outline-none"
-          onClick={() => setOpen(!open)}
+          className="md:hidden flex items-center justify-center w-10 h-10"
+          onClick={() => setOpen(true)}
           aria-label="메뉴 열기"
         >
-          <span className="material-symbols-outlined">menu</span>
+          {/* SVG 햄버거 아이콘 */}
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 28 28"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect y="6" width="28" height="2.5" rx="1.25" fill="#222" />
+            <rect y="13" width="28" height="2.5" rx="1.25" fill="#222" />
+            <rect y="20" width="28" height="2.5" rx="1.25" fill="#222" />
+          </svg>
         </button>
       </div>
 
       {/* 모바일 오버레이 메뉴 */}
       {open && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
+          className="fixed inset-0 z-40 flex flex-col items-center animate-slide-down md:hidden"
+          style={{
+            backdropFilter: "blur(8px)",
+            background: "rgba(0,0,0,0.15)",
+          }}
           onClick={() => setOpen(false)}
         >
-          <nav
-            className="absolute top-0 right-0 w-3/4 max-w-xs h-full bg-white shadow-lg flex flex-col pt-16 px-6 animate-slide-in"
+          <div
+            className="w-full bg-white pt-8 pb-8 px-6 flex flex-col items-center relative shadow-lg"
+            style={{ maxWidth: "100vw" }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* 닫기 버튼 */}
             <button
-              className="absolute top-4 right-4 text-2xl text-gray-700"
+              className="absolute top-6 right-6 text-3xl"
               onClick={() => setOpen(false)}
               aria-label="메뉴 닫기"
             >
-              <span className="material-symbols-outlined">close</span>
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <line
+                  x1="6"
+                  y1="6"
+                  x2="22"
+                  y2="22"
+                  stroke="#222"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="22"
+                  y1="6"
+                  x2="6"
+                  y2="22"
+                  stroke="#222"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
             <Link
-              href="/estimate/step1"
-              className="py-3 text-lg font-medium text-gray-800 border-b"
+              href="/guest"
+              className="text-2xl font-extrabold text-[#3454FF] mb-8 select-none"
+              style={{ fontFamily: "Pretendard, sans-serif" }}
+              onClick={() => setOpen(false)}
+            >
+              ZZIMPLE
+            </Link>
+            <Link
+              href="/guest/estimate/step1"
+              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
               onClick={() => setOpen(false)}
             >
               견적서 작성
             </Link>
             <Link
-              href="/customer/my-estimates"
-              className="py-3 text-lg font-medium text-gray-800 border-b"
+              href="/guest/estimate"
+              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
               onClick={() => setOpen(false)}
             >
               내 견적서
             </Link>
             <Link
               href="/guest/estimate/received"
-              className="py-3 text-lg font-medium text-gray-800 border-b"
+              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
               onClick={() => setOpen(false)}
             >
               받은 견적서
             </Link>
             <Link
-              href="/customer/history"
-              className="py-3 text-lg font-medium text-gray-800 border-b"
+              href="/guest/profile"
+              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
               onClick={() => setOpen(false)}
             >
-              이사 내역
+              마이페이지
             </Link>
-            <Link
-              href="/customer/profile"
-              className="py-3 text-lg font-medium text-gray-800"
-              onClick={() => setOpen(false)}
-            >
-              내 정보
-            </Link>
-          </nav>
+          </div>
         </div>
       )}
       <style jsx>{`
-        .animate-slide-in {
-          animation: slide-in 0.2s ease;
+        .animate-slide-down {
+          animation: slide-down 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        @keyframes slide-in {
+        @keyframes slide-down {
           from {
-            transform: translateX(100%);
+            transform: translateY(-100%);
+            opacity: 0;
           }
           to {
-            transform: translateX(0);
+            transform: translateY(0);
+            opacity: 1;
           }
         }
       `}</style>

@@ -89,8 +89,8 @@ const Calendar: React.FC<CalendarProps> = ({
   today.setHours(0, 0, 0, 0);
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-2xl">
-      <div className="flex items-center justify-between mb-2">
+    <div className="w-[320px] md:w-[360px] p-4 md:p-5 bg-white shadow-md rounded-2xl">
+      <div className="flex items-center justify-between mb-2 md:mb-4">
         <button
           onClick={() => {
             if (currentMonth === 0) {
@@ -102,9 +102,9 @@ const Calendar: React.FC<CalendarProps> = ({
           }}
           className="p-2 rounded-full hover:bg-gray-100"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={24} />
         </button>
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-xl font-bold">
           {currentYear}년 {currentMonth + 1}월
         </h2>
         <button
@@ -118,17 +118,17 @@ const Calendar: React.FC<CalendarProps> = ({
           }}
           className="p-2 rounded-full hover:bg-gray-100"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={24} />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-sm font-medium mb-1">
+      <div className="grid grid-cols-7 text-center text-base font-bold mb-2">
         {WEEK_DAYS.map((day) => (
           <div key={day}>{day}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1 md:gap-2">
         {days.map((dateObj, idx) => {
           const ymd = dateObj.toISOString().slice(0, 10);
           const isCurrentMonth = dateObj.getMonth() === currentMonth;
@@ -142,7 +142,7 @@ const Calendar: React.FC<CalendarProps> = ({
               <button
                 onClick={() => handleSelect(dateObj)}
                 disabled={!isCurrentMonth || !isFuture}
-                className={`aspect-square w-full rounded-xl text-sm
+                className={`aspect-square w-8 md:w-10 rounded-xl text-base
                   ${!isCurrentMonth ? "text-gray-300" : ""}
                   ${
                     !isFuture
@@ -154,10 +154,10 @@ const Calendar: React.FC<CalendarProps> = ({
                 {dateObj.getDate()}
               </button>
               {info?.goodDay && (
-                <div className="text-blue-500 text-[10px]">손없는날</div>
+                <div className="text-blue-500 text-xs">손없는날</div>
               )}
               {info?.holiday && (
-                <div className="text-red-500 text-[10px]">공휴일</div>
+                <div className="text-red-500 text-xs">공휴일</div>
               )}
               {/* 주말 텍스트 제거됨 */}
             </div>

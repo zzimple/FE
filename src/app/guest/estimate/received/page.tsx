@@ -1,117 +1,146 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
 import { useRouter } from "next/navigation";
+import { authApi } from "@/lib/axios";
 
-// 더미 견적서 데이터
-const dummyEstimates = [
-  {
-    id: 1,
-    company: "이사왕",
-    price: 1200000,
-    truck: 2,
-    extra: 50000,
-    message: "포장 꼼꼼히 해드립니다!",
-  },
-  {
-    id: 2,
-    company: "이사천국",
-    price: 1100000,
-    truck: 1,
-    extra: 100000,
-    message: "추가금 투명하게 안내!",
-  },
-  {
-    id: 3,
-    company: "이사마스터",
-    price: 1300000,
-    truck: 2,
-    extra: 0,
-    message: "경험 많은 기사님 배정!",
-  },
-];
+interface Estimate {
+  estimateNo: number;
+  storeName: string;
+  truckCount: number;
+  totalPrice: number;
+  ownerMessage?: string;
+  extraCharges?: number;
+}
 
 export default function ReceivedEstimatesPage() {
-  const [selected, setSelected] = useState<number[]>([]);
-  const [showCompare, setShowCompare] = useState(false);
   const router = useRouter();
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rejectedEstimates, setRejectedEstimates] = useState<number[]>([]);
 
-  const handleSelect = (id: number) => {
-    if (selected.includes(id)) {
-      setSelected(selected.filter((sid) => sid !== id));
-    } else if (selected.length < 2) {
-      setSelected([...selected, id]);
-    }
-  };
-
-  const selectedEstimates = dummyEstimates.filter((e) =>
-    selected.includes(e.id)
-  );
-
-  // GPT 비교 멘트 예시
-  const gptComment =
-    selectedEstimates.length === 2
-      ? `\n\n\uD83D\uDCC8 두 업체 모두 트럭 개수는 비슷하지만, \"${
-          selectedEstimates[0].company
-        }\"는 추가금이 적고, \"${
-          selectedEstimates[1].company
-        }\"는 기본 견적이 더 저렴합니다.\n\n고객님의 예산과 추가 서비스 필요 여부에 따라 선택하시면 좋겠습니다!\n\n추천: \"${
-          selectedEstimates[0].price + selectedEstimates[0].extra <
-          selectedEstimates[1].price + selectedEstimates[1].extra
-            ? selectedEstimates[0].company
-            : selectedEstimates[1].company
-        }\"`
-      : "";
+  useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          setError("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
+          setTimeout(() => router.push("/login"), 2000);
+          return;
+        }
+        const response = await authApi.get("/guest/my/estimate/list", {
+          params: { page: 0, size: 50 },
+        });
+        setEstimates(response.data.data?.content || []);
+      } catch (err) {
+        setError("견적서 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEstimates();
+    // 거절된 견적서 목록 불러오기
+    const rejected = JSON.parse(
+      localStorage.getItem("rejectedEstimates") || "[]"
+    );
+    setRejectedEstimates(rejected);
+  }, [router]);
 
   return (
-    <div className="min-h-screen bg-white max-w-md mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold text-blue-600 mb-6 text-center">
+    <div className="min-h-screen bg-white max-w-2xl mx-auto py-8 px-2 sm:px-4">
+      <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 mb-6 text-center">
         받은 견적서 관리
       </h1>
-      <div className="space-y-4 mb-8">
-        {dummyEstimates.map((estimate) => (
-          <div
-            key={estimate.id}
-            className={`border rounded-lg p-4 flex flex-col gap-2 shadow-sm ${
-              selected.includes(estimate.id)
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200"
-            }`}
-            onClick={() => handleSelect(estimate.id)}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="flex justify-between items-center">
-              <span className="font-semibold text-lg">{estimate.company}</span>
-              <input
-                type="checkbox"
-                checked={selected.includes(estimate.id)}
-                readOnly
-                className="w-5 h-5 accent-blue-500"
-              />
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>
-                견적가: <b>{estimate.price.toLocaleString()}원</b>
-              </span>
-              <span>트럭: {estimate.truck}대</span>
-              <span>추가금: {estimate.extra.toLocaleString()}원</span>
-            </div>
-            <div className="text-gray-600 text-sm">{estimate.message}</div>
-          </div>
-        ))}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
+        <Button
+          className="w-full sm:w-auto h-12 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => {
+            router.push(`/estimate/gpt`);
+          }}
+        >
+          견적서 비교하러 가기
+        </Button>
+        <span className="text-xs text-gray-400 sm:ml-2">
+          어떤 업체를 선택해야 할지 고민된다면? <br />
+          ai에게 견적서 비교 요청을 해보세요!
+        </span>
       </div>
-      <Button
-        className="w-full h-12 text-lg font-bold"
-        disabled={selected.length !== 2}
-        onClick={() => {
-          if (selected.length === 2) {
-            router.push(`/estimate/gpt?ids=${selected.join(",")}`);
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+          <p className="mt-2 text-sm text-gray-500">
+            견적서를 불러오는 중입니다...
+          </p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 text-red-500">{error}</div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {estimates.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl">
+              <p className="text-gray-500 text-sm">견적서가 없습니다.</p>
+            </div>
+          ) : (
+            estimates
+              .filter(
+                (estimate) => !rejectedEstimates.includes(estimate.estimateNo)
+              )
+              .map((estimate) => (
+                <div
+                  key={estimate.estimateNo}
+                  className="flex flex-row items-center border rounded-xl bg-white px-6 py-5 shadow-sm transition-all duration-200 border-gray-200 gap-4 flex-wrap sm:flex-nowrap"
+                >
+                  <span className="font-semibold text-base sm:text-lg text-gray-900 truncate max-w-[120px]">
+                    {estimate.storeName}
+                  </span>
+                  <span className="text-sm sm:text-base text-gray-700">
+                    견적가:{" "}
+                    <b className="text-base font-bold text-blue-700">
+                      {estimate.totalPrice.toLocaleString()}원
+                    </b>
+                  </span>
+                  <span className="text-sm sm:text-base text-gray-700">
+                    트럭: <b>{estimate.truckCount}대</b>
+                  </span>
+                  <span className="text-sm sm:text-base text-gray-700">
+                    추가금:{" "}
+                    <b>
+                      {estimate.extraCharges
+                        ? estimate.extraCharges.toLocaleString() + "원"
+                        : "0원"}
+                    </b>
+                  </span>
+                  {estimate.ownerMessage && (
+                    <span className="text-gray-500 text-sm truncate max-w-[180px] hidden sm:inline">
+                      {estimate.ownerMessage}
+                    </span>
+                  )}
+                  <Button
+                    className="ml-auto w-24 sm:w-28 h-10 sm:h-11 text-sm sm:text-base font-bold bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 transition-colors"
+                    onClick={() => {
+                      router.push(
+                        `/guest/estimate/received/${estimate.estimateNo}`
+                      );
+                    }}
+                  >
+                    상세보기
+                  </Button>
+                </div>
+              ))
+          )}
+        </div>
+      )}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          h1 {
+            font-size: 1.25rem;
           }
-        }}
-      >
-        선택한 2개 견적 비교하기
-      </Button>
+        }
+      `}</style>
     </div>
   );
 }

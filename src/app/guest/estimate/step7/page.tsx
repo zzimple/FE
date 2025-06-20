@@ -34,97 +34,105 @@ export default function Step7Review() {
     "flex items-center h-14 px-5 gap-2 rounded-full border border-gray-300 bg-white w-full";
 
   return (
-    <div className="min-h-screen flex flex-col max-w-md mx-auto bg-white">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={7} title="최종 리뷰" />
-      <main className="flex-1 px-4 py-6 space-y-5">
-        <h2 className="text-center text-lg font-semibold text-gray-900 mb-6">
-          <span className="text-blue-500">견적서 신청 정보</span>를 마지막으로
-          확인해주세요.
-        </h2>
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-16 flex flex-col items-center">
+          <h2 className="text-center text-lg font-semibold text-gray-900 mb-6">
+            <span className="text-blue-500">견적서 신청 정보</span>를 마지막으로
+            확인해주세요.
+          </h2>
 
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-gray-900 pl-1">
-            서비스 타입
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-gray-900 pl-1">
+              서비스 타입
+            </div>
+            <div className={pillClass}>
+              <span className="text-sm">{reviewData.serviceType}</span>
+            </div>
           </div>
-          <div className={pillClass}>
-            <span className="text-sm">{reviewData.serviceType}</span>
+
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-gray-900 pl-1">
+              예약 날짜 및 시간
+            </div>
+            <div className={pillClass}>
+              <span className="text-sm">{reviewData.dateTime}</span>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-gray-900 pl-1">
-            예약 날짜 및 시간
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-gray-900 pl-1">
+              출발지
+            </div>
+            <div className={pillClass}>
+              <span className="text-sm">{reviewData.from.address}</span>
+            </div>
+            <p className="text-xs text-blue-500 pl-1">{reviewData.from.info}</p>
           </div>
-          <div className={pillClass}>
-            <span className="text-sm">{reviewData.dateTime}</span>
+
+          <div className="space-y-1">
+            <div className="text-sm font-semibold text-gray-900 pl-1">
+              도착지
+            </div>
+            <div className={pillClass}>
+              <span className="text-sm">{reviewData.to.address}</span>
+            </div>
+            <p className="text-xs text-blue-500 pl-1">{reviewData.to.info}</p>
           </div>
-        </div>
 
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-gray-900 pl-1">출발지</div>
-          <div className={pillClass}>
-            <span className="text-sm">{reviewData.from.address}</span>
+          <div className="grid grid-cols-2 gap-4">
+            <div className={pillClass}>
+              <span className="flex-1 text-sm text-gray-600">짐 박스</span>
+              <span className="text-sm text-gray-900">
+                {reviewData.boxCount}
+              </span>
+            </div>
+            <div className={pillClass}>
+              <span className="flex-1 text-sm text-gray-600">짐 목록</span>
+              <span className="text-sm text-gray-900">
+                {reviewData.itemCount}개
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-blue-500 pl-1">{reviewData.from.info}</p>
-        </div>
 
-        <div className="space-y-1">
-          <div className="text-sm font-semibold text-gray-900 pl-1">도착지</div>
-          <div className={pillClass}>
-            <span className="text-sm">{reviewData.to.address}</span>
+          <div className={pillClass + " h-auto py-4"}>
+            <span className="flex-1 text-sm text-gray-600">메모</span>
+            <span className="text-sm text-gray-900">{reviewData.memo}</span>
           </div>
-          <p className="text-xs text-blue-500 pl-1">{reviewData.to.info}</p>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className={pillClass}>
-            <span className="flex-1 text-sm text-gray-600">짐 박스</span>
-            <span className="text-sm text-gray-900">{reviewData.boxCount}</span>
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
+            <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
+              {reviewData.notes.map((note, idx) => (
+                <li key={idx}>{note}</li>
+              ))}
+            </ol>
           </div>
-          <div className={pillClass}>
-            <span className="flex-1 text-sm text-gray-600">짐 목록</span>
-            <span className="text-sm text-gray-900">
-              {reviewData.itemCount}개
-            </span>
+
+          <div className="flex items-center px-2">
+            <input
+              id="agree"
+              type="checkbox"
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+              checked={agreed}
+              onChange={() => setAgreed(!agreed)}
+            />
+            <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
+              위 유의사항을 모두 확인했습니다.
+            </label>
           </div>
-        </div>
+        </main>
 
-        <div className={pillClass + " h-auto py-4"}>
-          <span className="flex-1 text-sm text-gray-600">메모</span>
-          <span className="text-sm text-gray-900">{reviewData.memo}</span>
+        <div className="px-4 py-4">
+          <Button
+            className="w-full h-14"
+            disabled={!agreed}
+            onClick={() => router.push("/guest/estimate/complete")}
+          >
+            제출
+          </Button>
         </div>
-
-        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
-          <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
-          <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-            {reviewData.notes.map((note, idx) => (
-              <li key={idx}>{note}</li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="flex items-center px-2">
-          <input
-            id="agree"
-            type="checkbox"
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded"
-            checked={agreed}
-            onChange={() => setAgreed(!agreed)}
-          />
-          <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
-            위 유의사항을 모두 확인했습니다.
-          </label>
-        </div>
-      </main>
-
-      <div className="px-4 py-4">
-        <Button
-          className="w-full h-14"
-          disabled={!agreed}
-          onClick={() => router.push("/guest/estimate/complete")}
-        >
-          제출
-        </Button>
       </div>
     </div>
   );

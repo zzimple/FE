@@ -88,122 +88,130 @@ export default function Step4Page() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full max-w-md md:max-w-2xl mx-auto bg-white">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={4} title="짐 목록" />
-      <main className="flex-1 px-4 py-6 flex flex-col justify-center gap-8">
-        <h2 className="text-lg md:text-xl font-bold text-center mt-4 mb-2 text-gray-900">
-          <span className="text-blue-600">옮길 짐</span>을 선택해 주세요.
-        </h2>
-        <div className="flex justify-center gap-2 rounded-full py-2 sticky top-0 bg-white z-10">
-          {["가구", "가전", "기타"].map((label) => (
-            <SelectTab
-              key={label}
-              label={label}
-              selected={activeTab === label}
-              onClick={() => {
-                setActiveTab(label as MoveCategory);
-                handleCategoryScroll(label as MoveCategory);
-              }}
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-16 flex flex-col items-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mt-4 mb-2 text-gray-900">
+            <span className="text-blue-600">옮길 짐</span>을 선택해 주세요.
+          </h2>
+          <div className="flex justify-center gap-2 md:gap-6 rounded-full py-2 sticky top-0 z-10 mb-6">
+            {["가구", "가전", "기타"].map((label) => (
+              <div key={label} className="md:w-40 md:h-16">
+                <SelectTab
+                  label={label}
+                  selected={activeTab === label}
+                  onClick={() => {
+                    setActiveTab(label as MoveCategory);
+                    handleCategoryScroll(label as MoveCategory);
+                  }}
+                  variant="blue"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-8">
+            {[
+              { category: "가구", items: furnitureItems, ref: furnitureRef },
+              { category: "가전", items: applianceItems, ref: applianceRef },
+              { category: "기타", items: otherItems, ref: otherRef },
+            ].map(({ category, items, ref }) => (
+              <div key={category} ref={ref}>
+                <div className="text-lg md:text-2xl font-bold mb-2 mt-6">
+                  {category}
+                </div>
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-4 md:gap-8">
+                  {items.map((item) => {
+                    const selected = selectedItems[
+                      category as MoveCategory
+                    ].some((s) => s.name === item.name);
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() =>
+                          handleSelect(
+                            category as MoveCategory,
+                            item.name,
+                            item.image
+                          )
+                        }
+                        className="relative flex flex-col items-center space-y-2"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className={`w-20 h-20 object-contain rounded-xl border-2 transition-all duration-200 ${
+                            selected
+                              ? "border-blue-500 shadow-lg"
+                              : "border-gray-200"
+                          }`}
+                        />
+                        {selected && (
+                          <div className="absolute top-2 right-2 flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-base rounded-full shadow-md border-2 border-white">
+                            ✓
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* 잔짐 박스 입력란 */}
+          <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-lg md:max-w-xl mx-auto">
+            <img
+              src="/images/leftoverBox.jpeg"
+              alt="잔짐 박스"
+              className="w-36 h-28 object-contain rounded border border-gray-200 bg-white mx-auto md:mx-0"
             />
-          ))}
-        </div>
-        <div className="space-y-8">
-          {[
-            { category: "가구", items: furnitureItems, ref: furnitureRef },
-            { category: "가전", items: applianceItems, ref: applianceRef },
-            { category: "기타", items: otherItems, ref: otherRef },
-          ].map(({ category, items, ref }) => (
-            <div key={category} ref={ref}>
-              <div className="text-lg font-bold mb-2 mt-6">{category}</div>
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                {items.map((item) => {
-                  const selected = selectedItems[category as MoveCategory].some(
-                    (s) => s.name === item.name
-                  );
-                  return (
-                    <button
-                      key={item.name}
-                      onClick={() =>
-                        handleSelect(
-                          category as MoveCategory,
-                          item.name,
-                          item.image
-                        )
-                      }
-                      className="relative flex flex-col items-center space-y-2"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className={`w-20 h-20 object-contain rounded-xl border-2 transition-all duration-200 ${
-                          selected
-                            ? "border-blue-500 shadow-lg"
-                            : "border-gray-200"
-                        }`}
-                      />
-                      {selected && (
-                        <div className="absolute top-2 right-2 flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-base rounded-full shadow-md border-2 border-white">
-                          ✓
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+            <div className="flex flex-col gap-1 flex-1 justify-center">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-lg font-bold text-gray-900">잔짐 박스</div>
+                <button
+                  className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition"
+                  onClick={() => setShowBoxModal(true)}
+                >
+                  짐 박스 입력 방법
+                </button>
+              </div>
+              <div className="text-sm font-semibold text-gray-800">
+                이사박스 5호 크기
+              </div>
+              <div className="text-xs text-gray-500">
+                이사할 때 주로 사용하는 크기입니다.
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                  onClick={() =>
+                    setLeftoverBoxCount((prev) => Math.max(0, prev - 1))
+                  }
+                >
+                  -
+                </button>
+                <span className="w-16 text-center font-bold text-gray-900 text-base">
+                  {leftoverBoxCount}개
+                </span>
+                <button
+                  className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                  onClick={() => setLeftoverBoxCount((prev) => prev + 1)}
+                >
+                  +
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-        {/* 잔짐 박스 입력란 */}
-        <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-lg md:max-w-2xl mx-auto">
-          <img
-            src="/images/leftoverBox.jpeg"
-            alt="잔짐 박스"
-            className="w-36 h-28 object-contain rounded border border-gray-200 bg-white mx-auto md:mx-0"
-          />
-          <div className="flex flex-col gap-1 flex-1 justify-center">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-lg font-bold text-gray-900">잔짐 박스</div>
-              <button
-                className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition"
-                onClick={() => setShowBoxModal(true)}
-              >
-                짐 박스 입력 방법
-              </button>
-            </div>
-            <div className="text-sm font-semibold text-gray-800">
-              이사박스 5호 크기
-            </div>
-            <div className="text-xs text-gray-500">
-              이사할 때 주로 사용하는 크기입니다.
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <button
-                className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                onClick={() =>
-                  setLeftoverBoxCount((prev) => Math.max(0, prev - 1))
-                }
-              >
-                -
-              </button>
-              <span className="w-16 text-center font-bold text-gray-900 text-base">
-                {leftoverBoxCount}개
-              </span>
-              <button
-                className="border border-gray-300 rounded-xl px-3 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                onClick={() => setLeftoverBoxCount((prev) => prev + 1)}
-              >
-                +
-              </button>
-            </div>
           </div>
-        </div>
-        <Button
-          onClick={handleNext}
-          className="w-full h-14 rounded-xl text-lg font-bold mt-2"
-        >
-          다음
-        </Button>
-      </main>
+          <div className="w-full flex justify-center mt-12">
+            <Button
+              onClick={handleNext}
+              className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            >
+              다음
+            </Button>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
