@@ -119,59 +119,65 @@ export default function Step2Page() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateProgressHeader step={2} title="예정일 입력" />
-      <main className="flex-1 px-4 py-6 flex flex-col justify-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mt-4 mb-4 text-gray-900">
-          <span className="text-blue-600">원하시는 날짜와 시간</span>을 선택해
-          주세요.
-        </h2>
-        <p className="text-base sm:text-lg text-gray-600 text-center mb-8">
-          이사 예약을 원하는 날짜와 시간을 입력해 주세요.
-        </p>
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-8 shadow-sm">
-          <Calendar
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-            holidayInfoList={holidayInfoList}
-            setCurrentYM={setCurrentYM}
-          />
-        </div>
-        <div className="mb-8">
-          <label className="block mb-2 text-base font-semibold text-gray-700">
-            예약 시간
-          </label>
-          <button
-            type="button"
-            className="w-full h-14 px-5 flex items-center justify-between border rounded-xl text-base font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 transition shadow"
-            onClick={() => setPickerOpen(true)}
-          >
-            <span>{formatDisplay(selectedTime)}</span>
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-              <path
-                d="M6 9l6 6 6-6"
-                stroke="#888"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-16 flex flex-col items-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mt-4 mb-4 text-gray-900">
+            <span className="text-blue-600">원하시는 날짜와 시간</span>을 선택해
+            주세요.
+          </h2>
+          <p className="text-base sm:text-lg text-gray-600 text-center mb-8">
+            이사 예약을 원하는 날짜와 시간을 입력해 주세요.
+          </p>
+          <div className="flex flex-col md:flex-row gap-8 w-full justify-center md:items-start items-center mb-8">
+            <div className="p-0 md:p-0 w-full md:w-auto flex-shrink-0">
+              <Calendar
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+                holidayInfoList={holidayInfoList}
+                setCurrentYM={setCurrentYM}
               />
-            </svg>
-          </button>
-          <TimePicker
-            value={selectedTime}
-            onChange={setSelectedTime}
-            open={pickerOpen}
-            onClose={() => setPickerOpen(false)}
-          />
-        </div>
-        <Button
-          onClick={handleConfirm}
-          disabled={!selectedDate || !selectedTime}
-          className="w-full h-14 rounded-xl text-lg font-bold mt-2"
-        >
-          확인
-        </Button>
-      </main>
+            </div>
+            <div className="w-full md:w-[220px] flex flex-col items-center relative mt-6 md:mt-0 md:ml-8">
+              <label className="block mb-2 text-base font-semibold text-gray-700">
+                예약 시간
+              </label>
+              <button
+                type="button"
+                className="w-full h-14 px-5 flex items-center justify-between border border-gray-300 rounded-xl text-base font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 transition shadow hover:border-blue-400 focus:border-blue-400"
+                onClick={() => setPickerOpen(true)}
+              >
+                <span>{formatDisplay(selectedTime)}</span>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke="#888"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              <div className="w-full relative">
+                <TimePicker
+                  value={selectedTime}
+                  onChange={setSelectedTime}
+                  open={pickerOpen}
+                  onClose={() => setPickerOpen(false)}
+                />
+              </div>
+            </div>
+          </div>
+          <Button
+            onClick={handleConfirm}
+            disabled={!selectedDate || !selectedTime}
+            className="mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+          >
+            확인
+          </Button>
+        </main>
+      </div>
     </div>
   );
 }

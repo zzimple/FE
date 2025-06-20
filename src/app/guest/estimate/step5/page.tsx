@@ -321,433 +321,430 @@ export default function Step5Page() {
     simpleItems.includes(item.name);
 
   return (
-    <div className="min-h-screen bg-white max-w-md md:max-w-2xl mx-auto">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={5} title="짐 상세 정보 입력" />
-      <div className="px-4 pt-6 pb-20 flex flex-col gap-8">
-        <div className="mb-4">
-          <div className="text-lg font-bold flex items-end gap-1">
-            <span className="text-blue-600">
-              {selectedItems["가구"].length +
-                selectedItems["가전"].length +
-                selectedItems["기타"].length -
-                items.length}
-            </span>
-            <span className="text-black">개 항목이 남았어요.</span>
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-16 flex flex-col items-center">
+          <div className="mb-4">
+            <div className="text-lg font-bold flex items-end gap-1"></div>
           </div>
-          <div className="text-gray-400 text-sm mt-1">
+
+          {/* 탭 */}
+          <div className="flex justify-center gap-2 md:gap-6 rounded-full py-2 mb-2 sticky top-0 z-10">
+            {["가구", "가전", "기타"].map((label) => (
+              <div key={label} className="md:w-40 md:h-16">
+                <SelectTab
+                  label={label}
+                  selected={false}
+                  onClick={() => handleCategoryScroll(label as MoveCategory)}
+                />
+              </div>
+            ))}
+          </div>
+          {/* 입력해야 할 항목 안내 */}
+          <div className="mb-4 w-full flex justify-center">
+            <div className="text-lg font-bold flex items-end gap-1">
+              <span className="text-blue-600">
+                {selectedItems["가구"].length +
+                  selectedItems["가전"].length +
+                  selectedItems["기타"].length -
+                  items.length}
+              </span>
+              <span className="text-black">개 항목이 남았어요.</span>
+            </div>
+          </div>
+          <div className="text-gray-400 text-sm mt-1 w-full flex justify-center mb-4">
             추가금이 발생하지 않도록 정확한 정보를 입력해 주세요.
           </div>
-        </div>
-        <h2 className="text-lg md:text-xl font-bold text-center mt-4 mb-2 text-gray-900">
-          <span className="text-blue-600">입력할 짐</span>을 선택해 주세요.
-        </h2>
-        {/* 탭 */}
-        <div className="flex justify-center gap-2 rounded-full py-2 mb-2 sticky top-0 bg-white z-10">
-          {["가구", "가전", "기타"].map((label) => (
-            <SelectTab
-              key={label}
-              label={label}
-              selected={false}
-              onClick={() => handleCategoryScroll(label as MoveCategory)}
-            />
-          ))}
-        </div>
-        {/* 전체 짐 목록 */}
-        <div className="space-y-8">
-          {/* 가구 */}
-          <div ref={furnitureRef}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-lg font-bold">가구</div>
-              <div className="text-base font-semibold text-blue-600">
-                {
-                  items.filter((i) =>
-                    selectedItems["가구"].some((s) => s.name === i.name)
-                  ).length
-                }
-                /{selectedItems["가구"].length}
+          {/* 전체 짐 목록 */}
+          <div className="space-y-8">
+            {/* 가구 */}
+            <div ref={furnitureRef}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-lg md:text-2xl font-bold">가구</div>
+                <div className="text-base font-semibold text-blue-600">
+                  {
+                    items.filter((i) =>
+                      selectedItems["가구"].some((s) => s.name === i.name)
+                    ).length
+                  }
+                  /{selectedItems["가구"].length}
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedItems["가구"].map((item) => {
-                const detail = items.find((i) => i.name === item.name);
-                return (
-                  <div
-                    key={`${"가구"}-${item.name}`}
-                    className="w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => handleDeleteClick("가구", item.name)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
-                      >
-                        ×
-                      </button>
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-20 h-20 object-contain ml-0 mr-3"
-                      />
-                      {detail && (
-                        <div className="flex gap-2 items-center ml-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedItems["가구"].map((item) => {
+                  const detail = items.find((i) => i.name === item.name);
+                  return (
+                    <div
+                      key={`가구-${item.name}`}
+                      className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleDeleteClick("가구", item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                        >
+                          ×
+                        </button>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-20 object-contain ml-0 mr-3"
+                        />
+                        {detail && (
+                          <div className="flex gap-2 items-center ml-auto">
+                            <button
+                              onClick={() => handleOpenModal(item.name)}
+                              className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            >
+                              옵션 변경
+                            </button>
+                            <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? {
+                                            ...i,
+                                            quantity: Math.max(
+                                              1,
+                                              i.quantity - 1
+                                            ),
+                                          }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                -
+                              </button>
+                              <span className="mx-2 w-7 text-center font-bold text-lg">
+                                {detail.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? { ...i, quantity: i.quantity + 1 }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {!detail && (
                           <button
                             onClick={() => handleOpenModal(item.name)}
-                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
                           >
-                            옵션 변경
+                            +
                           </button>
-                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? {
-                                          ...i,
-                                          quantity: Math.max(1, i.quantity - 1),
-                                        }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              -
-                            </button>
-                            <span className="mx-2 w-7 text-center font-bold text-lg">
-                              {detail.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? { ...i, quantity: i.quantity + 1 }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {!detail && (
-                        <button
-                          onClick={() => handleOpenModal(item.name)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
-                        >
-                          +
-                        </button>
-                      )}
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                        {detail &&
+                          Object.values(detail.etc || {}).filter(Boolean)
+                            .length > 0 &&
+                          Object.values(detail.etc || {})
+                            .filter(Boolean)
+                            .map((v, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                              >
+                                {v}
+                              </div>
+                            ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
-                      {detail &&
-                        Object.values(detail.etc || {}).filter(Boolean).length >
-                          0 &&
-                        Object.values(detail.etc || {})
-                          .filter(Boolean)
-                          .map((v, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
-                            >
-                              {v}
-                            </div>
-                          ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {/* 가전 */}
-          <div ref={applianceRef}>
-            <div className="flex items-center justify-between mb-2 mt-6">
-              <div className="text-lg font-bold">가전</div>
-              <div className="text-base font-semibold text-blue-600">
-                {
-                  items.filter((i) =>
-                    selectedItems["가전"].some((s) => s.name === i.name)
-                  ).length
-                }
-                /{selectedItems["가전"].length}
+                  );
+                })}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedItems["가전"].map((item) => {
-                const detail = items.find((i) => i.name === item.name);
-                return (
-                  <div
-                    key={`${"가전"}-${item.name}`}
-                    className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => handleDeleteClick("가전", item.name)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
-                      >
-                        ×
-                      </button>
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-20 h-20 object-contain ml-0 mr-3"
-                      />
-                      {detail && (
-                        <div className="flex gap-2 items-center ml-auto">
+            {/* 가전 */}
+            <div ref={applianceRef}>
+              <div className="flex items-center justify-between mb-2 mt-6">
+                <div className="text-lg font-bold">가전</div>
+                <div className="text-base font-semibold text-blue-600">
+                  {
+                    items.filter((i) =>
+                      selectedItems["가전"].some((s) => s.name === i.name)
+                    ).length
+                  }
+                  /{selectedItems["가전"].length}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedItems["가전"].map((item) => {
+                  const detail = items.find((i) => i.name === item.name);
+                  return (
+                    <div
+                      key={`${"가전"}-${item.name}`}
+                      className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleDeleteClick("가전", item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                        >
+                          ×
+                        </button>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-20 object-contain ml-0 mr-3"
+                        />
+                        {detail && (
+                          <div className="flex gap-2 items-center ml-auto">
+                            <button
+                              onClick={() => handleOpenModal(item.name)}
+                              className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            >
+                              옵션 변경
+                            </button>
+                            <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? {
+                                            ...i,
+                                            quantity: Math.max(
+                                              1,
+                                              i.quantity - 1
+                                            ),
+                                          }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                -
+                              </button>
+                              <span className="mx-2 w-7 text-center font-bold text-lg">
+                                {detail.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? { ...i, quantity: i.quantity + 1 }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {!detail && (
                           <button
                             onClick={() => handleOpenModal(item.name)}
-                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
                           >
-                            옵션 변경
+                            +
                           </button>
-                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? {
-                                          ...i,
-                                          quantity: Math.max(1, i.quantity - 1),
-                                        }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              -
-                            </button>
-                            <span className="mx-2 w-7 text-center font-bold text-lg">
-                              {detail.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? { ...i, quantity: i.quantity + 1 }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {!detail && (
-                        <button
-                          onClick={() => handleOpenModal(item.name)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
-                        >
-                          +
-                        </button>
-                      )}
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                        {detail &&
+                          Object.values(detail.etc || {}).filter(Boolean)
+                            .length > 0 &&
+                          Object.values(detail.etc || {})
+                            .filter(Boolean)
+                            .map((v, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                              >
+                                {v}
+                              </div>
+                            ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
-                      {detail &&
-                        Object.values(detail.etc || {}).filter(Boolean).length >
-                          0 &&
-                        Object.values(detail.etc || {})
-                          .filter(Boolean)
-                          .map((v, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
-                            >
-                              {v}
-                            </div>
-                          ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {/* 기타 */}
-          <div ref={otherRef}>
-            <div className="flex items-center justify-between mb-2 mt-6">
-              <div className="text-lg font-bold">기타</div>
-              <div className="text-base font-semibold text-blue-600">
-                {
-                  items.filter((i) =>
-                    selectedItems["기타"].some((s) => s.name === i.name)
-                  ).length
-                }
-                /{selectedItems["기타"].length}
+                  );
+                })}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedItems["기타"].map((item) => {
-                const detail = items.find((i) => i.name === item.name);
-                return (
-                  <div
-                    key={`${"기타"}-${item.name}`}
-                    className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => handleDeleteClick("기타", item.name)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
-                      >
-                        ×
-                      </button>
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-20 h-20 object-contain ml-0 mr-3"
-                      />
-                      {detail && (
-                        <div className="flex gap-2 items-center ml-auto">
+            {/* 기타 */}
+            <div ref={otherRef}>
+              <div className="flex items-center justify-between mb-2 mt-6">
+                <div className="text-lg font-bold">기타</div>
+                <div className="text-base font-semibold text-blue-600">
+                  {
+                    items.filter((i) =>
+                      selectedItems["기타"].some((s) => s.name === i.name)
+                    ).length
+                  }
+                  /{selectedItems["기타"].length}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedItems["기타"].map((item) => {
+                  const detail = items.find((i) => i.name === item.name);
+                  return (
+                    <div
+                      key={`${"기타"}-${item.name}`}
+                      className={`w-full max-w-[420px] min-h-[120px] mx-auto bg-white rounded-xl shadow p-1 px-3 flex flex-col gap-1 mb-2`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleDeleteClick("기타", item.name)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-red-500 text-lg font-bold"
+                        >
+                          ×
+                        </button>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-20 h-20 object-contain ml-0 mr-3"
+                        />
+                        {detail && (
+                          <div className="flex gap-2 items-center ml-auto">
+                            <button
+                              onClick={() => handleOpenModal(item.name)}
+                              className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            >
+                              옵션 변경
+                            </button>
+                            <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? {
+                                            ...i,
+                                            quantity: Math.max(
+                                              1,
+                                              i.quantity - 1
+                                            ),
+                                          }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                -
+                              </button>
+                              <span className="mx-2 w-7 text-center font-bold text-lg">
+                                {detail.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  setItems((prev) =>
+                                    prev.map((i) =>
+                                      i.name === item.name
+                                        ? { ...i, quantity: i.quantity + 1 }
+                                        : i
+                                    )
+                                  )
+                                }
+                                className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {!detail && (
                           <button
                             onClick={() => handleOpenModal(item.name)}
-                            className="px-4 py-2 rounded bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100"
+                            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
                           >
-                            옵션 변경
+                            +
                           </button>
-                          <div className="flex items-center gap-1 bg-gray-50 rounded px-2 py-1">
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? {
-                                          ...i,
-                                          quantity: Math.max(1, i.quantity - 1),
-                                        }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              -
-                            </button>
-                            <span className="mx-2 w-7 text-center font-bold text-lg">
-                              {detail.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                setItems((prev) =>
-                                  prev.map((i) =>
-                                    i.name === item.name
-                                      ? { ...i, quantity: i.quantity + 1 }
-                                      : i
-                                  )
-                                )
-                              }
-                              className="w-8 h-8 flex items-center justify-center rounded bg-white border text-lg"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {!detail && (
-                        <button
-                          onClick={() => handleOpenModal(item.name)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 text-lg font-bold ml-auto"
-                        >
-                          +
-                        </button>
-                      )}
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
+                        {detail &&
+                          Object.values(detail.etc || {}).filter(Boolean)
+                            .length > 0 &&
+                          Object.values(detail.etc || {})
+                            .filter(Boolean)
+                            .map((v, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
+                              >
+                                {v}
+                              </div>
+                            ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-1 min-h-[20px] mb-2">
-                      {detail &&
-                        Object.values(detail.etc || {}).filter(Boolean).length >
-                          0 &&
-                        Object.values(detail.etc || {})
-                          .filter(Boolean)
-                          .map((v, idx) => (
-                            <div
-                              key={idx}
-                              className="bg-gray-100 rounded px-2 py-1 text-gray-700 text-sm w-fit"
-                            >
-                              {v}
-                            </div>
-                          ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {/* 짐 박스 입력 UI */}
-            <div className="flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm w-full max-w-[400px] h-[90px] mx-auto mb-3 mt-4">
-              <img
-                src="/images/leftoverBox.jpeg"
-                alt="짐 박스"
-                className="w-16 h-16 object-contain mr-3"
-              />
-              <span className="text-base font-semibold text-gray-800 mr-6">
-                짐 박스
-              </span>
-              <div className="flex items-center gap-2 ml-auto">
-                <button
-                  className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() => setBoxCount((prev) => Math.max(0, prev - 1))}
-                >
-                  -
-                </button>
-                <span className="w-16 text-center font-bold text-gray-900 text-base">
-                  {boxCount}개
+                  );
+                })}
+              </div>
+              {/* 짐 박스 입력 UI */}
+              <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-2xl mx-auto">
+                <img
+                  src="/images/leftoverBox.jpeg"
+                  alt="짐 박스"
+                  className="w-16 h-16 object-contain mr-3"
+                />
+                <span className="text-base font-semibold text-gray-800 mr-6">
+                  짐 박스
                 </span>
-                <button
-                  className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
-                  onClick={() => setBoxCount((prev) => prev + 1)}
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                    onClick={() => setBoxCount((prev) => Math.max(0, prev - 1))}
+                  >
+                    -
+                  </button>
+                  <span className="w-16 text-center font-bold text-gray-900 text-base">
+                    {boxCount}개
+                  </span>
+                  <button
+                    className="border border-gray-300 rounded-xl px-2 py-1 text-lg font-bold bg-white hover:bg-gray-100"
+                    onClick={() => setBoxCount((prev) => prev + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              {/* 메모 입력란 */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  사장님께 전달할 요청사항
+                </label>
+                <textarea
+                  value={requestNote}
+                  onChange={(e) => setRequestNote(e.target.value)}
+                  placeholder="예시) 추가 짐과 반려동물이 있어요. "
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm resize-none h-24"
+                  maxLength={200}
+                />
+                <div className="text-right text-xs text-gray-400 mt-1">
+                  {requestNote.length}/200
+                </div>
+              </div>
+              <div className="w-full flex justify-center mt-12">
+                <Button
+                  onClick={handleSave}
+                  className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
                 >
-                  +
-                </button>
+                  다음
+                </Button>
               </div>
             </div>
-            {/* 메모 입력란 */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                사장님께 전달할 요청사항
-              </label>
-              <textarea
-                value={requestNote}
-                onChange={(e) => setRequestNote(e.target.value)}
-                placeholder="예시) 추가 짐과 반려동물이 있어요. "
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm resize-none h-24"
-                maxLength={200}
-              />
-              <div className="text-right text-xs text-gray-400 mt-1">
-                {requestNote.length}/200
-              </div>
-            </div>
-            <Button
-              onClick={() => {
-                const allFilled = ["가구", "가전", "기타"].every((cat) =>
-                  selectedItems[cat as MoveCategory].every((item) =>
-                    items.find((i) => i.name === item.name)
-                  )
-                );
-                if (!allFilled) {
-                  // 토스트 안내
-                  alert("세부 옵션을 입력해 주세요.");
-                  return;
-                }
-                handleSave();
-              }}
-              disabled={
-                !["가구", "가전", "기타"].every((cat) =>
-                  selectedItems[cat as MoveCategory].every((item) =>
-                    items.find((i) => i.name === item.name)
-                  )
-                )
-              }
-              className="w-full h-14 rounded-xl text-lg font-bold mt-2"
-            >
-              다음
-            </Button>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* 삭제 확인 모달 */}

@@ -146,15 +146,15 @@ export default function TimePicker({
       {open && (
         <div
           ref={popoverRef}
-          className="hidden md:block absolute left-0 w-full z-30"
+          className="hidden md:block absolute left-0 w-[340px] z-30"
         >
-          <div className="bg-white rounded-lg shadow-xl p-4 border w-full">
+          <div className="bg-white rounded-lg shadow-xl p-2 border border-gray-300 w-full">
             <div className="flex items-center justify-between mb-3">
               <span className="text-lg font-semibold">예약 시간</span>
             </div>
-            <div className="flex justify-center gap-8 py-2">
+            <div className="flex justify-center gap-4 py-2">
               {/* 시 휠 */}
-              <div className="overflow-y-auto h-40 w-20 no-scrollbar text-center">
+              <div className="overflow-y-auto h-32 w-16 no-scrollbar text-center">
                 {hours.map((h) => (
                   <div
                     key={h}
@@ -173,7 +173,7 @@ export default function TimePicker({
                 :
               </div>
               {/* 분 휠 */}
-              <div className="overflow-y-auto h-40 w-20 no-scrollbar text-center">
+              <div className="overflow-y-auto h-32 w-16 no-scrollbar text-center">
                 {minutes.map((m) => (
                   <div
                     key={m}

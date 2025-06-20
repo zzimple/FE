@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
 import SelectTab from "@/components/common/SelectTab";
-import { authApi } from "@/lib/axios"; 
+import { authApi } from "@/lib/axios";
 
 interface ServiceOption {
   id: string;
@@ -133,55 +133,62 @@ export default function Step6Page() {
     };
 
     return (
-      <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
+      <div className="min-h-screen flex flex-col items-center bg-gray-50">
         <EstimateHeader step={6} title="서비스 종류" />
-        <main className="flex-1 px-4 py-6 space-y-6">
-          <h2 className="text-center text-base font-semibold text-gray-900">
-            <span className="text-blue-500">가정이사</span> 서비스 안내
-          </h2>
-          <div className="space-y-4 text-center">
-            <h3 className="text-lg font-bold text-gray-900">
-              {homeOption.title}
-            </h3>
-            <p className="text-sm text-gray-600 px-4">
-              {homeOption.description}
-            </p>
-            <div className="w-full h-48 overflow-hidden rounded-xl">
-              <img
-                src={homeOption.image}
-                alt={homeOption.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <div className="px-4 space-y-2 text-gray-600">
-            {homeInfo.map((info) => (
-              <div
-                key={info.label}
-                className="flex justify-between whitespace-nowrap"
-              >
-                <span>{info.label}</span>
-                <span className="font-medium text-gray-900">{info.value}</span>
+        <div className="w-full max-w-5xl px-4 md:px-12">
+          <main className="mt-16 flex flex-col items-center">
+            <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center mx-auto">
+              <h2 className="text-center text-base font-semibold text-gray-900">
+                <span className="text-blue-500">가정이사</span> 서비스 안내
+              </h2>
+              <div className="space-y-4 text-center w-full">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {homeOption.title}
+                </h3>
+                <p className="text-sm text-gray-600 px-4">
+                  {homeOption.description}
+                </p>
+                <div className="w-full h-48 overflow-hidden rounded-xl">
+                  <img
+                    src={homeOption.image}
+                    alt={homeOption.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-            ))}
+              <div className="px-4 space-y-2 text-gray-600 w-full">
+                {homeInfo.map((info) => (
+                  <div
+                    key={info.label}
+                    className="flex justify-between whitespace-nowrap"
+                  >
+                    <span>{info.label}</span>
+                    <span className="font-medium text-gray-900">
+                      {info.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 w-full">
+                <h4 className="font-semibold text-red-600 mb-2">
+                  중요! 고객님 필수 진행 사항
+                </h4>
+                <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
+                  {homeOption.mandatories.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </main>
+          <div className="flex justify-center w-full mt-12">
+            <Button
+              className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+              onClick={handleNextForHome}
+            >
+              다음
+            </Button>
           </div>
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mx-4">
-            <h4 className="font-semibold text-red-600 mb-2">
-              중요! 고객님 필수 진행 사항
-            </h4>
-            <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-              {homeOption.mandatories.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ol>
-          </div>
-        </main>
-        <div className="px-4 py-6">
-          <Button
-            className="w-full"
-            onClick={handleNextForHome}>
-            다음
-          </Button>
         </div>
       </div>
     );
@@ -228,76 +235,91 @@ export default function Step6Page() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col w-full max-w-md mx-auto bg-white">
+    <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={6} title="서비스 종류" />
-      <main className="flex-1 px-4 py-6 space-y-6">
-        <h2 className="text-center text-base font-semibold text-gray-900">
-          <span className="text-blue-500">원하시는 서비스</span>를 선택해주세요.
-        </h2>
-        <div className="flex justify-center gap-2">
-          {serviceOptions
-            .filter((opt) => opt.id !== "가정이사")
-            .map((opt) => (
-              <SelectTab
-                key={opt.id}
-                label={opt.id}
-                selected={selected === opt.id}
-                onClick={() => {
-                  setSelected(opt.id);
-                  setAgreed(false); // 선택 변경 시 동의 초기화
-                }}
-              />
-            ))}
-        </div>
-        <div className="space-y-4 text-center">
-          <h3 className="text-lg font-bold text-gray-900">{current.title}</h3>
-          <p className="text-sm text-gray-600 px-4">{current.description}</p>
-          <div className="w-full h-48 overflow-hidden rounded-xl">
-            <img
-              src={current.image}
-              alt={current.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-        <div className="px-4 space-y-2 text-gray-600">
-          {smallInfo.map((info) => (
-            <div
-              key={info.label}
-              className="flex justify-between whitespace-nowrap"
-            >
-              <span>{info.label}</span>
-              <span className="font-medium text-gray-900">{info.value}</span>
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-16 flex flex-col items-center">
+          <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mt-4 mb-8 text-gray-900">
+              <span className="text-blue-500">원하시는 서비스</span>를
+              선택해주세요.
+            </h2>
+            <div className="flex justify-center gap-2 w-full">
+              {serviceOptions
+                .filter((opt) => opt.id !== "가정이사")
+                .map((opt) => (
+                  <SelectTab
+                    key={opt.id}
+                    label={opt.id}
+                    selected={selected === opt.id}
+                    onClick={() => {
+                      setSelected(opt.id);
+                      setAgreed(false);
+                    }}
+                  />
+                ))}
             </div>
-          ))}
+            <div className="space-y-4 text-center w-full">
+              <h3 className="text-lg font-bold text-gray-900">
+                {current.title}
+              </h3>
+              <p className="text-sm text-gray-600 px-4">
+                {current.description}
+              </p>
+              <div className="w-full h-48 overflow-hidden rounded-xl">
+                <img
+                  src={current.image}
+                  alt={current.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="px-4 space-y-2 text-gray-600 w-full">
+              {smallInfo.map((info) => (
+                <div
+                  key={info.label}
+                  className="flex justify-between whitespace-nowrap"
+                >
+                  <span>{info.label}</span>
+                  <span className="font-medium text-gray-900">
+                    {info.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 w-full">
+              <h4 className="font-semibold text-red-600 mb-2">
+                중요! 고객님 필수 진행 사항
+              </h4>
+              <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
+                {current.mandatories.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ol>
+            </div>
+            <div className="flex items-center w-full px-4">
+              <input
+                id="agree"
+                type="checkbox"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                checked={agreed}
+                onChange={() => setAgreed((prev) => !prev)}
+              />
+              <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
+                필수 진행 사항을 모두 확인하였으며, 동의합니다.
+              </label>
+            </div>
+          </div>
+        </main>
+        <div className="flex justify-center w-full mt-12">
+          <Button
+            className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            onClick={handleNext}
+            disabled={!agreed}
+          >
+            다음
+          </Button>
         </div>
-        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mx-4">
-          <h4 className="font-semibold text-red-600 mb-2">
-            중요! 고객님 필수 진행 사항
-          </h4>
-          <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-            {current.mandatories.map((item, idx) => (
-              <li key={idx}>{item}</li>
-            ))}
-          </ol>
-        </div>
-        <div className="flex items-center px-4">
-          <input
-            id="agree"
-            type="checkbox"
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded"
-            checked={agreed}
-            onChange={() => setAgreed((prev) => !prev)}
-          />
-          <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
-            필수 진행 사항을 모두 확인하였으며, 동의합니다.
-          </label>
-        </div>
-      </main>
-      <div className="px-4 py-6">
-        <Button className="w-full" onClick={handleNext} disabled={!agreed}>
-          다음
-        </Button>
       </div>
     </div>
   );
