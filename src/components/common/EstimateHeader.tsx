@@ -24,8 +24,8 @@ export default function EstimateHeader({ step, title, totalStep = 7 }: Props) {
   };
 
   return (
-    <div className="w-full px-4 md:px-0 flex flex-col space-y-4 pt-16 md:pt-24 md:w-full md:max-w-5xl md:mx-auto">
-      <div className="flex items-center md:justify-between md:gap-6">
+    <div className="w-full min-h-[120px] max-w-5xl px-4 md:px-12 pt-16 md:pt-24 mx-auto flex flex-col items-center bg-gray-50">
+      <div className="flex items-center w-full max-w-5xl md:gap-6">
         <button
           onClick={handleBack}
           disabled={step === 1}
@@ -39,7 +39,7 @@ export default function EstimateHeader({ step, title, totalStep = 7 }: Props) {
         </h1>
         <div className="w-10" />
       </div>
-      <div className="w-full h-[4px] bg-gray-200 rounded-full overflow-hidden md:h-[8px] md:mt-2">
+      <div className="w-full max-w-5xl h-2 md:h-2 bg-gray-200 rounded-full overflow-hidden mt-6">
         <div
           className="h-full bg-blue-500 transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
