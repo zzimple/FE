@@ -76,6 +76,18 @@ export default function Step4Page() {
   };
 
   const handleNext = () => {
+    // 모든 카테고리에서 선택된 짐의 총 개수를 계산합니다.
+    const totalItemCount = Object.values(selectedItems).reduce(
+      (acc, items) => acc + items.length,
+      0
+    );
+
+    // 잔짐 박스 수량과 관계없이, 선택된 짐이 하나도 없으면 알림을 띄웁니다.
+    if (totalItemCount === 0) {
+      alert("옮기실 짐을 하나 이상 선택해주세요.");
+      return; // 다음 단계로 진행하지 않습니다.
+    }
+
     localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
     localStorage.setItem("leftoverBoxCount", String(leftoverBoxCount));
     router.push("/guest/estimate/step5");
