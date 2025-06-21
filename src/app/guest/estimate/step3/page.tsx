@@ -13,7 +13,7 @@ export default function Step3Page() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={3} title="주소입력" />
       <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
+        <main className="mt-8 flex flex-col items-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mt-4 mb-8 md:mb-20 text-gray-900">
             <span className="text-blue-600">출발지와 도착지</span> 주소를 입력해
             주세요.
