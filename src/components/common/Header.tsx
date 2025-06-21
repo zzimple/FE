@@ -3,51 +3,32 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Cookies from 'js-cookie';
 import { authApi, getAccessTokenFromCookie } from "@/lib/axios";
-
-
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-
-  // 로그아웃 관련 함수
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
-  // 로그인 여부 확인 (accessToken 쿠키 존재 여부로 판단)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = Cookies.get('accessToken');
-      console.log("🔍 accessToken from Cookie:", token); // <- 이거 추가
+    const token = getAccessTokenFromCookie();
+    setIsLoggedIn(!!token);
+  }, []);
 
-      setIsLoggedIn(!!token);
-    }
-  }, [typeof window !== "undefined" && Cookies.get("accessToken")]); // <- 변경 감지 추가
-
-  // 로그아웃 핸들러
   const handleLogout = async () => {
-    const token = Cookies.get('accessToken');
-
-
-    if (!token) {
-      console.warn("⚠️ accessToken이 존재하지 않음");
-      return;
-    }
-
     try {
-      await authApi.post("/users/logout"); // Authorization 헤더 생략
-
-      // 클라이언트에서 accessToken 쿠키 제거 (HttpOnly=false일 경우만 가능)
-      Cookies.remove("accessToken");
-      Cookies.remove("refreshToken");
-
-      router.push("/");
+      await authApi.post("/users/logout");
     } catch (error) {
-      console.error("❌ 로그아웃 실패", error);
+      console.error("❌ 로그아웃 API 호출 실패", error);
+    } finally {
+      document.cookie =
+        "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      setIsLoggedIn(false);
+      setOpen(false);
+      router.push("/");
+      router.refresh();
     }
   };
-
 
   return (
     <header className="w-full bg-white shadow fixed top-0 left-0 z-30 font-pretendard">
@@ -85,7 +66,6 @@ export default function Header() {
               </Link>
             </>
           )}
-
         </div>
         {/* 모바일 햄버거 */}
         <button
@@ -93,7 +73,6 @@ export default function Header() {
           onClick={() => setOpen(true)}
           aria-label="메뉴 열기"
         >
-          {/* SVG 햄버거 아이콘 */}
           <svg
             width="28"
             height="28"
@@ -157,25 +136,37 @@ export default function Header() {
             </button>
             <Link
               href="/"
+              onClick={() => setOpen(false)}
               className="text-2xl font-extrabold text-[#3454FF] mb-8 select-none"
               style={{ fontFamily: "Pretendard, sans-serif" }}
             >
               ZZIMPLE
             </Link>
-            <Link
-              href="/login"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              로그인
-            </Link>
-            <Link
-              href="/signup/user-type"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              회원가입
-            </Link>
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+              >
+                로그아웃
+              </button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/signup/user-type"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  회원가입
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

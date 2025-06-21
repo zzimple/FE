@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 // _retry 플래그를 허용하기 위한 커스텀 타입 선언
 interface RetryableRequestConfig extends AxiosRequestConfig {
-  _retry?: boolean; // 수정됨
+  _retry?: boolean; 
 }
 
 // const BASE_URL = "http://14.63.178.146:8080";
@@ -75,7 +75,7 @@ authApi.interceptors.response.use(
         // 쿠키에서 토큰 제거
         document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        // window.location.href = "/login"; // 수정됨
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
@@ -93,3 +93,15 @@ export const publicApi = axios.create({
   withCredentials: true,   // 수정됨: 사업자번호 인증 등 쿠키 필요 시 자동 전송
 });
 
+export const logout = async (): Promise<void> => {
+  try {
+    // 백엔드에 로그아웃 요청 (서버에서 쿠키 제거)
+    await publicApi.post("/users/logout");
+    console.log("✅ 로그아웃 완료");
+  } catch (error) {
+    console.error("로그아웃 요청 실패:", error);
+  } finally {
+    // 백엔드에서 쿠키를 제거하므로 로그인 페이지로 리다이렉트
+    window.location.href = "/login";
+  }
+};

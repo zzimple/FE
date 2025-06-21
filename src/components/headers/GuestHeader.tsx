@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { logout, getAccessTokenFromCookie } from "@/lib/axios";
 
 export default function GuestHeader() {
   const [open, setOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // 수정: 컴포넌트 마운트 시 로그인 상태 확인
+  useEffect(() => {
+    const token = getAccessTokenFromCookie();
+    setIsLoggedIn(!!token);
+  }, []);
+
 
   return (
     <header className="w-full bg-white shadow fixed top-0 left-0 z-30 font-pretendard">
       <div className="flex items-center justify-between px-6 md:px-12 py-4 h-20">
         {/* 로고 */}
         <Link
-          href="/guest"
+          href="/"
           className="text-2xl md:text-3xl font-extrabold text-[#3454FF] tracking-tight select-none"
           style={{ fontFamily: "Pretendard, sans-serif" }}
         >
@@ -37,12 +46,38 @@ export default function GuestHeader() {
           >
             받은 견적서
           </Link>
-          <Link
-            href="/guest/profile"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            내 정보
-          </Link>
+          {/* 수정: 로그인 상태에 따라 '로그인/회원가입' 또는 '내 정보/로그아웃'만 변경 */}
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/guest/profile"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                마이페이지
+              </Link>
+              <button
+                onClick={() => logout()}
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/signup"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                회원가입
+              </Link>
+            </>
+          )}
         </nav>
         {/* 햄버거 버튼 */}
         <button
@@ -114,7 +149,7 @@ export default function GuestHeader() {
               </svg>
             </button>
             <Link
-              href="/guest"
+              href="/"
               className="text-2xl font-extrabold text-[#3454FF] mb-8 select-none"
               style={{ fontFamily: "Pretendard, sans-serif" }}
               onClick={() => setOpen(false)}
@@ -142,13 +177,43 @@ export default function GuestHeader() {
             >
               받은 견적서
             </Link>
-            <Link
-              href="/guest/profile"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              마이페이지
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/guest/profile"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  마이페이지
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/signup"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  회원가입
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

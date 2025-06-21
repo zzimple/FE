@@ -210,10 +210,10 @@ export default function PhoneVerificationField({
             <button
               type="button"
               onClick={handleSendSMS}
-              disabled={isSending || !phone || phoneError}
+              disabled={isSending || !phone || !!phoneError}
               className={`absolute top-1/2 right-4 -translate-y-1/2 h-[36px] px-5 rounded-full text-sm font-bold transition
                 ${
-                  isSending || !phone || phoneError
+                  isSending || !phone || !!phoneError
                     ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
@@ -277,10 +277,10 @@ export default function PhoneVerificationField({
           <button
             type="button"
             onClick={handleVerifyCode}
-            disabled={!code || codeError}
+            disabled={!code || !!codeError}
             className={`absolute top-1/2 right-4 -translate-y-1/2 h-[36px] px-5 rounded-full text-sm font-bold transition
               ${
-                !code || codeError
+                !code || !!codeError
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700"
               }`}

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 type ItemCardProps = {
   icon: string; // 이미지 경로
@@ -18,8 +19,13 @@ export default function ItemCard({ icon, onEdit, onDelete }: ItemCardProps) {
       </button>
       {/* 아이콘과 이름 */}
       <div className="flex-1 flex flex-col items-center justify-center">
-        <img src={icon} alt="icon" className="w-20 h-20 object-contain mb-1" />
-        <div className="text-sm font-semibold text-gray-800 text-center mt-1">
+        <Image
+          src={icon}
+          alt="icon"
+          width={80}
+          height={80}
+          className="object-contain mb-1"
+        />        <div className="text-sm font-semibold text-gray-800 text-center mt-1">
           {/* 이름 */}
           {/** 이름은 부모에서 렌더링하거나, 필요시 props로 추가 */}
         </div>

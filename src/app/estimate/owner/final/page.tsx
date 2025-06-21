@@ -113,7 +113,7 @@ export default function EstimateFinalPage() {
 
         fetchEstimateData();
         fetchEstimatedCost();
-    }, [estimateNo]);
+    }, [estimateNo, searchParams]);
 
     // ✅ 실시간 반영 여부 확인용 로그 추가
     useEffect(() => {
@@ -354,7 +354,7 @@ export default function EstimateFinalPage() {
                         <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
                         <KakaoMapRoute
                             estimateNo={reviewData.estimateNo}
-                            onStats={(duration, distance) => {
+                            onStatus={(duration, distance) => {
                                 setDuration(duration);
                                 setDistance(distance);
                             }}
@@ -382,7 +382,6 @@ export default function EstimateFinalPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
-                                        size="small"
                                         type="button"
                                         onClick={() => router.push(`/estimate/owner/final/bill?estimateNo=${estimateNo}`)}
                                     >

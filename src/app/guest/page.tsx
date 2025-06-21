@@ -10,16 +10,17 @@ export default function GuestHome() {
       <GuestHeader />
 
       {/* 메인 배너 */}
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16">
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-30">
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-blue-600">
           고객님을 위한 ZZIMPLE
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          간편한 견적서 작성으로 합리적인 이사 서비스를 받아보세요!
+          간편한 견적서 작성으로 <br />
+          합리적인 이사 서비스를 받아보세요!
         </p>
 
         {/* 주요 액션 버튼들 */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <Link href="/guest/estimate/step1">
             <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition">
               견적서 작성하기
@@ -42,7 +43,7 @@ export default function GuestHome() {
               몇 가지 질문만으로 정확한 견적을 받아보세요
             </p>
             <ul className="text-gray-600 text-sm space-y-1">
-              <li>• 이사 거리와 규모 입력</li>
+              <li>• 이사할 집 정보 입력</li>
               <li>• 특별 취급 품목 선택</li>
               <li>• 원하는 날짜 지정</li>
             </ul>
@@ -56,8 +57,7 @@ export default function GuestHome() {
             </p>
             <ul className="text-gray-600 text-sm space-y-1">
               <li>• 가격 비교</li>
-              <li>• 사장님 평점 확인</li>
-              <li>• 원하는 사장님 선택</li>
+              <li>• 원하는 가게 선택</li>
             </ul>
           </div>
         </div>

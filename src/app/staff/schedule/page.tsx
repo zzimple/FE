@@ -3,6 +3,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import StaffHeader from "@/components/headers/StaffHeader";
 
 interface Schedule {
   date: string;
@@ -45,14 +46,14 @@ export default function SchedulePage() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const days: CalendarDay[] = [];
-    
+
     // 이전 달의 날짜들을 채움
     const firstDayOfWeek = firstDay.getDay();
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(year, month, -i);
       days.push({ date, isCurrentMonth: false });
     }
-    
+
     // 현재 달의 날짜들
     for (let date = 1; date <= lastDay.getDate(); date++) {
       days.push({
@@ -60,14 +61,14 @@ export default function SchedulePage() {
         isCurrentMonth: true
       });
     }
-    
+
     // 다음 달의 날짜들을 채움
     const lastDayOfWeek = lastDay.getDay();
     for (let i = 1; i < 7 - lastDayOfWeek; i++) {
       const date = new Date(year, month + 1, i);
       days.push({ date, isCurrentMonth: false });
     }
-    
+
     return days;
   };
 
@@ -94,13 +95,14 @@ export default function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <StaffHeader />
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
         {/* 상단 헤더 */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">근무 일정</h1>
           {activeTab === 'timeoff' && (
             <button
-              onClick={() => router.push('/mypage/staff/timeoff/request')}
+              onClick={() => router.push('/staff/timeoff/request')}
               className="inline-flex items-center px-4 h-10 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
             >
               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,21 +117,19 @@ export default function SchedulePage() {
         <div className="flex space-x-1 bg-gray-100/80 p-1 rounded-xl mb-6 w-fit">
           <button
             onClick={() => setActiveTab('schedule')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg ${
-              activeTab === 'schedule'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg ${activeTab === 'schedule'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-900'
+              }`}
           >
             근무 일정
           </button>
           <button
             onClick={() => setActiveTab('timeoff')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg ${
-              activeTab === 'timeoff'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg ${activeTab === 'timeoff'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-900'
+              }`}
           >
             휴무 관리
           </button>
@@ -181,15 +181,13 @@ export default function SchedulePage() {
                 {getDaysInMonth().map(({ date, isCurrentMonth }, index) => (
                   <div
                     key={index}
-                    className={`aspect-square p-1 rounded-lg hover:bg-gray-50 cursor-pointer group ${
-                      isCurrentMonth ? '' : 'opacity-50'
-                    } ${isToday(date) ? 'bg-blue-50/50' : ''}`}
+                    className={`aspect-square p-1 rounded-lg hover:bg-gray-50 cursor-pointer group ${isCurrentMonth ? '' : 'opacity-50'
+                      } ${isToday(date) ? 'bg-blue-50/50' : ''}`}
                   >
                     <div className="w-full h-full flex flex-col items-center justify-center relative">
                       <span
-                        className={`text-sm font-medium mb-1 ${
-                          isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                        } ${isToday(date) ? 'text-blue-600' : ''}`}
+                        className={`text-sm font-medium mb-1 ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                          } ${isToday(date) ? 'text-blue-600' : ''}`}
                       >
                         {date.getDate()}
                       </span>
@@ -220,11 +218,10 @@ export default function SchedulePage() {
                         <p className="text-sm text-gray-500 mt-0.5">{schedule.time}</p>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                          schedule.type === '정규 근무'
-                            ? 'bg-indigo-50 text-indigo-600'
-                            : 'bg-purple-50 text-purple-600'
-                        }`}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${schedule.type === '정규 근무'
+                          ? 'bg-indigo-50 text-indigo-600'
+                          : 'bg-purple-50 text-purple-600'
+                          }`}
                       >
                         {schedule.type}
                       </span>
@@ -240,11 +237,10 @@ export default function SchedulePage() {
                         <p className="text-sm text-gray-500 mt-0.5">{timeOff.type}</p>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                          timeOff.status === '승인'
-                            ? 'bg-emerald-50 text-emerald-600'
-                            : 'bg-amber-50 text-amber-600'
-                        }`}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${timeOff.status === '승인'
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-amber-50 text-amber-600'
+                          }`}
                       >
                         {timeOff.status}
                       </span>

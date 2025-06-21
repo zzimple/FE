@@ -10,11 +10,11 @@ declare global {
 
 interface KakaoMapRouteProps {
   estimateNo: number;
-  onStats?: (durationSec: number, distanceM: number) => void;
+  onStatus?: (durationSec: number, distanceM: number) => void;
 }
 
 
-export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProps) {
+export default function KakaoMapRoute({ estimateNo, onStatus: onStatus }: KakaoMapRouteProps) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function KakaoMapRoute({ estimateNo, onStats }: KakaoMapRouteProp
           const { routePoints, marks, duration, distance } = res.data.data;
 
           // 부모에게 통계 전달
-          onStats?.(duration, distance);
+          onStatus?.(duration, distance);
 
 
           // 4) Polyline 그리기
