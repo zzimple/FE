@@ -1,6 +1,8 @@
 "use client";
 
 import React, { Suspense, useEffect, useRef, useState } from "react";
+import OwnerHeader from "@/components/headers/OwnerHeader";
+import Link from 'next/link';
 import Button from "@/components/common/Button";
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Address, DetailInfo, Item } from '@/types/estimate';
@@ -211,19 +213,8 @@ export default function EstimateFinalCheckPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className="min-h-screen bg-gray-50">
-                <div className="max-w-6xl mx-auto py-8 px-4">
-                    {/* 뒤로가기 버튼 */}
-                    <div className="mb-6 flex justify-end">
-                        <button
-                            onClick={handleGoBack}
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-                        >
-                            <span className="text-sm font-medium">이전 페이지로</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
+                <OwnerHeader />
+                <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
 
                     <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 상세</h1>
 
@@ -336,6 +327,32 @@ export default function EstimateFinalCheckPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* 수정: 카카오맵 경로 및 예상 시간/거리 섹션을 추가했습니다. */}
+                        <div className="space-y-2">
+                            <div className="text-sm font-semibold text-gray-900">예상 경로 및 거리</div>
+                            <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-200">
+                                {/* 수정: KakaoMapRoute 컴포넌트의 props를 올바르게 수정했습니다. */}
+                                <KakaoMapRoute
+                                    estimateNo={reviewData.estimateNo}
+                                    onStatus={(dur, dist) => {
+                                        setDuration(dur);
+                                        setDistance(dist);
+                                    }}
+                                />
+                            </div>
+                            <div className="flex justify-around text-center pt-2">
+                                <div>
+                                    <div className="text-xs text-gray-500">예상 소요 시간</div>
+                                    <div className="text-sm font-semibold text-blue-600">{formattedTime}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-500">예상 이동 거리</div>
+                                    <div className="text-sm font-semibold text-blue-600">{formattedDist}</div>
+                                </div>
+                            </div>
+                        </div>
+
 
                         {/* 입력란 */}
                         <div className="space-y-4 bg-white p-4 rounded-xl shadow-sm">
@@ -450,6 +467,15 @@ export default function EstimateFinalCheckPage() {
                                 ))}
                             </ol>
                         </div>
+                    </div>
+
+                    {/* 수정: '견적서 목록' 버튼을 페이지 하단으로 이동시키고 디자인을 변경했습니다. */}
+                    <div className="mt-8">
+                        <Link href="/owner/estimates" className="block w-full">
+                            <button className="w-full h-14 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-colors">
+                                견적서 목록
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>
