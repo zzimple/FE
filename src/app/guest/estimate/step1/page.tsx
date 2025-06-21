@@ -11,18 +11,34 @@ export default function Step1Page() {
   const [selected, setSelected] = useState<string | null>(null);
   const [uuid, setUuid] = useState<string | null>(null);
 
-  // ✅ 최초 진입 시 localStorage에서 uuid 가져오기
+  // 최초 진입 시 localStorage에서 uuid 가져오기
   useEffect(() => {
-    const storedUuid = localStorage.getItem("uuid");
-    console.log(storedUuid);
-    if (storedUuid) {
-      setUuid(storedUuid);
-    } else {
-      // ❗ uuid가 없으면 이전 페이지에서 견적서 초안을 생성하지 않은 상태이므로 안내 후 홈으로 보냄
-      console.warn("uuid가 없습니다. 견적서를 처음부터 작성해주세요.");
-      alert("견적서를 먼저 생성해주세요.");
-      router.push("/estimate/start"); // 👉 필요한 경로로 바꿔도 됨
-    }
+    const fetchDraftId = async () => {
+      try {
+        const storedUuid = localStorage.getItem("uuid");
+        if (storedUuid) {
+          setUuid(storedUuid);
+          console.log("기존 uuid 사용:", storedUuid);
+        } else {
+          const res = await authApi.post("/estimates/draft/start");
+          const newUuid = res.data.data.draftId;
+          setUuid(newUuid);
+          localStorage.setItem("uuid", newUuid);
+          console.log("새 uuid 발급:", newUuid);
+
+          if (res.data.token) {
+            localStorage.setItem("accessToken", res.data.token);
+            console.log("토큰 저장 완료");
+          }
+        }
+      } catch (err) {
+        console.error("uuid 생성 실패:", err);
+        alert("페이지를 불러오는 중 문제가 발생했어요. 다시 시도해주세요.");
+        router.push("/");
+      }
+    };
+
+    fetchDraftId();
   }, [router]);
 
   // ✅ 이사 유형 선택 후 서버로 전송
@@ -71,10 +87,9 @@ export default function Step1Page() {
               type="button"
               onClick={() => setSelected("small")}
               className={`flex-1 max-w-md bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border-2 transition-all duration-200
-                ${
-                  selected === "small"
-                    ? "border-blue-500 scale-105 shadow-xl"
-                    : "border-transparent hover:border-blue-400"
+                ${selected === "small"
+                  ? "border-blue-500 scale-105 shadow-xl"
+                  : "border-transparent hover:border-blue-400"
                 }
               `}
             >
@@ -88,10 +103,9 @@ export default function Step1Page() {
               type="button"
               onClick={() => setSelected("family")}
               className={`flex-1 max-w-md bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border-2 transition-all duration-200
-                ${
-                  selected === "family"
-                    ? "border-blue-500 scale-105 shadow-xl"
-                    : "border-transparent hover:border-blue-400"
+                ${selected === "family"
+                  ? "border-blue-500 scale-105 shadow-xl"
+                  : "border-transparent hover:border-blue-400"
                 }
               `}
             >
