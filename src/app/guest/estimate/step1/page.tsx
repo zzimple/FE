@@ -148,7 +148,7 @@ export default function Step1Page() {
           <Button
             onClick={handleConfirm}
             disabled={!selected}
-            className="mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            className="mt-8 mb-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
           >
             확인
           </Button>
