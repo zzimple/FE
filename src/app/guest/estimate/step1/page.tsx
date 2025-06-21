@@ -74,12 +74,12 @@ export default function Step1Page() {
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateProgressHeader step={1} title="이사 유형 선택" />
-      <div className="w-full max-w-5xl px-4 md:px-12 mt-24">
-        <main className="mt-16 flex flex-col items-center">
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-10 flex flex-col items-center">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-4">
             어떤 <span className="text-blue-600">이사</span>를 진행하시나요?
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 text-center mb-12">
+          <p className="text-lg md:text-xl text-gray-600 text-center mb-8">
             이사 유형을 선택해 주세요.
           </p>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
