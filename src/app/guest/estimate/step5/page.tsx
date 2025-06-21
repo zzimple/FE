@@ -12,6 +12,7 @@ import { authApi } from "@/lib/axios";
 import { furnitureItems } from "@/constants/items/furnitureItems";
 import { applianceItems } from "@/constants/items/appliance";
 import { otherItems } from "@/constants/items/otherItems";
+import Image from "next/image";
 
 // 가구
 import BedModal from "@/components/move-items/modals/item-detail-modals/furniture/BedModal";
@@ -209,6 +210,41 @@ export default function Step5Page() {
   const applianceRef = useRef<HTMLDivElement>(null);
   const otherRef = useRef<HTMLDivElement>(null);
 
+  // --- 수정: 첫 마운트 시 저장 로직 실행을 막기 위한 Ref ---
+  const isInitialMount = useRef(true);
+
+  // --- 수정: 페이지 로드 시 localStorage에서 데이터 복원 ---
+  useEffect(() => {
+    const storedUuid = localStorage.getItem("uuid");
+    if (storedUuid) setUuid(storedUuid);
+
+    const savedSelectedItems = localStorage.getItem("selectedItems");
+    if (savedSelectedItems) setSelectedItems(JSON.parse(savedSelectedItems));
+
+    // step5에서 입력한 상세 정보들을 복원합니다.
+    const savedItemDetails = localStorage.getItem("step5_itemDetails");
+    if (savedItemDetails) setItems(JSON.parse(savedItemDetails));
+
+    const savedBoxCount = localStorage.getItem("step5_boxCount");
+    if (savedBoxCount) setBoxCount(Number(savedBoxCount));
+
+    const savedRequestNote = localStorage.getItem("step5_requestNote");
+    if (savedRequestNote) setRequestNote(savedRequestNote);
+
+  }, [router]);
+
+  // --- 수정: state 변경 시 localStorage에 데이터 저장 ---
+  useEffect(() => {
+    // 첫 렌더링 시에는 저장하지 않고, 사용자 입력으로 상태가 변경될 때만 저장합니다.
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    localStorage.setItem("step5_itemDetails", JSON.stringify(items));
+    localStorage.setItem("step5_boxCount", String(boxCount));
+    localStorage.setItem("step5_requestNote", requestNote);
+  }, [items, boxCount, requestNote]);
+
   // 잔짐 박스 불러오기
   useEffect(() => {
     const storedUuid = localStorage.getItem("uuid");
@@ -324,7 +360,7 @@ export default function Step5Page() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={5} title="짐 상세 정보 입력" />
       <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
+        <main className="mt-8 flex flex-col items-center">
           <div className="mb-4">
             <div className="text-lg font-bold flex items-end gap-1"></div>
           </div>
@@ -386,9 +422,11 @@ export default function Step5Page() {
                         >
                           ×
                         </button>
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 object-contain ml-0 mr-3"
                         />
                         {detail && (
@@ -406,12 +444,12 @@ export default function Step5Page() {
                                     prev.map((i) =>
                                       i.name === item.name
                                         ? {
-                                            ...i,
-                                            quantity: Math.max(
-                                              1,
-                                              i.quantity - 1
-                                            ),
-                                          }
+                                          ...i,
+                                          quantity: Math.max(
+                                            1,
+                                            i.quantity - 1
+                                          ),
+                                        }
                                         : i
                                     )
                                   )
@@ -497,9 +535,11 @@ export default function Step5Page() {
                         >
                           ×
                         </button>
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 object-contain ml-0 mr-3"
                         />
                         {detail && (
@@ -517,12 +557,12 @@ export default function Step5Page() {
                                     prev.map((i) =>
                                       i.name === item.name
                                         ? {
-                                            ...i,
-                                            quantity: Math.max(
-                                              1,
-                                              i.quantity - 1
-                                            ),
-                                          }
+                                          ...i,
+                                          quantity: Math.max(
+                                            1,
+                                            i.quantity - 1
+                                          ),
+                                        }
                                         : i
                                     )
                                   )
@@ -608,9 +648,11 @@ export default function Step5Page() {
                         >
                           ×
                         </button>
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
+                          width={80}
+                          height={80}
                           className="w-20 h-20 object-contain ml-0 mr-3"
                         />
                         {detail && (
@@ -628,12 +670,12 @@ export default function Step5Page() {
                                     prev.map((i) =>
                                       i.name === item.name
                                         ? {
-                                            ...i,
-                                            quantity: Math.max(
-                                              1,
-                                              i.quantity - 1
-                                            ),
-                                          }
+                                          ...i,
+                                          quantity: Math.max(
+                                            1,
+                                            i.quantity - 1
+                                          ),
+                                        }
                                         : i
                                     )
                                   )
@@ -692,9 +734,11 @@ export default function Step5Page() {
               </div>
               {/* 짐 박스 입력 UI */}
               <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-2xl mx-auto">
-                <img
+                <Image
                   src="/images/leftoverBox.jpeg"
                   alt="짐 박스"
+                  width={64}
+                  height={64}
                   className="w-16 h-16 object-contain mr-3"
                 />
                 <span className="text-base font-semibold text-gray-800 mr-6">
@@ -737,7 +781,7 @@ export default function Step5Page() {
               <div className="w-full flex justify-center mt-12">
                 <Button
                   onClick={handleSave}
-                  className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+                  className="mb-8 mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
                 >
                   다음
                 </Button>
