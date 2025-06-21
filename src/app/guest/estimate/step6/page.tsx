@@ -6,6 +6,7 @@ import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
 import SelectTab from "@/components/common/SelectTab";
 import { authApi } from "@/lib/axios";
+import Image from "next/image";
 
 interface ServiceOption {
   id: string;
@@ -125,7 +126,7 @@ export default function Step6Page() {
           }
         );
         console.log("가정이사 옵션 저장 성공:", res.data);
-        router.push("/guest/estimate/step8");
+        router.push("/guest/estimate/stpe7");
       } catch (err) {
         console.error("가정이사 옵션 저장 실패:", err);
         alert("이사 옵션 저장 중 문제가 발생했어요.");
@@ -136,7 +137,7 @@ export default function Step6Page() {
       <div className="min-h-screen flex flex-col items-center bg-gray-50">
         <EstimateHeader step={6} title="서비스 종류" />
         <div className="w-full max-w-5xl px-4 md:px-12">
-          <main className="mt-16 flex flex-col items-center">
+          <main className="mt-8 flex flex-col items-center">
             <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center mx-auto">
               <h2 className="text-center text-base font-semibold text-gray-900">
                 <span className="text-blue-500">가정이사</span> 서비스 안내
@@ -149,11 +150,15 @@ export default function Step6Page() {
                   {homeOption.description}
                 </p>
                 <div className="w-full h-48 overflow-hidden rounded-xl">
-                  <img
-                    src={homeOption.image}
-                    alt={homeOption.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="w-full h-48 overflow-hidden rounded-xl">
+                    <Image
+                      src={homeOption.image}
+                      alt={homeOption.title}
+                      width={400}
+                      height={192}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="px-4 space-y-2 text-gray-600 w-full">
@@ -227,7 +232,7 @@ export default function Step6Page() {
         }
       );
       console.log("이사 옵션 저장 성공:", res.data);
-      router.push("/guest/estimate/step8");
+      router.push("/guest/estimate/step7");
     } catch (err) {
       console.error("이사 옵션 저장 실패:", err);
       alert("이사 옵션 저장 중 문제가 발생했어요.");
@@ -238,7 +243,7 @@ export default function Step6Page() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={6} title="서비스 종류" />
       <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
+        <main className="mt-8 flex flex-col items-center">
           <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow-lg p-8 flex flex-col gap-8 items-center mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-center mt-4 mb-8 text-gray-900">
               <span className="text-blue-500">원하시는 서비스</span>를
@@ -267,9 +272,11 @@ export default function Step6Page() {
                 {current.description}
               </p>
               <div className="w-full h-48 overflow-hidden rounded-xl">
-                <img
+                <Image
                   src={current.image}
                   alt={current.title}
+                  width={400}
+                  height={192}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -305,7 +312,7 @@ export default function Step6Page() {
                 checked={agreed}
                 onChange={() => setAgreed((prev) => !prev)}
               />
-              <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
+              <label htmlFor="agree" className="ml-2 text-sm text-gray-700 whitespace-nowrap">
                 필수 진행 사항을 모두 확인하였으며, 동의합니다.
               </label>
             </div>
@@ -313,7 +320,7 @@ export default function Step6Page() {
         </main>
         <div className="flex justify-center w-full mt-12">
           <Button
-            className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            className="mb-8 mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
             onClick={handleNext}
             disabled={!agreed}
           >

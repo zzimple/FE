@@ -11,18 +11,52 @@ export default function Step1Page() {
   const [selected, setSelected] = useState<string | null>(null);
   const [uuid, setUuid] = useState<string | null>(null);
 
-  // ✅ 최초 진입 시 localStorage에서 uuid 가져오기
+  // --- 추가된 부분 시작 ---
+  // 페이지에 다시 돌아왔을 때 이전에 선택한 이사 유형을 복원합니다.
   useEffect(() => {
-    const storedUuid = localStorage.getItem("uuid");
-    console.log(storedUuid);
-    if (storedUuid) {
-      setUuid(storedUuid);
-    } else {
-      // ❗ uuid가 없으면 이전 페이지에서 견적서 초안을 생성하지 않은 상태이므로 안내 후 홈으로 보냄
-      console.warn("uuid가 없습니다. 견적서를 처음부터 작성해주세요.");
-      alert("견적서를 먼저 생성해주세요.");
-      router.push("/estimate/start"); // 👉 필요한 경로로 바꿔도 됨
+    const savedMoveType = localStorage.getItem("selectedMoveType");
+    if (savedMoveType) {
+      setSelected(savedMoveType);
     }
+  }, []); // 페이지 로드 시 한 번만 실행
+
+  // 선택한 이사 유형을 localStorage에 저장하여 유지합니다.
+  useEffect(() => {
+    // `selected`가 null이 아닐 때만 저장하도록 하여 초기화되는 것을 방지합니다.
+    if (selected) {
+      localStorage.setItem("selectedMoveType", selected);
+    }
+  }, [selected]);
+  // --- 추가된 부분 끝 ---
+
+  // 최초 진입 시 localStorage에서 uuid 가져오기
+  useEffect(() => {
+    const fetchDraftId = async () => {
+      try {
+        const storedUuid = localStorage.getItem("uuid");
+        if (storedUuid) {
+          setUuid(storedUuid);
+          console.log("기존 uuid 사용:", storedUuid);
+        } else {
+          const res = await authApi.post("/estimates/draft/start");
+          const newUuid = res.data.data.draftId;
+          setUuid(newUuid);
+          localStorage.setItem("uuid", newUuid);
+          console.log("새 uuid 발급:", newUuid);
+
+          if (res.data.token) {
+            localStorage.setItem("accessToken", res.data.token);
+            console.log("토큰 저장 완료");
+          }
+        }
+      } catch (err) {
+        console.error("uuid 생성 실패:", err);
+        alert("페이지를 불러오는 중 문제가 발생했어요. 다시 시도해주세요.");
+        router.push("/");
+      }
+    };
+
+    fetchDraftId();
   }, [router]);
 
   // ✅ 이사 유형 선택 후 서버로 전송
@@ -58,12 +92,12 @@ export default function Step1Page() {
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateProgressHeader step={1} title="이사 유형 선택" />
-      <div className="w-full max-w-5xl px-4 md:px-12 mt-24">
-        <main className="mt-16 flex flex-col items-center">
+      <div className="w-full max-w-5xl px-4 md:px-12">
+        <main className="mt-10 flex flex-col items-center">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-4">
             어떤 <span className="text-blue-600">이사</span>를 진행하시나요?
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 text-center mb-12">
+          <p className="text-lg md:text-xl text-gray-600 text-center mb-8">
             이사 유형을 선택해 주세요.
           </p>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center">
@@ -71,10 +105,9 @@ export default function Step1Page() {
               type="button"
               onClick={() => setSelected("small")}
               className={`flex-1 max-w-md bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border-2 transition-all duration-200
-                ${
-                  selected === "small"
-                    ? "border-blue-500 scale-105 shadow-xl"
-                    : "border-transparent hover:border-blue-400"
+                ${selected === "small"
+                  ? "border-blue-500 scale-105 shadow-xl"
+                  : "border-transparent hover:border-blue-400"
                 }
               `}
             >
@@ -88,10 +121,9 @@ export default function Step1Page() {
               type="button"
               onClick={() => setSelected("family")}
               className={`flex-1 max-w-md bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center border-2 transition-all duration-200
-                ${
-                  selected === "family"
-                    ? "border-blue-500 scale-105 shadow-xl"
-                    : "border-transparent hover:border-blue-400"
+                ${selected === "family"
+                  ? "border-blue-500 scale-105 shadow-xl"
+                  : "border-transparent hover:border-blue-400"
                 }
               `}
             >
@@ -134,7 +166,7 @@ export default function Step1Page() {
           <Button
             onClick={handleConfirm}
             disabled={!selected}
-            className="mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            className="mt-8 mb-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
           >
             확인
           </Button>

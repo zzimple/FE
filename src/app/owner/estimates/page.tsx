@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/axios";
 import EstimateCard from "@/components/estimate/EstimateCard";
@@ -58,7 +58,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
     const [isAssigning, setIsAssigning] = useState(false);
 
-    const fetchConfirmedEstimates = async () => {
+    const fetchConfirmedEstimates = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
@@ -121,11 +121,11 @@ export default function OwnerConfirmedEstimatesPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [page]); // page만 의존성으로 추가
 
     useEffect(() => {
         fetchConfirmedEstimates();
-    }, [page]);
+    }, [fetchConfirmedEstimates]);
 
     // 필터링 로직
     useEffect(() => {

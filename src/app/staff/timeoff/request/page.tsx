@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 
@@ -79,7 +79,7 @@ export default function TimeOffRequestPage() {
     };
 
     // 휴무 내역을 가져오는 함수
-    const fetchTimeOffHistory = async (currentPage = page) => {
+    const fetchTimeOffHistory = useCallback(async (currentPage = page) => {
         try {
             const response = await authApi.get('/staff/time-off/me', {
                 params: { page: currentPage, size: 5 }
@@ -89,12 +89,12 @@ export default function TimeOffRequestPage() {
         } catch (err) {
             console.error('휴무 내역 조회 실패:', err);
         }
-    };
+    }, [page]);
 
     // 페이지 변경될 때마다 불러오기
     useEffect(() => {
         fetchTimeOffHistory();
-    }, [page]);
+    }, [fetchTimeOffHistory]);
 
     // 휴무 신청 후 자동 갱신
     const handleSubmit = async (e: React.FormEvent) => {

@@ -1,139 +1,430 @@
 "use client";
 
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/common/Button";
+import { authApi } from "@/lib/axios";
 import EstimateHeader from "@/components/common/EstimateHeader";
+import Button from "@/components/common/Button";
+import {
+  Calendar,
+  MapPin,
+  Package,
+  Truck,
+  Building,
+  ParkingCircle,
+  Hash,
+} from "lucide-react";
 
-export default function Step7Review() {
+// 1. API 응답에 맞춘 타입 정의
+interface Address {
+  roadFullAddr: string;
+  roadAddrPart1: string;
+  addrDetail: string;
+  zipNo: string;
+  entX: string;
+  entY: string;
+}
+
+interface DetailInfo {
+  buildingType: string;
+  roomStructure: string;
+  sizeOption: string;
+  floor: string;
+  hasStairs: boolean;
+  hasParking: boolean;
+  elevator: boolean;
+}
+
+interface AddressInfo {
+  address: Address;
+  detailInfo: DetailInfo;
+}
+
+interface HolidayInfo {
+  movedate: string;
+  moveTime: string;
+  dateName: string;
+  goodDay: boolean;
+  holiday: boolean;
+  weekend: boolean;
+}
+
+interface MoveItem {
+  itemTypeId: number;
+  itemTypeName: string;
+  category: string;
+  quantity: number;
+  [key: string]: any; // 기타 옵션들
+}
+
+interface MoveItemsInfo {
+  boxCount: number;
+  leftoverBoxCount: number;
+  requestNote: string;
+  items: MoveItem[];
+}
+
+interface FullEstimateData {
+  address: {
+    fromAddress: AddressInfo;
+    toAddress: AddressInfo;
+  };
+  holiday: HolidayInfo;
+  moveType: {
+    moveType: string;
+  };
+  moveItems: MoveItemsInfo;
+  moveOption: {
+    optionType: string;
+  };
+}
+
+// 2. ENUM 값을 한글로 변환하기 위한 헬퍼 객체
+const translationMap = {
+  HOME_MOVE: "가정 이사",
+  SMALL_MOVE: "소형 이사",
+  APARTMENT: "아파트",
+  VILLA: "빌라/연립",
+  HOUSE: "주택",
+  OFFICETEL: "오피스텔",
+  COMMERCIAL: "상가/사무실",
+  BASIC: "일반이사",
+  SEMI_PACKAGING: "반포장이사",
+  PACKAGING: "포장이사",
+  APPLIANCE: "가전",
+  FURNITURE: "가구",
+  OTHER: "기타",
+  ONE_ROOM: "원룸",
+  ONE_HALF_ROOM: "1.5룸",
+  TWO_ROOM: "2룸",
+  THREE_ROOM_OR_MORE: "3룸 이상",
+};
+
+const translate = (key: string) =>
+  translationMap[key as keyof typeof translationMap] || key;
+
+export default function Step7Page() {
   const router = useRouter();
-  const [agreed, setAgreed] = useState(false);
+  const [estimateData, setEstimateData] = useState<FullEstimateData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const reviewData = {
-    serviceType: "가정이사",
-    dateTime: "2025.05.31(토) 오후 12:00",
-    from: {
-      address: "서울특별시 성북구 서경로 124(정릉동) 북악관 211호",
-      info: "빌라/연립 | 10평 이하 | 2층",
-    },
-    to: {
-      address: "서울특별시 강남구 테헤란로 223 큰길타워빌딩 10층",
-      info: "빌라/연립 | 5평 이상 | 10층",
-    },
-    boxCount: 5,
-    itemCount: 2,
-    memo: "차량 동승 가능 여부를 알고 싶어요.",
-    notes: [
-      "사전에 협의되지 않은 항목은 서비스 당일 추가금이 발생할 수 있습니다.",
-      "견적 요청 후 24시간 동안 견적서를 받습니다.",
-      "제출 후 내용을 수정할 수 없습니다.",
-    ],
+  useEffect(() => {
+    const fetchEstimateData = async () => {
+      const uuid = localStorage.getItem("uuid");
+      if (!uuid) {
+        setError("견적 정보를 찾을 수 없습니다. 다시 시도해주세요.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await authApi.get(`/estimates/draft/load/${uuid}`);
+        if (response.data.success) {
+          setEstimateData(response.data.data);
+        } else {
+          setError(
+            response.data.message || "견적 정보를 불러오는 데 실패했습니다."
+          );
+        }
+      } catch (err) {
+        setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEstimateData();
+  }, []);
+
+  const handleNext = async () => {
+    const uuid = localStorage.getItem("uuid");
+    if (!uuid) {
+      alert("견적 ID가 없어 제출할 수 없습니다.");
+      return;
+    }
+
+    try {
+      // '견적 제출' API를 호출합니다.
+      const response = await authApi.post(`/estimates/draft/finalize/${uuid}`);
+
+      if (response.data.success) {
+        alert("견적서가 성공적으로 제출되었습니다.");
+        // 제출 성공 후, 관련 localStorage 데이터를 정리할 수 있습니다.
+        localStorage.removeItem("uuid"); 
+        localStorage.removeItem("fromAddressDetail");
+        localStorage.removeItem("leftoverBoxCount");
+        localStorage.removeItem("moveType");
+        localStorage.removeItem("selectedDate");
+        localStorage.removeItem("selectedItems");
+        localStorage.removeItem("selectedMoveType");
+        localStorage.removeItem("selectedTime");
+        localStorage.removeItem("step3Selection");
+        localStorage.removeItem("step5_boxCount");
+        localStorage.removeItem("step5_itemDetails");
+        localStorage.removeItem("step5_requestNote");
+        localStorage.removeItem("toAddressDetail");
+
+        // /guest 페이지로 이동합니다.
+        router.push("/guest");
+      } else {
+        alert(response.data.message || "견적 제출에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("견적 제출 실패:", err);
+      alert("견적 제출 중 오류가 발생했습니다.");
+    }
   };
 
-  const pillClass =
-    "flex items-center h-14 px-5 gap-2 rounded-full border border-gray-300 bg-white w-full";
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        견적 정보를 불러오는 중...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        {error}
+      </div>
+    );
+  }
+
+  if (!estimateData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        견적 데이터를 표시할 수 없습니다.
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-50">
-      <EstimateHeader step={7} title="최종 리뷰" />
-      <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
-          <h2 className="text-center text-lg font-semibold text-gray-900 mb-6">
-            <span className="text-blue-500">견적서 신청 정보</span>를 마지막으로
-            확인해주세요.
-          </h2>
+    <div className="bg-gray-50 min-h-screen">
+      <EstimateHeader step={7} title="견적 내용 최종 확인" totalStep={8} />
+      <main className="max-w-4xl mx-auto p-4 md:p-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
+          입력하신 내용을 최종 확인해주세요.
+        </h2>
 
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-gray-900 pl-1">
-              서비스 타입
-            </div>
-            <div className={pillClass}>
-              <span className="text-sm">{reviewData.serviceType}</span>
-            </div>
-          </div>
+        <div className="space-y-6">
 
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-gray-900 pl-1">
-              예약 날짜 및 시간
-            </div>
-            <div className={pillClass}>
-              <span className="text-sm">{reviewData.dateTime}</span>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-gray-900 pl-1">
-              출발지
-            </div>
-            <div className={pillClass}>
-              <span className="text-sm">{reviewData.from.address}</span>
-            </div>
-            <p className="text-xs text-blue-500 pl-1">{reviewData.from.info}</p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-gray-900 pl-1">
-              도착지
-            </div>
-            <div className={pillClass}>
-              <span className="text-sm">{reviewData.to.address}</span>
-            </div>
-            <p className="text-xs text-blue-500 pl-1">{reviewData.to.info}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className={pillClass}>
-              <span className="flex-1 text-sm text-gray-600">짐 박스</span>
-              <span className="text-sm text-gray-900">
-                {reviewData.boxCount}
-              </span>
-            </div>
-            <div className={pillClass}>
-              <span className="flex-1 text-sm text-gray-600">짐 목록</span>
-              <span className="text-sm text-gray-900">
-                {reviewData.itemCount}개
-              </span>
-            </div>
-          </div>
-
-          <div className={pillClass + " h-auto py-4"}>
-            <span className="flex-1 text-sm text-gray-600">메모</span>
-            <span className="text-sm text-gray-900">{reviewData.memo}</span>
-          </div>
-
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
-            <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
-            <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-              {reviewData.notes.map((note, idx) => (
-                <li key={idx}>{note}</li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="flex items-center px-2">
-            <input
-              id="agree"
-              type="checkbox"
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded"
-              checked={agreed}
-              onChange={() => setAgreed(!agreed)}
+          {/* 서비스 종류 */}
+          <InfoCard title="서비스 종류" icon={<Truck className="w-5 h-5" />}>
+            <InfoRow
+              label="선택한 서비스"
+              value={translate(estimateData.moveOption.optionType)}
             />
-            <label htmlFor="agree" className="ml-2 text-sm text-gray-700">
-              위 유의사항을 모두 확인했습니다.
-            </label>
-          </div>
-        </main>
+          </InfoCard>
 
-        <div className="px-4 py-4">
+          {/* 이사 기본 정보 */}
+          <InfoCard title="이사 정보" icon={<Calendar className="w-5 h-5" />}>
+            <InfoRow
+              label="이사 종류"
+              value={translate(estimateData.moveType.moveType)}
+            />
+            <InfoRow
+              label="이사 날짜"
+              value={`${estimateData.holiday.movedate} (${estimateData.holiday.dateName || "평일"
+                })`}
+            />
+            <InfoRow label="이사 시간" value={estimateData.holiday.moveTime} />
+            <InfoRow
+              label="손 없는 날"
+              value={estimateData.holiday.goodDay ? "O" : "X"}
+            />
+          </InfoCard>
+
+          {/* 출발지 & 도착지 정보 */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <InfoCard
+              title="출발지 정보"
+              icon={<MapPin className="w-5 h-5" />}
+            >
+              <InfoRow
+                label="주소"
+                value={estimateData.address.fromAddress.address.roadFullAddr}
+              />
+              <InfoRow
+                label="건물"
+                value={translate(
+                  estimateData.address.fromAddress.detailInfo.buildingType
+                )}
+              />
+              {/* --- 추가된 부분 --- */}
+              <InfoRow
+                label="방 구조"
+                value={translate(
+                  estimateData.address.fromAddress.detailInfo.roomStructure
+                )}
+              />
+              <InfoRow
+                label="평수"
+                value={estimateData.address.fromAddress.detailInfo.sizeOption}
+              />
+              {/* --- 추가 끝 --- */}
+              <InfoRow
+                label="층수"
+                value={estimateData.address.fromAddress.detailInfo.floor}
+              />
+              <InfoRow
+                label="주차"
+                value={
+                  estimateData.address.fromAddress.detailInfo.hasParking
+                    ? "가능"
+                    : "불가능"
+                }
+              />
+              {/* --- 추가된 부분 --- */}
+              <InfoRow
+                label="계단 이용"
+                value={
+                  estimateData.address.fromAddress.detailInfo.hasStairs
+                    ? "있음"
+                    : "없음"
+                }
+              />
+              {/* --- 추가 끝 --- */}
+              <InfoRow
+                label="엘리베이터"
+                value={
+                  estimateData.address.fromAddress.detailInfo.elevator
+                    ? "있음"
+                    : "없음"
+                }
+              />
+            </InfoCard>
+            <InfoCard
+              title="도착지 정보"
+              icon={<MapPin className="w-5 h-5 text-green-500" />}
+            >
+              <InfoRow
+                label="주소"
+                value={estimateData.address.toAddress.address.roadFullAddr}
+              />
+              <InfoRow
+                label="건물"
+                value={translate(
+                  estimateData.address.toAddress.detailInfo.buildingType
+                )}
+              />
+              {/* --- 추가된 부분 --- */}
+              <InfoRow
+                label="방 구조"
+                value={translate(
+                  estimateData.address.toAddress.detailInfo.roomStructure
+                )}
+              />
+              <InfoRow
+                label="평수"
+                value={estimateData.address.toAddress.detailInfo.sizeOption}
+              />
+              {/* --- 추가 끝 --- */}
+              <InfoRow
+                label="층수"
+                value={estimateData.address.toAddress.detailInfo.floor}
+              />
+              <InfoRow
+                label="주차"
+                value={
+                  estimateData.address.toAddress.detailInfo.hasParking
+                    ? "가능"
+                    : "불가능"
+                }
+              />
+              {/* --- 추가된 부분 --- */}
+              <InfoRow
+                label="계단 이용"
+                value={
+                  estimateData.address.toAddress.detailInfo.hasStairs
+                    ? "있음"
+                    : "없음"
+                }
+              />
+              {/* --- 추가 끝 --- */}
+              <InfoRow
+                label="엘리베이터"
+                value={
+                  estimateData.address.toAddress.detailInfo.elevator
+                    ? "있음"
+                    : "없음"
+                }
+              />
+            </InfoCard>
+          </div>
+
+          {/* 이사 짐 정보 */}
+          <InfoCard title="이사 짐" icon={<Package className="w-5 h-5" />}>
+            <div className="font-semibold text-gray-700 mb-2">주요 짐 목록</div>
+
+            <div className="space-y-2">
+              {estimateData.moveItems.items.map((item) => (
+                <InfoRow
+                  key={item.itemTypeId}
+                  label={item.itemTypeName}
+                  value={`x${item.quantity}`}
+                />
+              ))}
+            </div>
+
+            <div className="border-t my-4"></div>
+            <InfoRow
+              label="짐 박스"
+              value={`${estimateData.moveItems.boxCount}개`}
+            />
+            <InfoRow
+              label="잔짐 박스"
+              value={`${estimateData.moveItems.leftoverBoxCount}개`}
+            />
+            <InfoRow
+              label="요청 사항"
+              value={estimateData.moveItems.requestNote || "없음"}
+            />
+          </InfoCard>
+
+        </div>
+
+        <div className="mt-12 flex justify-center">
           <Button
-            className="w-full h-14"
-            disabled={!agreed}
-            onClick={() => router.push("/guest/estimate/complete")}
+            onClick={handleNext}
+            className="w-full max-w-md h-14 text-lg font-bold"
           >
-            제출
+            견적 제출하기
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
+
+// 재사용 가능한 컴포넌트들
+const InfoCard = ({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <div className="flex items-center gap-2 mb-4">
+      <span className="text-blue-500">{icon}</span>
+      <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+    </div>
+    <div className="space-y-2">{children}</div>
+  </div>
+);
+
+const InfoRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex justify-between items-start text-sm gap-4">
+    <span className="text-gray-500 font-medium whitespace-nowrap">
+      {label}
+    </span>
+    <span className="text-gray-800 text-right break-words">{value}</span>
+  </div>
+);

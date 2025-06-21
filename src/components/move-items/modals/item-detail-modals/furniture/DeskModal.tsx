@@ -17,7 +17,7 @@ const DeskModal = ({ onClose, onSave, itemTypeId }: DeskModalProps) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [type, setType] = useState<string | null>(null);
   const [width, setWidth] = useState<string | null>(null);
-  const [hasGlass, setHasGlass] = useState<string | null>(null);
+  const [hasGlass, setHasGlass] = useState<boolean | null>(null);
 
   return (
     <ModalWrapper>
@@ -31,7 +31,7 @@ const DeskModal = ({ onClose, onSave, itemTypeId }: DeskModalProps) => {
       <div className="p-4 space-y-4">
         <OptionSelector
           label="종류"
-          options={["일반","ㄱ자형", "독서실 책상", "책상+서랍", "기타"]}
+          options={["일반", "ㄱ자형", "독서실 책상", "책상+서랍", "기타"]}
           selected={type}
           onSelect={setType}
         />
@@ -44,8 +44,8 @@ const DeskModal = ({ onClose, onSave, itemTypeId }: DeskModalProps) => {
         <OptionSelector
           label="유리"
           options={["있음", "없음"]}
-          selected={hasGlass}
-          onSelect={setHasGlass}
+          selected={hasGlass === true ? "있음" : hasGlass === false ? "없음" : null}
+          onSelect={(value) => setHasGlass(value === "있음" ? true : value === "없음" ? false : null)}
         />
 
         <button

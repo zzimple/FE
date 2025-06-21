@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
@@ -75,6 +76,18 @@ export default function Step4Page() {
   };
 
   const handleNext = () => {
+    // 모든 카테고리에서 선택된 짐의 총 개수를 계산합니다.
+    const totalItemCount = Object.values(selectedItems).reduce(
+      (acc, items) => acc + items.length,
+      0
+    );
+
+    // 잔짐 박스 수량과 관계없이, 선택된 짐이 하나도 없으면 알림을 띄웁니다.
+    if (totalItemCount === 0) {
+      alert("옮기실 짐을 하나 이상 선택해주세요.");
+      return; // 다음 단계로 진행하지 않습니다.
+    }
+
     localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
     localStorage.setItem("leftoverBoxCount", String(leftoverBoxCount));
     router.push("/guest/estimate/step5");
@@ -91,7 +104,7 @@ export default function Step4Page() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={4} title="짐 목록" />
       <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
+        <main className="mt-8 flex flex-col items-center">
           <h2 className="text-2xl md:text-3xl font-bold text-center mt-4 mb-2 text-gray-900">
             <span className="text-blue-600">옮길 짐</span>을 선택해 주세요.
           </h2>
@@ -137,14 +150,15 @@ export default function Step4Page() {
                         }
                         className="relative flex flex-col items-center space-y-2"
                       >
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
-                          className={`w-20 h-20 object-contain rounded-xl border-2 transition-all duration-200 ${
-                            selected
-                              ? "border-blue-500 shadow-lg"
-                              : "border-gray-200"
-                          }`}
+                          width={80}
+                          height={80}
+                          className={`object-contain rounded-xl border-2 transition-all duration-200 ${selected
+                            ? "border-blue-500 shadow-lg"
+                            : "border-gray-200"
+                            }`}
                         />
                         {selected && (
                           <div className="absolute top-2 right-2 flex items-center justify-center w-6 h-6 bg-blue-500 text-white text-base rounded-full shadow-md border-2 border-white">
@@ -160,10 +174,12 @@ export default function Step4Page() {
           </div>
           {/* 잔짐 박스 입력란 */}
           <div className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 w-full max-w-lg md:max-w-xl mx-auto">
-            <img
+            <Image
               src="/images/leftoverBox.jpeg"
               alt="잔짐 박스"
-              className="w-36 h-28 object-contain rounded border border-gray-200 bg-white mx-auto md:mx-0"
+              width={144}
+              height={112}
+              className="object-contain rounded border border-gray-200 bg-white mx-auto md:mx-0"
             />
             <div className="flex flex-col gap-1 flex-1 justify-center">
               <div className="flex items-center justify-between mb-2">
@@ -205,7 +221,7 @@ export default function Step4Page() {
           <div className="w-full flex justify-center mt-12">
             <Button
               onClick={handleNext}
-              className="w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+              className="mb-8 mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
             >
               다음
             </Button>

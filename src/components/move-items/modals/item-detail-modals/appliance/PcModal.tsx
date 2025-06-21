@@ -14,7 +14,7 @@ interface PcModalProps {
 
 const PcModal = ({ onClose, onSave, itemTypeId }: PcModalProps) => {
   const [quantity, setQuantity] = useState<number>(1);
-  const [hasPrinter, setHasPrinter] = useState<string | null>(null);
+  const [hasPrinter, setHasPrinter] = useState<boolean | null>(null);
 
   return (
     <ModalWrapper>
@@ -28,8 +28,8 @@ const PcModal = ({ onClose, onSave, itemTypeId }: PcModalProps) => {
         <OptionSelector
           label="프린터"
           options={["있음", "없음"]}
-          selected={hasPrinter}
-          onSelect={setHasPrinter}
+          selected={hasPrinter === true ? "있음" : hasPrinter === false ? "없음" : null}
+          onSelect={(value) => setHasPrinter(value === "있음" ? true : value === "없음" ? false : null)}
         />
 
         <div className="pt-4">
