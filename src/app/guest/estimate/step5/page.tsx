@@ -84,8 +84,29 @@ function getFullEtcFields(
     "specialNote",
   ];
 
+  //   return keys.reduce((acc, key) => {
+  //     acc[key] = etc[key] ?? null;
+  //     return acc;
+  //   }, {} as Record<string, string | number | boolean | null>);
+  // }
+
   return keys.reduce((acc, key) => {
-    acc[key] = etc[key] ?? null;
+    const value = etc[key];
+
+    // 수정: Boolean 필드들을 올바르게 변환
+    if (key === "hasGlass" || key === "hasPrinter" || key === "isFoldable" || key === "hasWheels") {
+      if (typeof value === "string") {
+        acc[key] = value === "있음" || value === "true" ? true :
+          value === "없음" || value === "false" ? false : null;
+      } else if (value === undefined) {
+        acc[key] = null;
+      } else {
+        acc[key] = value as boolean | null;
+      }
+    } else {
+      acc[key] = value ?? null;
+    }
+
     return acc;
   }, {} as Record<string, string | number | boolean | null>);
 }
