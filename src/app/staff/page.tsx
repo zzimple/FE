@@ -10,7 +10,7 @@ export default function StaffHome() {
       <StaffHeader />
 
       {/* 메인 배너 */}
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16">
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-24">
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-orange-600">
           직원님을 위한 ZZIMPLE
         </h1>
@@ -21,20 +21,20 @@ export default function StaffHome() {
         {/* 주요 액션 버튼들 */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Link href="/staff/schedule">
-            <button className="bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-orange-700 transition">
+            <button className="w-44 bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-orange-700 transition">
               내 스케줄 확인
             </button>
           </Link>
           <Link href="/staff/timeoff/request">
-            <button className="bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition">
+            <button className="w-44 bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition">
               휴무 신청
             </button>
           </Link>
-          <Link href="/staff/estimates">
-            <button className="bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition">
+          {/* <Link href="/staff/estimates">
+            <button className="w-44 bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition">
               견적서 확인
             </button>
-          </Link>
+          </Link> */}
         </div>
 
         {/* 직원 전용 기능 안내 */}
@@ -67,7 +67,7 @@ export default function StaffHome() {
           </div>
         </div>
 
-        {/* 오늘의 업무 요약 */}
+        {/* 오늘의 업무 요약
         <div className="w-full max-w-4xl mt-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-4 text-orange-500">
@@ -88,7 +88,7 @@ export default function StaffHome() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </main>
 
       {/* 푸터 */}

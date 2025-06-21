@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { authApi } from "@/lib/axios";
 import { useRouter } from "next/navigation";
 
+import StaffHeader from "@/components/headers/StaffHeader";
 import PasswordEditor from "@/components/mypage/PasswordEditor";
 import EmailEditor from "@/components/mypage/EmailEditor";
 import UnauthorizedPage from "@/components/common/UnauthorizedPage";
@@ -83,7 +84,7 @@ export default function StaffProfilePage() {
     fetchProfile();
   }, []);
 
-   // 권한 로딩 중인 경우 로딩 표시
+  // 권한 로딩 중인 경우 로딩 표시
   if (hasAccess === null) {
     return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
   }
@@ -95,7 +96,8 @@ export default function StaffProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="space-y-8">
+      <StaffHeader />
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
         {/* 기본 정보 섹션 */}
         <section className="space-y-6">
           <h2 className="text-lg font-semibold">기본 정보</h2>

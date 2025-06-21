@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { authApi } from "@/lib/axios";
 import Image from "next/image";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 
 interface Item {
   itemTypeId: number;
@@ -173,93 +174,97 @@ export default function BasicPricePage() {
       "조명기구": "Light"
     };
 
-  const fileName = nameMap[itemName] || "default";
+    const fileName = nameMap[itemName] || "default";
 
-  return `/icons/${folder}/${fileName}.jpeg`;
-};
+    return `/icons/${folder}/${fileName}.jpeg`;
+  };
 
-return (
-  <div className="max-w-3xl mx-auto pt-4">
-    <div className="flex items-center justify-between mb-8">
-      <h2 className="text-lg font-semibold">물품 기본금 설정</h2>
-      <button
-        onClick={() => editMode ? handleSave() : setEditMode(true)}
-        className={`
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <OwnerHeader />
+      <div className="max-w-3xl mx-auto px-4 py-8 pt-15">
+        {/* 수정: 헤더 영역의 레이아웃을 개선했습니다. */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-xl font-bold text-gray-900">물품 기본금 설정</h1>
+          <button
+            onClick={() => editMode ? handleSave() : setEditMode(true)}
+            className={`
             inline-flex items-center text-sm font-medium transition-all
             ${editMode
-            ? 'text-[#2948FF] hover:text-blue-700'
-            : 'text-gray-500 hover:text-gray-700'
-          }
+                ? 'text-[#2948FF] hover:text-blue-700'
+                : 'text-gray-500 hover:text-gray-700'
+              }
           `}
-      >
-        {editMode ? (
-          <>
-            저장
-            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </>
-        ) : (
-          <>
-            변경하기
-            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </>
-        )}
-      </button>
-    </div>
-
-    <div className="space-y-12">
-      {categories.map((category, index) => (
-        <div key={index}>
-          <div className="flex items-center gap-2 mb-6">
-            <h3 className="text-base font-medium">{category.title}</h3>
-            <div className="h-px flex-1 bg-gray-100" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {category.items.map((item) => (
-              <div
-                key={item.id}
-                className={`flex items-center justify-between p-5 rounded-2xl transition-all
-                    ${editMode
-                    ? 'bg-white border-2 border-[#2948FF] shadow-sm'
-                    : 'bg-gray-50 hover:bg-gray-100'}`}
-              >
-                <div className="flex items-center gap-4">
-
-                  <Image
-                    src={getImagePath(category.title, item.name)}
-                    alt={item.name}
-                    width={56}
-                    height={56}
-                    className="rounded-xl object-cover bg-gray-100"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = "/icons/placeholder.jpeg";
-                    }}
-                  />
-                  <span className="text-sm font-medium">{item.name}</span>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="text"
-                    value={formatPrice(getItemPrice(item.id)) + "원"}
-                    onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                    disabled={!editMode}
-                    className={`w-32 text-right outline-none rounded-lg px-3 py-2 transition-all
-                        ${editMode
-                        ? "bg-gray-50 text-[#2948FF] font-medium hover:bg-gray-100"
-                        : "bg-transparent"
-                      }`}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          >
+            {editMode ? (
+              <>
+                저장
+                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </>
+            ) : (
+              <>
+                변경하기
+                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </>
+            )}
+          </button>
         </div>
-      ))}
+
+        <div className="space-y-12">
+          {categories.map((category, index) => (
+            <div key={index}>
+              <div className="flex items-center gap-2 mb-6">
+                <h3 className="text-base font-medium">{category.title}</h3>
+                <div className="h-px flex-1 bg-gray-100" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {category.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`flex items-center justify-between p-5 rounded-2xl transition-all
+                    ${editMode
+                        ? 'bg-white border-2 border-[#2948FF] shadow-sm'
+                        : 'bg-gray-50 hover:bg-gray-100'}`}
+                  >
+                    <div className="flex items-center gap-4">
+
+                      <Image
+                        src={getImagePath(category.title, item.name)}
+                        alt={item.name}
+                        width={56}
+                        height={56}
+                        className="rounded-xl object-cover bg-gray-100"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/icons/placeholder.jpeg";
+                        }}
+                      />
+                      <span className="text-sm font-medium">{item.name}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="text"
+                        value={formatPrice(getItemPrice(item.id)) + "원"}
+                        onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                        disabled={!editMode}
+                        className={`w-32 text-right outline-none rounded-lg px-3 py-2 transition-all
+                        ${editMode
+                            ? "bg-gray-50 text-[#2948FF] font-medium hover:bg-gray-100"
+                            : "bg-transparent"
+                          }`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
 }
