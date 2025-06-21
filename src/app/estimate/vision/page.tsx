@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from "react";
 import { publicApi } from "@/lib/axios";
+import Image from "next/image"
 
 export default function VisionUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -58,7 +59,14 @@ export default function VisionUpload() {
 
       {preview && (
         <div className="mb-4">
-          <img src={preview} alt="Preview" className="max-h-64 mx-auto" />
+          <Image
+            src={preview}
+            alt="Preview"
+            width={256}
+            height={256}
+            className="max-h-64 mx-auto"
+            style={{ objectFit: 'contain' }}
+          />
         </div>
       )}
 

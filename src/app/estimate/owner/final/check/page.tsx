@@ -325,7 +325,7 @@ export default function EstimateFinalCheckPage() {
                             <div className="text-sm font-semibold text-gray-900 mb-2">최적 경로 추천</div>
                             <KakaoMapRoute
                                 estimateNo={reviewData.estimateNo}
-                                onStats={(duration, distance) => {
+                                onStatus={(duration, distance) => {
                                     setDuration(duration);
                                     setDistance(distance);
                                 }}

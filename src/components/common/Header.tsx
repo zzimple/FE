@@ -15,6 +15,9 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
+  const token = typeof window !== 'undefined' ? Cookies.get('accessToken') : null;
+
+
   // 로그인 여부 확인 (accessToken 쿠키 존재 여부로 판단)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -23,7 +26,7 @@ export default function Header() {
 
       setIsLoggedIn(!!token);
     }
-  }, [typeof window !== "undefined" && Cookies.get("accessToken")]); // <- 변경 감지 추가
+  }, [token]);
 
   // 로그아웃 핸들러
   const handleLogout = async () => {

@@ -43,45 +43,51 @@ declare global {
     }
 }
 
+const initialAddressState: AddressDetailState = {
+    roadFullAddr: "",
+    roadAddrPart1: "",
+    addrDetail: "",
+    zipNo: "",
+    entX: "",
+    entY: "",
+    buildingType: null,
+    roomType: null,
+    area: null,
+    floor: null,
+    parking: null,
+    stairs: null,
+    elevator: null,
+};
+
 export default function AddressDetailForm({
     addressLabel,
     storageKey,
     onNext,
 }: AddressDetailFormProps) {
-    const [state, setState] = useState<AddressDetailState>({
-        roadFullAddr: "",
-        roadAddrPart1: "",
-        addrDetail: "",
-        zipNo: "",
-        entX: "",
-        entY: "",
-        buildingType: null,
-        roomType: null,
-        area: null,
-        floor: null,
-        parking: null,
-        stairs: null,
-        elevator: null,
+    const [state, setState] = useState<AddressDetailState>(() => {
+        // 서버 사이드 렌더링(SSR) 중에는 window 객체가 존재하지 않으므로, 브라우저 환경인지 먼저 확인합니다.
+        if (typeof window === "undefined") {
+            return initialAddressState;
+        }
+        try {
+            const savedData = localStorage.getItem(storageKey);
+            // 저장된 데이터가 있으면 JSON으로 파싱해서 반환하고, 없으면 초기 상태를 반환합니다.
+            return savedData ? JSON.parse(savedData) : initialAddressState;
+        } catch (error) {
+            console.error("데이터 복원 중 오류 발생:", error);
+            return initialAddressState;
+        }
     });
 
-    const isInitialMount = useRef(true);
-
-    // 컴포넌트 마운트 시 localStorage에서 데이터 복원
+    // state가 변경될 때마다(사용자가 옵션을 선택할 때마다) localStorage에 자동으로 데이터를 저장합니다.
     useEffect(() => {
-        const savedData = localStorage.getItem(storageKey);
-        if (savedData) {
-            setState(JSON.parse(savedData));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (error) {
+            console.error("데이터 저장 중 오류 발생:", error);
         }
-    }, [storageKey]);
-
-    // 상태 변경 시 localStorage에 데이터 저장
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-        localStorage.setItem(storageKey, JSON.stringify(state));
     }, [state, storageKey]);
+
 
     // 주소 검색 콜백 설정
     useEffect(() => {
@@ -197,8 +203,8 @@ export default function AddressDetailForm({
                                     type="button"
                                     onClick={() => handleStateChange("buildingType", value)}
                                     className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.buildingType === value
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                         }`}
                                 >
                                     {label}
@@ -218,8 +224,8 @@ export default function AddressDetailForm({
                                     type="button"
                                     onClick={() => handleStateChange("roomType", value)}
                                     className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.roomType === value
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                         }`}
                                 >
                                     {label}
@@ -239,8 +245,8 @@ export default function AddressDetailForm({
                                     type="button"
                                     onClick={() => handleStateChange("area", label)}
                                     className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.area === label
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                         }`}
                                 >
                                     {label}
@@ -263,8 +269,8 @@ export default function AddressDetailForm({
                                     type="button"
                                     onClick={() => handleStateChange("floor", label)}
                                     className={`w-full px-3 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.floor === label
-                                            ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                         }`}
                                 >
                                     {label}
@@ -282,8 +288,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("parking", "가능")}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.parking === "가능"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 가능
@@ -292,8 +298,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("parking", "불가능")}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.parking === "불가능"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 불가능
@@ -310,8 +316,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("stairs", true)}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.stairs === true
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 예
@@ -320,8 +326,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("stairs", false)}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.stairs === false
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 아니오
@@ -338,8 +344,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("elevator", true)}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.elevator === true
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 있음
@@ -348,8 +354,8 @@ export default function AddressDetailForm({
                                 type="button"
                                 onClick={() => handleStateChange("elevator", false)}
                                 className={`flex-1 px-4 py-3 text-base rounded-xl border font-medium transition-all duration-200 ${state.elevator === false
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                                     }`}
                             >
                                 없음

@@ -11,6 +11,38 @@ import {
   removeFromAddressCookie,
 } from "@/utils/cookies";
 
+interface ToAddressState {
+  roadFullAddr: string;
+  roadAddrPart1: string;
+  addrDetail: string;
+  zipNo: string;
+  entX: string;
+  entY: string;
+  buildingType: string | null;
+  roomType: string | null;
+  area: string | null;
+  floor: string | null;
+  parking: "가능" | "불가능" | null;
+  stairs: boolean | null;
+  elevator: boolean | null;
+}
+
+interface FromAddressState {
+  roadFullAddr: string;
+  roadAddrPart1: string;
+  addrDetail: string;
+  zipNo: string;
+  entX: string;
+  entY: string;
+  buildingType: string | null;
+  roomType: string | null;
+  area: string | null;
+  floor: string | null;
+  parking: "가능" | "불가능" | null;
+  stairs: boolean | null;
+  elevator: boolean | null;
+}
+
 interface JusoCallbackType {
   roadFullAddr: string;
   roadAddrPart1: string;
