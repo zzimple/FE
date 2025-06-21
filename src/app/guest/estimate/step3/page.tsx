@@ -3,12 +3,13 @@
 import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState , useEffect} from "react";
 
 export default function Step3Page() {
   const router = useRouter();
   const [selected, setSelected] = useState<"from" | "to" | null>(null);
 
+  
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateHeader step={3} title="주소입력" />
