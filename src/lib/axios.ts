@@ -9,7 +9,9 @@ interface RetryableRequestConfig extends AxiosRequestConfig {
 
 // const BASE_URL = "http://14.63.178.146:8080";
 // const BASE_URL = "https://api.zzimple.store";
-const BASE_URL = "http://localhost:8080";
+// const BASE_URL = "http://localhost:8080";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const getAccessTokenFromCookie = (): string | null => {
   const cookies = document.cookie.split(';');
