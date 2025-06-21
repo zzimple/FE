@@ -26,7 +26,7 @@ export default function LoginPage() {
       // withCredentials는 이미 publicApi에 설정되어 있습니다.
       const res = await publicApi.post('/users/login', { loginId, password }); // 수정됨
       const { accessToken } = res.data.data;
-      localStorage.setItem('accessToken', accessToken); // 수정됨
+      document.cookie = `accessToken=${accessToken}; path=/; samesite=strict`;
       router.push('/'); // 수정됨
     } catch (err: any) {
       const code = err.response?.data?.code;
