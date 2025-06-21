@@ -1,17 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+// 수정: 인증 관련 함수를 import 합니다.
+import { authApi, getAccessTokenFromCookie } from "@/lib/axios";
 
 export default function OwnerHeader() {
   const [open, setOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = getAccessTokenFromCookie();
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authApi.post("/users/logout");
+    } catch (error) {
+      console.error("❌ 로그아웃 API 호출 실패", error);
+    } finally {
+      document.cookie =
+        "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      setIsLoggedIn(false);
+      setOpen(false);
+      router.push("/");
+      router.refresh();
+    }
+  };
 
   return (
     <header className="w-full bg-white shadow fixed top-0 left-0 z-30 font-pretendard">
       <div className="flex items-center justify-between px-6 md:px-12 py-4 h-20">
         {/* 로고 */}
         <Link
-          href="/owner"
+          href="/"
           className="text-2xl md:text-3xl font-extrabold text-green-600 tracking-tight select-none"
           style={{ fontFamily: "Pretendard, sans-serif" }}
         >
@@ -19,30 +44,56 @@ export default function OwnerHeader() {
         </Link>
         {/* 데스크탑 메뉴 */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link
-            href="/owner/estimates"
-            className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
-          >
-            견적서 관리
-          </Link>
-          <Link
-            href="/owner/staff"
-            className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
-          >
-            직원 관리
-          </Link>
-          <Link
-            href="/owner/shop"
-            className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
-          >
-            매출 관리
-          </Link>
-          <Link
-            href="/owner/profile"
-            className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
-          >
-            마이페이지
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/owner/estimates"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                견적서 관리
+              </Link>
+              <Link
+                href="/owner/staff"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                직원 관리
+              </Link>
+              <Link
+                href="/owner/shop"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                매출 관리
+              </Link>
+              <Link
+                href="/owner/profile"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                마이페이지
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            // 수정: 로그아웃 시 "로그인"과 "회원가입"을 모두 보여줍니다.
+            <>
+              <Link
+                href="/login"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/signup/user-type"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                회원가입
+              </Link>
+            </>
+          )}
         </nav>
         {/* 햄버거 버튼 */}
         <button
@@ -113,41 +164,98 @@ export default function OwnerHeader() {
               </svg>
             </button>
             <Link
-              href="/owner"
+              href="/"
               className="text-2xl font-extrabold text-green-600 mb-8 select-none"
               style={{ fontFamily: "Pretendard, sans-serif" }}
               onClick={() => setOpen(false)}
             >
               ZZIMPLE
             </Link>
-            <Link
-              href="/owner/estimates"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              견적서 관리
-            </Link>
-            <Link
-              href="/owner/staff"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              직원 관리
-            </Link>
-            <Link
-              href="/owner/shop"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              매출 관리
-            </Link>
-            <Link
-              href="/owner/profile"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              마이페이지
-            </Link>
+            {/* 수정: 모바일 메뉴도 로그인 상태에 따라 다르게 보여줍니다. */}
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/owner/estimates"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  견적서 관리
+                </Link>
+                <Link
+                  href="/owner/staff"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  직원 관리
+                </Link>
+                <Link
+                  href="/owner/shop"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  매출 관리
+                </Link>
+                <Link
+                  href="/owner/profile"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  마이페이지
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              // 수정: 로그아웃 시 "로그인"과 "회원가입"을 모두 보여줍니다.
+              <>
+                <Link
+                  href="/owner/estimates"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  견적서 관리
+                </Link>
+                <Link
+                  href="/owner/staff"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  직원 관리
+                </Link>
+                <Link
+                  href="/owner/shop"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  매출 관리
+                </Link>
+                <Link
+                  href="/owner/profile"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  마이페이지
+                </Link>
+                <Link
+                  href="/login"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/signup/user-type"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  회원가입
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

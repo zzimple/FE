@@ -20,7 +20,7 @@ export default function GuestHeader() {
       <div className="flex items-center justify-between px-6 md:px-12 py-4 h-20">
         {/* 로고 */}
         <Link
-          href="/guest"
+          href="/"
           className="text-2xl md:text-3xl font-extrabold text-[#3454FF] tracking-tight select-none"
           style={{ fontFamily: "Pretendard, sans-serif" }}
         >
@@ -53,7 +53,7 @@ export default function GuestHeader() {
                 href="/guest/profile"
                 className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
               >
-                내 정보
+                마이페이지
               </Link>
               <button
                 onClick={() => logout()}
@@ -149,7 +149,7 @@ export default function GuestHeader() {
               </svg>
             </button>
             <Link
-              href="/guest"
+              href="/"
               className="text-2xl font-extrabold text-[#3454FF] mb-8 select-none"
               style={{ fontFamily: "Pretendard, sans-serif" }}
               onClick={() => setOpen(false)}
@@ -184,7 +184,7 @@ export default function GuestHeader() {
                   className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
                   onClick={() => setOpen(false)}
                 >
-                  내 정보
+                  마이페이지
                 </Link>
                 <button
                   onClick={() => {
