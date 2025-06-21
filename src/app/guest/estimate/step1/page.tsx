@@ -11,6 +11,24 @@ export default function Step1Page() {
   const [selected, setSelected] = useState<string | null>(null);
   const [uuid, setUuid] = useState<string | null>(null);
 
+  // --- 추가된 부분 시작 ---
+  // 페이지에 다시 돌아왔을 때 이전에 선택한 이사 유형을 복원합니다.
+  useEffect(() => {
+    const savedMoveType = localStorage.getItem("selectedMoveType");
+    if (savedMoveType) {
+      setSelected(savedMoveType);
+    }
+  }, []); // 페이지 로드 시 한 번만 실행
+
+  // 선택한 이사 유형을 localStorage에 저장하여 유지합니다.
+  useEffect(() => {
+    // `selected`가 null이 아닐 때만 저장하도록 하여 초기화되는 것을 방지합니다.
+    if (selected) {
+      localStorage.setItem("selectedMoveType", selected);
+    }
+  }, [selected]);
+  // --- 추가된 부분 끝 ---
+
   // 최초 진입 시 localStorage에서 uuid 가져오기
   useEffect(() => {
     const fetchDraftId = async () => {
