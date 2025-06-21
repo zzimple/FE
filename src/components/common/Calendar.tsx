@@ -123,19 +123,37 @@ const Calendar: React.FC<CalendarProps> = ({
       </div>
 
       <div className="grid grid-cols-7 text-center text-base font-bold mb-2">
-        {WEEK_DAYS.map((day) => (
-          <div key={day}>{day}</div>
+        {/* 요일 색상 적용용 */}
+        {WEEK_DAYS.map((day, idx) => (
+          <div
+            key={day}
+            className={`${idx === 0 ? "text-red-500" : ""} ${idx === 6 ? "text-blue-500" : ""
+              }`}
+          >
+            {day}
+          </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-1 md:gap-2">
         {days.map((dateObj, idx) => {
           const ymd = dateObj.toISOString().slice(0, 10);
+          const dayOfWeek = dateObj.getDay();
           const isCurrentMonth = dateObj.getMonth() === currentMonth;
           const isSelected =
             selectedDate?.toDateString() === dateObj.toDateString();
           const isFuture = dateObj >= today;
           const info = holidayInfoList.find((d) => d.date === ymd);
+
+          // 수정 3: 날짜 색상 클래스 계산
+          const dayColorClass =
+            !isCurrentMonth
+              ? "text-gray-300"
+              : dayOfWeek === 0
+                ? "text-red-500" // 일요일
+                : dayOfWeek === 6
+                  ? "text-blue-500" // 토요일
+                  : "";
 
           return (
             <div key={idx} className="text-center">
@@ -143,11 +161,10 @@ const Calendar: React.FC<CalendarProps> = ({
                 onClick={() => handleSelect(dateObj)}
                 disabled={!isCurrentMonth || !isFuture}
                 className={`aspect-square w-8 md:w-10 rounded-xl text-base
-                  ${!isCurrentMonth ? "text-gray-300" : ""}
-                  ${
-                    !isFuture
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "hover:bg-gray-100"
+                  ${dayColorClass}
+                  ${!isFuture
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:bg-gray-100"
                   }
                   ${isSelected ? "bg-blue-500 text-white font-bold" : ""}`}
               >
