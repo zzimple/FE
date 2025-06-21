@@ -8,8 +8,6 @@ import EstimateProgressHeader from "@/components/common/EstimateHeader";
 import Button from "@/components/common/Button";
 import { authApi } from "@/lib/axios";
 
-const TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00"];
-
 interface HolidayInfo {
   date: string; // yyyy-MM-dd
   holiday?: boolean;
@@ -24,6 +22,34 @@ export default function Step2Page() {
   const [holidayInfoList, setHolidayInfoList] = useState<HolidayInfo[]>([]);
   const [currentYM, setCurrentYM] = useState<string>("");
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // --- 추가된 부분 시작 ---
+  // 페이지에 다시 돌아왔을 때 이전에 선택한 값을 복원합니다.
+  useEffect(() => {
+    const savedDate = localStorage.getItem("selectedDate");
+    if (savedDate) {
+      setSelectedDate(new Date(savedDate));
+    }
+    const savedTime = localStorage.getItem("selectedTime");
+    if (savedTime) {
+      setSelectedTime(savedTime);
+    }
+  }, []); // 페이지 로드 시 한 번만 실행
+
+  // 선택한 날짜를 localStorage에 저장하여 유지합니다.
+  useEffect(() => {
+    if (selectedDate) {
+      localStorage.setItem("selectedDate", selectedDate.toISOString());
+    }
+  }, [selectedDate]);
+
+  // 선택한 시간을 localStorage에 저장하여 유지합니다.
+  useEffect(() => {
+    if (selectedTime) {
+      localStorage.setItem("selectedTime", selectedTime);
+    }
+  }, [selectedTime]);
+  // --- 추가된 부분 끝 ---
 
   // 시/분 배열 생성
   const hourOptions = Array.from({ length: 24 }, (_, i) =>
@@ -122,7 +148,7 @@ export default function Step2Page() {
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       <EstimateProgressHeader step={2} title="예정일 입력" />
       <div className="w-full max-w-5xl px-4 md:px-12">
-        <main className="mt-16 flex flex-col items-center">
+        <main className="mt-8 flex flex-col items-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mt-4 mb-4 text-gray-900">
             <span className="text-blue-600">원하시는 날짜와 시간</span>을 선택해
             주세요.
@@ -131,7 +157,7 @@ export default function Step2Page() {
             이사 예약을 원하는 날짜와 시간을 입력해 주세요.
           </p>
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center md:items-start items-center mb-8">
-            <div className="p-0 md:p-0 w-full md:w-auto flex-shrink-0">
+            <div className="p-0 md:p-0 w-full md:w-auto flex justify-center flex-shrink-0">
               <Calendar
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
@@ -172,7 +198,7 @@ export default function Step2Page() {
           <Button
             onClick={handleConfirm}
             disabled={!selectedDate || !selectedTime}
-            className="mt-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
+            className="mt-8 mb-8 w-full max-w-md h-16 rounded-xl text-lg font-bold shadow hover:bg-blue-700 transition"
           >
             확인
           </Button>
