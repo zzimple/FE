@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/axios";
 import EstimateCard from "@/components/estimate/EstimateCard";
@@ -62,7 +63,7 @@ export default function OwnerConfirmedEstimatesPage() {
         try {
             setIsLoading(true);
             setError(null);
-            
+
             // 사장님이 보낸 견적서 중 CONFIRMED 상태인 것만 조회
             const response = await authApi.get(`/owner/my/list/confirmed`, {
                 params: {
@@ -73,7 +74,7 @@ export default function OwnerConfirmedEstimatesPage() {
 
             if (response.data.success) {
                 console.log('API Response:', response.data.data.content);
-                
+
                 // API 응답 데이터를 프론트엔드 구조에 맞게 변환
                 const processedEstimates = (response.data.data.content || []).map((item: any) => {
                     // moveDate를 년, 월, 일로 분리 (YYYYMMDD 형식)
@@ -81,13 +82,13 @@ export default function OwnerConfirmedEstimatesPage() {
                     const moveYear = moveDateStr.length >= 4 ? parseInt(moveDateStr.substring(0, 4)) : new Date().getFullYear();
                     const moveMonth = moveDateStr.length >= 6 ? parseInt(moveDateStr.substring(4, 6)) : 1;
                     const moveDay = moveDateStr.length >= 8 ? parseInt(moveDateStr.substring(6, 8)) : 1;
-                    
+
                     // 주소를 지역으로 변환 (간단한 파싱)
                     const fromRegion1 = item.roadFullAddr1?.split(' ')[0] || '';
                     const fromRegion2 = item.roadFullAddr1?.split(' ')[1] || '';
                     const toRegion1 = item.roadFullAddr2?.split(' ')[0] || '';
                     const toRegion2 = item.roadFullAddr2?.split(' ')[1] || '';
-                    
+
                     return {
                         estimateNo: item.estimateNo || 0,
                         moveYear,
@@ -108,7 +109,7 @@ export default function OwnerConfirmedEstimatesPage() {
                         assignedStaff: item.assignedStaff
                     };
                 });
-                
+
                 setEstimates(processedEstimates);
                 setTotalPages(response.data.data.totalPages || 1);
                 setTotalCount(response.data.data.totalElements || 0);
@@ -191,7 +192,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const handleAssignStaff = async (estimate: ConfirmedEstimate) => {
         setSelectedEstimate(estimate);
         setShowAssignModal(true);
-        
+
         try {
             // API 요청 정보 출력
             const requestUrl = `/owner/schedule/${estimate.estimateNo}/available-staff`;
@@ -203,17 +204,17 @@ export default function OwnerConfirmedEstimatesPage() {
                 moveType: estimate.moveType,
                 moveOption: estimate.moveOption
             });
-            
+
             const response = await authApi.get(requestUrl);
-            
+
             // API 응답 상세 정보 출력
             console.log('응답 상태:', response.status);
             console.log('응답 데이터:', response.data);
-            
+
             if (response.data.success) {
                 // API 응답 데이터 구조 확인
                 console.log('직원 데이터 상세:', JSON.stringify(response.data.data, null, 2));
-                
+
                 // API 응답 구조에 맞게 변환
                 const staffList = (response.data.data || []).map((staff: any) => {
                     console.log('개별 직원 데이터:', staff);
@@ -224,7 +225,7 @@ export default function OwnerConfirmedEstimatesPage() {
                         isAvailable: true // 목록에 있는 직원은 모두 가용한 것으로 간주
                     };
                 });
-                
+
                 console.log('변환된 직원 목록:', staffList);
                 setAvailableStaff(staffList);
             }
@@ -316,9 +317,9 @@ export default function OwnerConfirmedEstimatesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto py-8 px-4">
-                {/* 헤더 */}
+        <div className="min-h-screen bg-white-50">
+            <OwnerHeader />
+            <div className="max-w-7xl mx-auto px-4 py-8 pt-12">                {/* 헤더 */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-2xl font-bold text-gray-900">확정된 견적서 목록</h1>
@@ -338,7 +339,7 @@ export default function OwnerConfirmedEstimatesPage() {
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* 통계 정보 */}
                     <div className="bg-white rounded-xl p-6 shadow-sm">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -463,7 +464,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                 {estimates.length === 0 ? '확정된 견적서가 없습니다' : '검색 결과가 없습니다'}
                             </h3>
                             <p className="text-gray-500 text-sm">
-                                {estimates.length === 0 
+                                {estimates.length === 0
                                     ? '게스트가 확정한 견적서가 여기에 표시됩니다.'
                                     : '다른 검색 조건을 시도해보세요.'
                                 }
@@ -475,14 +476,14 @@ export default function OwnerConfirmedEstimatesPage() {
                             <div className="text-sm text-gray-500">
                                 총 {filteredEstimates.length}개의 견적서를 찾았습니다.
                             </div>
-                            
+
                             {filteredEstimates.map(estimate => (
                                 <div key={estimate.estimateNo} className="bg-white rounded-xl shadow-sm overflow-hidden">
                                     <EstimateCard
                                         estimate={estimate}
                                         onViewDetail={handleViewDetail}
                                     />
-                                    
+
                                     {/* 추가 정보 */}
                                     <div className="px-4 pb-4 border-t border-gray-100">
                                         <div className="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -520,7 +521,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                             >
                                                 상세보기
                                             </button>
-                                            
+
                                             {!estimate.totalPrice && !estimate.assignedStaff && (
                                                 <button
                                                     onClick={() => handleAssignStaff(estimate)}
@@ -530,7 +531,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                                     직원 배정
                                                 </button>
                                             )}
-                                            
+
                                             {!estimate.totalPrice && estimate.assignedStaff && (
                                                 <button
                                                     onClick={() => handleCompleteEstimate(estimate.estimateNo)}
@@ -567,7 +568,7 @@ export default function OwnerConfirmedEstimatesPage() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             직원 배정
                         </h3>
-                        
+
                         <div className="mb-4">
                             <p className="text-sm text-gray-600 mb-2">
                                 견적서 #{selectedEstimate.estimateNo}에 배정할 직원을 선택해주세요.
@@ -593,11 +594,10 @@ export default function OwnerConfirmedEstimatesPage() {
                                     .map(staff => (
                                         <label
                                             key={staff.id}
-                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                                                selectedStaffId === staff.id
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-200 hover:bg-gray-50'
-                                            }`}
+                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedStaffId === staff.id
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-200 hover:bg-gray-50'
+                                                }`}
                                         >
                                             <input
                                                 type="radio"

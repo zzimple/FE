@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { authApi } from "@/lib/axios";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 import TimeOffModal from '@/components/mypage/owner/staff/TimeOffModal';
 import TimeOffSection from "@/components/mypage/owner/staff/TimeOffSection";
 import PendingStaffSection from "@/components/mypage/owner/staff/PendingStaffSection";
@@ -187,7 +188,8 @@ export default function EmployeeListPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <OwnerHeader />
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
         {/* 성공/에러 메시지 */}
         {(errorMessage || infoMessage) && (
           <div className={`mb-6 p-4 rounded-lg text-sm ${errorMessage

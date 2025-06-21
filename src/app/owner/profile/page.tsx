@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { authApi } from "@/lib/axios";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 
 import ExtraChargeSetting from "@/components/mypage/owner/ExtraChargeSetting";
 import BasicItemPriceShortcut from "@/components/mypage/owner/BasicItemPriceShortcut";
@@ -122,8 +123,8 @@ export default function OwnerProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-
-      <div className="space-y-8">
+      <OwnerHeader />
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-8">
         {/* 기본 정보 섹션 */}
         <section className="space-y-6">
           <h2 className="text-lg font-semibold">기본 정보</h2>
@@ -198,15 +199,19 @@ export default function OwnerProfilePage() {
         </section>
 
         {/* 추가금 설정 */}
-        <ExtraChargeSetting
-          charges={charges}
-          editing={editingCharges}
-          onChange={handleChargeChange}
-          onEditToggle={handleChargesEdit}
-        />
+        <div className="mt-12">
+          <ExtraChargeSetting
+            charges={charges}
+            editing={editingCharges}
+            onChange={handleChargeChange}
+            onEditToggle={handleChargesEdit}
+          />
+        </div>
 
         {/* 물품 기본금 설정 */}
-        <BasicItemPriceShortcut />
+        <div className="mt-12">
+          <BasicItemPriceShortcut />
+        </div>
       </div>
     </div>
   );

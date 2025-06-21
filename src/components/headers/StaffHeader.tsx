@@ -1,17 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function StaffHeader() {
   const [open, setOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // 쿠키에서 accessToken 확인
+    const checkLoginStatus = () => {
+      const cookies = document.cookie.split(';');
+      const accessToken = cookies.find(cookie => 
+        cookie.trim().startsWith('accessToken=')
+      );
+      setIsLoggedIn(!!accessToken);
+    };
+
+    checkLoginStatus();
+  }, []);
+
+  const handleLogout = () => {
+    // 쿠키에서 토큰 제거
+    document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
+    // 로그인 상태 업데이트
+    setIsLoggedIn(false);
+    
+    // 홈페이지로 리다이렉트
+    router.push('/');
+  };
 
   return (
     <header className="w-full bg-white shadow fixed top-0 left-0 z-30 font-pretendard">
       <div className="flex items-center justify-between px-6 md:px-12 py-4 h-20">
         {/* 로고 */}
         <Link
-          href="/staff"
+          href="/"
           className="text-2xl md:text-3xl font-extrabold text-orange-600 tracking-tight select-none"
           style={{ fontFamily: "Pretendard, sans-serif" }}
         >
@@ -31,12 +59,37 @@ export default function StaffHeader() {
           >
             휴무 신청
           </Link>
-          <Link
-            href="/staff/profile"
-            className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
-          >
-            마이페이지
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/staff/profile"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                마이페이지
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/signup"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                회원가입
+              </Link>
+            </>
+          )}
         </nav>
         {/* 햄버거 버튼 */}
         <button
@@ -107,7 +160,7 @@ export default function StaffHeader() {
               </svg>
             </button>
             <Link
-              href="/staff"
+              href="/"
               className="text-2xl font-extrabold text-orange-600 mb-8 select-none"
               style={{ fontFamily: "Pretendard, sans-serif" }}
               onClick={() => setOpen(false)}
@@ -128,13 +181,43 @@ export default function StaffHeader() {
             >
               휴무 신청
             </Link>
-            <Link
-              href="/staff/profile"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              마이페이지
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/staff/profile"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  마이페이지
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setOpen(false);
+                  }}
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/signup"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  회원가입
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
