@@ -140,8 +140,43 @@ export default function Step7Page() {
     fetchEstimateData();
   }, []);
 
-  const handleNext = () => {
-    router.push("/guest/estimate/step8");
+  const handleNext = async () => {
+    const uuid = localStorage.getItem("uuid");
+    if (!uuid) {
+      alert("견적 ID가 없어 제출할 수 없습니다.");
+      return;
+    }
+
+    try {
+      // '견적 제출' API를 호출합니다.
+      const response = await authApi.post(`/estimates/draft/finalize/${uuid}`);
+
+      if (response.data.success) {
+        alert("견적서가 성공적으로 제출되었습니다.");
+        // 제출 성공 후, 관련 localStorage 데이터를 정리할 수 있습니다.
+        localStorage.removeItem("uuid"); 
+        localStorage.removeItem("fromAddressDetail");
+        localStorage.removeItem("leftoverBoxCount");
+        localStorage.removeItem("moveType");
+        localStorage.removeItem("selectedDate");
+        localStorage.removeItem("selectedItems");
+        localStorage.removeItem("selectedMoveType");
+        localStorage.removeItem("selectedTime");
+        localStorage.removeItem("step3Selection");
+        localStorage.removeItem("step5_boxCount");
+        localStorage.removeItem("step5_itemDetails");
+        localStorage.removeItem("step5_requestNote");
+        localStorage.removeItem("toAddressDetail");
+
+        // /guest 페이지로 이동합니다.
+        router.push("/guest");
+      } else {
+        alert(response.data.message || "견적 제출에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("견적 제출 실패:", err);
+      alert("견적 제출 중 오류가 발생했습니다.");
+    }
   };
 
   if (loading) {
