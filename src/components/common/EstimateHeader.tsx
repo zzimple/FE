@@ -24,7 +24,7 @@ export default function EstimateHeader({ step, title, totalStep = 7 }: Props) {
   };
 
   return (
-    <div className="w-full min-h-[120px] max-w-5xl px-4 md:px-12 pt-16 md:pt-24 mx-auto flex flex-col items-center bg-gray-50">
+    <div className="w-full min-h-[120px] max-w-5xl px-4 md:px-12 pt-10 md:pt-16 mx-auto flex flex-col items-center bg-gray-50">
       <div className="flex items-center w-full max-w-5xl md:gap-6">
         <button
           onClick={handleBack}
