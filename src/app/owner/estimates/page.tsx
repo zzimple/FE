@@ -35,7 +35,7 @@ interface StaffMember {
     isAvailable: boolean;
 }
 
-function OwnerConfirmedEstimatesPage() {
+export default function OwnerConfirmedEstimatesPage() {
     const router = useRouter();
     const [estimates, setEstimates] = useState<ConfirmedEstimate[]>([]);
     const [filteredEstimates, setFilteredEstimates] = useState<ConfirmedEstimate[]>([]);
