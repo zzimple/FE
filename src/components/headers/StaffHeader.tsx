@@ -13,7 +13,7 @@ export default function StaffHeader() {
     // 쿠키에서 accessToken 확인
     const checkLoginStatus = () => {
       const cookies = document.cookie.split(';');
-      const accessToken = cookies.find(cookie => 
+      const accessToken = cookies.find(cookie =>
         cookie.trim().startsWith('accessToken=')
       );
       setIsLoggedIn(!!accessToken);
@@ -26,10 +26,10 @@ export default function StaffHeader() {
     // 쿠키에서 토큰 제거
     document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    
+
     // 로그인 상태 업데이트
     setIsLoggedIn(false);
-    
+
     // 홈페이지로 리다이렉트
     router.push('/');
   };
@@ -47,6 +47,12 @@ export default function StaffHeader() {
         </Link>
         {/* 데스크탑 메뉴 */}
         <nav className="hidden md:flex items-center gap-6">
+          <Link
+            href="/staff"
+            className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+          >
+            직원 홈
+          </Link>
           <Link
             href="/staff/schedule"
             className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
@@ -166,6 +172,13 @@ export default function StaffHeader() {
               onClick={() => setOpen(false)}
             >
               ZZIMPLE
+            </Link>
+            <Link
+              href="/staff"
+              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              직원 홈
             </Link>
             <Link
               href="/staff/schedule"
