@@ -16,6 +16,11 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
+    const handlePageChange = (newPage: number) => {
+        // Pagination은 1부터 시작하므로 0부터 시작하는 page로 변환
+        setPage(newPage - 1);
+    };
+
     const fetchEstimates = React.useCallback(async () => {
         try {
             setIsLoading(true);
@@ -105,14 +110,16 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
                         ))}
 
                     </>
-                )} 
+                )}
             </div>
 
             <div className="mt-8">
                 <Pagination
-                    currentPage={page}
+                    // �� 수정: currentPage를 1부터 시작하는 값으로 변환
+                    currentPage={page + 1}
                     totalPages={totalPages}
-                    onPageChange={setPage}
+                    // 🔧 수정: onPageChange를 handlePageChange로 변경
+                    onPageChange={handlePageChange}
                 />
             </div>
         </>
