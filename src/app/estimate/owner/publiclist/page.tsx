@@ -3,6 +3,7 @@
 import React from "react";
 import EstimateList from "@/components/estimate/EstimateList";
 import EstimateSearch from "@/components/estimate/EstimateSearch";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 import { EstimateSearchParams, MoveOption, MoveType } from "@/types/estimate";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -71,7 +72,8 @@ export default function EstimateListPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto py-8 px-4">
+            <OwnerHeader />
+            <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
                 <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 목록</h1>
                 {/* <EstimateSearch onSearch={handleSearch} initialParams={searchParams} /> */}
                 <EstimateSearch onSearch={handleSearch} initialParams={estimateSearchParams} />
