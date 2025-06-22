@@ -9,6 +9,7 @@ import { getCategoryCounts, getItemDetailsNoFrame, formatMoveDateTime, NOTES, fo
 
 import { authApi } from "@/lib/axios";
 import axios from "axios";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 
 interface EstimateFinalResponse {
     success: boolean;          // API 호출 성공 여부
@@ -233,7 +234,8 @@ export default function EstimateFinalPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto py-8 px-4">
+            <OwnerHeader />
+            <div className="max-w-7xl mx-auto px-4 py-8 pt-16">
                 <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 상세</h1>
 
                 <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
@@ -429,24 +431,26 @@ export default function EstimateFinalPage() {
                             </div>
 
                             {/* 추가금 입력 폼 */}
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
-                                    placeholder="추가금 사유"
-                                    value={newChargeReason}
-                                    onChange={e => setNewChargeReason(e.target.value)}
-                                />
-                                <input
-                                    type="text"
-                                    className="w-[100px] border rounded-lg px-3 py-2 text-sm"
-                                    placeholder="금액"
-                                    value={newChargeAmount}
-                                    onChange={e => setNewChargeAmount(e.target.value)}
-                                />
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <div className="flex flex-1 items-center gap-2">
+                                    <input
+                                        type="text"
+                                        className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                                        placeholder="추가금 사유"
+                                        value={newChargeReason}
+                                        onChange={e => setNewChargeReason(e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="w-[100px] border rounded-lg px-3 py-2 text-sm"
+                                        placeholder="금액"
+                                        value={newChargeAmount}
+                                        onChange={e => setNewChargeAmount(e.target.value)}
+                                    />
+                                </div>
                                 <button
                                     onClick={handleAddExtraCharge}
-                                    className="px-4 py-2 bg-[#2988FF] text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                                    className="px-4 py-2 bg-[#2988FF] text-white text-sm rounded-lg hover:bg-blue-600 transition-colors self-end sm:self-auto"
                                 >
                                     추가
                                 </button>
