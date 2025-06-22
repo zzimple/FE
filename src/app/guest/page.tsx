@@ -21,14 +21,24 @@ export default function GuestHome() {
 
         {/* 주요 액션 버튼들 */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Link href="/guest/estimate/step1">
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition">
+          <Link href="/guest/estimate/step1" className="flex">
+            <button className="w-52 flex justify-center bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition">
               견적서 작성하기
             </button>
           </Link>
-          <Link href="/guest/estimate">
-            <button className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
-              내 견적서 보기
+          <Link href="/guest/estimate/received" className="flex">
+            <button className="w-52 flex justify-center bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+              받은 견적서 보기
+            </button>
+          </Link>
+          <Link href="/estimate/gpt" className="flex">
+            <button className="w-52 flex justify-center bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+              견적서 비교하기
+            </button>
+          </Link>
+          <Link href="/estimate/vision" className="flex">
+            <button className="w-52 flex justify-center bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+              물품 찾기
             </button>
           </Link>
         </div>
