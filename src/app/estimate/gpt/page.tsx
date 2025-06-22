@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi } from "@/lib/axios";
+import { authApi, getAccessTokenFromCookie } from "@/lib/axios";
 import Button from "@/components/common/Button";
 
 interface Estimate {
@@ -132,17 +132,15 @@ export default function EstimateGptPage() {
     // 견적서 목록 가져오기
     useEffect(() => {
         const fetchEstimates = async () => {
+            const token = getAccessTokenFromCookie();
+            if (!token) {
+                setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 console.log('🔍 견적서 목록 조회 시작...');
-                
-                // 먼저 토큰 확인
-                const token = localStorage.getItem("accessToken");
-                if (!token) {
-                    setError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-                    setTimeout(() => router.push('/login'), 2000);
-                    return;
-                }
-
                 console.log('🔑 토큰 확인됨:', token.substring(0, 20) + '...');
 
                 // API 호출
@@ -158,7 +156,7 @@ export default function EstimateGptPage() {
                 setError(null);
             } catch (err) {
                 console.error('❌ 견적서 목록 조회 실패:', err);
-                setError('견적서 목록을 불러오는데 실패했습니다. 로그인 상태를 확인해주세요.');
+                setError('견적서 목록을 불러오는데 실패했습니다. 다시 로그인해주세요.');
             } finally {
                 setIsLoading(false);
             }
@@ -302,20 +300,17 @@ export default function EstimateGptPage() {
     return (
         <div className="min-h-screen bg-white">
             <div className="max-w-6xl mx-auto py-8 px-4">
-                {/* 헤더 */}
+                {/* ✨ 수정: 헤더 영역에서 제목과 버튼 제거 */}
                 <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">견적서 AI 비교 분석</h1>
-                        <p className="mt-1 text-sm text-gray-500">
-                            여러 견적서를 선택하여 AI가 최적의 견적서를 추천해드립니다.
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => router.push('/mypage/guest/estimate')}
-                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                        ← 견적서 목록으로
-                    </button>
+                    {/* 이 부분은 비워두거나 다른 요소를 배치할 수 있습니다. */}
+                </div>
+
+                {/* ✨ 수정: 페이지 제목 및 설명을 중앙으로 이동 */}
+                <div className="text-center mb-12">
+                    <h1 className="text-2xl font-bold text-gray-900">견적서 AI 비교 분석</h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                        여러 견적서를 선택하여 AI가 최적의 견적서를 추천해드립니다.
+                    </p>
                 </div>
 
                 {error && (
@@ -528,6 +523,16 @@ export default function EstimateGptPage() {
                             );
                         })()}
                     </div>
+                </div>
+
+                {/* ✨ 수정: "견적서 목록" 버튼을 하단에 추가 */}
+                <div className="mt-12 text-center">
+                    <button
+                        onClick={() => router.push('/mypage/guest/estimate')}
+                        className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                        견적서 목록
+                    </button>
                 </div>
             </div>
         </div>
