@@ -30,6 +30,7 @@ interface EstimateDetailResponse {
     truckCount: number;
     truckTotalPrice: number;
     ownerMessage: string;
+    status: string;
     itemPriceDetails: Array<{
       itemTypeId: number;
       itemTypeName: string;
@@ -87,6 +88,7 @@ export default function ReceivedEstimateDetailPage() {
 
         if (response.data.success) {
           setEstimateData(response.data);
+          console.log('견적서 상세 데이터:', response.data);
           setError(null);
         } else {
           setError('견적서를 불러오는데 실패했습니다.');
@@ -109,6 +111,37 @@ export default function ReceivedEstimateDetailPage() {
 
     loadEstimate();
   }, [estimateNo]);
+
+  // 상태 표시 함수 추가
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'WAITING':
+        return {
+          text: '검토대기',
+          className: 'text-green-600 bg-green-50'
+        };
+      case 'ACCEPTED':
+        return {
+          text: '수락됨',
+          className: 'text-blue-600 bg-blue-50'
+        };
+      case 'CONFIRMED':
+        return {
+          text: '매칭됨',
+          className: 'text-purple-600 bg-purple-50'
+        };
+      case 'REJECTED':
+        return {
+          text: '거절됨',
+          className: 'text-red-600 bg-red-50'
+        };
+      default:
+        return {
+          text: '검토대기',
+          className: 'text-green-600 bg-green-50'
+        };
+    }
+  };
 
   // ===== 데이터 변환 =====
   const reviewData = estimateData ? {
@@ -215,6 +248,23 @@ export default function ReceivedEstimateDetailPage() {
                 <span className="text-sm text-blue-600">{reviewData.serviceType}</span>
               </div>
             </div>
+
+            {/* 견적서 상태 */}
+            {estimateData?.data.status && (
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-gray-900">견적서 상태</div>
+                <div className={PILL_CLASS}>
+                  {(() => {
+                    const statusInfo = getStatusDisplay(estimateData.data.status);
+                    return (
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${statusInfo.className}`}>
+                        {statusInfo.text}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
             {/* 예약 날짜 및 시간 */}
             <div className="space-y-1">
@@ -424,14 +474,21 @@ export default function ReceivedEstimateDetailPage() {
               </button>
             </Link>
             
-            {/* 수락 버튼 */}
-            <button 
-              onClick={handleAccept}
-              disabled={isAccepting}
-              className="flex-1 h-14 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isAccepting ? '수락 중...' : '수락하기'}
-            </button>
+            {/* 수락 버튼 - CONFIRMED나 REJECTED 상태가 아닐 때만 표시 */}
+            {(() => {
+              console.log('현재 status:', estimateData?.data.status); // 디버깅용 로그
+              console.log('CONFIRMED 체크:', estimateData?.data.status === 'CONFIRMED');
+              console.log('REJECTED 체크:', estimateData?.data.status === 'REJECTED');
+              return estimateData?.data.status !== 'CONFIRMED' && estimateData?.data.status !== 'REJECTED';
+            })() && (
+              <button 
+                onClick={handleAccept}
+                disabled={isAccepting}
+                className="flex-1 h-14 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isAccepting ? '수락 중...' : '수락하기'}
+              </button>
+            )}
           </div>
         </div>
       </div>
