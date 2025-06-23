@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/axios";
 import EstimateHeader from "@/components/common/EstimateHeader";
+import GuestHeader from "@/components/headers/GuestHeader";
 import Button from "@/components/common/Button";
 import {
   Calendar,
@@ -206,6 +207,7 @@ export default function Step7Page() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <EstimateHeader step={7} title="견적 내용 최종 확인" totalStep={8} />
+      <GuestHeader />
       <main className="max-w-4xl mx-auto p-4 md:p-8">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
           입력하신 내용을 최종 확인해주세요.
