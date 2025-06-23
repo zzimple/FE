@@ -8,11 +8,20 @@ import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
 import SelectTab from "@/components/common/SelectTab";
 import ModalWrapper from "@/components/move-items/common/ModalWrapper";
+import GuestHeader from "@/components/headers/GuestHeader";
 
 import { furnitureItems } from "@/constants/items/furnitureItems";
 import { applianceItems } from "@/constants/items/appliance";
 import { otherItems } from "@/constants/items/otherItems";
 import { MoveCategory } from "@/types/moveItem";
+import { publicApi } from "@/lib/axios";
+
+// Vision API 응답 타입 정의
+interface VisionItem {
+  itemTypeId: number;
+  itemTypeName: string;
+  category: "APPLIANCE" | "FURNITURE" | "OTHER";
+}
 
 type Item = { name: string; image: string };
 
@@ -29,6 +38,11 @@ export default function Step4Page() {
   });
   const [leftoverBoxCount, setLeftoverBoxCount] = useState(0);
   const [showBoxModal, setShowBoxModal] = useState(false);
+  
+  // Vision API 관련 상태 추가
+  const [visionItems, setVisionItems] = useState<VisionItem[]>([]);
+  const [loadingVision, setLoadingVision] = useState(false);
+  const [visionError, setVisionError] = useState<string | null>(null);
 
   const furnitureRef = useRef<HTMLDivElement>(null);
   const applianceRef = useRef<HTMLDivElement>(null);
@@ -40,6 +54,118 @@ export default function Step4Page() {
     가구: furnitureRef,
     가전: applianceRef,
     기타: otherRef,
+  };
+
+  // Vision API 호출 함수
+  const fetchVisionItems = async () => {
+    setLoadingVision(true);
+    setVisionError(null);
+
+    try {
+      console.log("Vision API 호출 시작...");
+      const response = await publicApi.get("/api/vision");
+      console.log("Vision API 응답:", response);
+      console.log("Vision API 응답 데이터:", response.data);
+      
+      // API 응답 형식: { success, message, data }
+      if (response.data.success && response.data.data) {
+        setVisionItems(response.data.data);
+      } else {
+        console.error("Vision API 응답이 올바르지 않습니다:", response.data);
+        setVisionError("AI 분석 결과를 불러오는데 실패했습니다.");
+      }
+    } catch (err: any) {
+      console.error("Vision API 호출 실패:", err);
+      console.error("에러 응답:", err.response?.data);
+      console.error("에러 상태:", err.response?.status);
+      setVisionError(`AI 분석 결과를 불러오는데 실패했습니다. (${err.response?.status || '알 수 없는 오류'})`);
+    } finally {
+      setLoadingVision(false);
+    }
+  };
+
+  // Vision 아이템을 기존 아이템과 매핑하는 함수
+  const mapVisionItemsToExistingItems = (visionItems: VisionItem[]) => {
+    const mappedItems: SelectedItems = {
+      가구: [],
+      가전: [],
+      기타: [],
+    };
+
+    visionItems.forEach((visionItem) => {
+      const categoryMap = {
+        FURNITURE: "가구" as MoveCategory,
+        APPLIANCE: "가전" as MoveCategory,
+        OTHER: "기타" as MoveCategory,
+      };
+
+      const category = categoryMap[visionItem.category];
+      
+      // 기존 아이템 목록에서 매칭되는 아이템 찾기
+      let existingItems: any[] = [];
+      switch (category) {
+        case "가구":
+          existingItems = furnitureItems;
+          break;
+        case "가전":
+          existingItems = applianceItems;
+          break;
+        case "기타":
+          existingItems = otherItems;
+          break;
+      }
+
+      // itemTypeId로 매칭 시도
+      const matchedItem = existingItems.find(
+        (item) => item.id === String(visionItem.itemTypeId)
+      );
+
+      if (matchedItem) {
+        console.log(`매칭 성공: ${visionItem.itemTypeName} (ID: ${visionItem.itemTypeId}) -> ${matchedItem.name}`);
+        mappedItems[category].push({
+          name: matchedItem.name,
+          image: matchedItem.image,
+        });
+      } else {
+        console.log(`매칭 실패: ${visionItem.itemTypeName} (ID: ${visionItem.itemTypeId}, 카테고리: ${category})`);
+      }
+    });
+
+    return mappedItems;
+  };
+
+  // Vision 아이템 적용 함수
+  const applyVisionItems = () => {
+    if (visionItems.length === 0) {
+      alert("AI 분석 결과가 없습니다.");
+      return;
+    }
+
+    const mappedItems = mapVisionItemsToExistingItems(visionItems);
+    
+    // 기존 선택된 아이템과 병합 (중복 제거)
+    setSelectedItems((prev) => {
+      const merged: SelectedItems = {
+        가구: [...prev.가구],
+        가전: [...prev.가전],
+        기타: [...prev.기타],
+      };
+
+      Object.entries(mappedItems).forEach(([category, items]) => {
+        items.forEach((item) => {
+          const existing = merged[category as MoveCategory].find(
+            (existingItem) => existingItem.name === item.name
+          );
+          if (!existing) {
+            merged[category as MoveCategory].push(item);
+          }
+        });
+      });
+
+      return merged;
+    });
+
+    alert("AI 분석 결과가 적용되었습니다.");
   };
 
   useEffect(() => {
@@ -102,6 +228,7 @@ export default function Step4Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
+      <GuestHeader />
       <EstimateHeader step={4} title="짐 목록" />
       <div className="w-full max-w-5xl px-4 md:px-12">
         <main className="mt-8 flex flex-col items-center">
@@ -123,6 +250,152 @@ export default function Step4Page() {
               </div>
             ))}
           </div>
+          
+          {/* AI 분석 결과 버튼 */}
+          <div className="flex justify-center mb-6 w-full max-w-md">
+            <Button
+              onClick={fetchVisionItems}
+              disabled={loadingVision}
+              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {loadingVision ? "AI 분석 결과 가져오는 중..." : "AI 분석 결과 가져오기"}
+            </Button>
+          </div>
+          
+          {visionError && (
+            <div className="text-red-500 text-center mb-4">
+              {visionError}
+            </div>
+          )}
+          
+          {/* AI 분석 결과 표시 섹션 */}
+          {visionItems.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                AI 분석 결과 ({visionItems.length}개)
+              </h3>
+              
+              <div className="space-y-4">
+                {["가구", "가전", "기타"].map((category) => {
+                  const categoryMap = {
+                    "가구": "FURNITURE",
+                    "가전": "APPLIANCE", 
+                    "기타": "OTHER"
+                  };
+                  
+                  const categoryItems = visionItems.filter(
+                    item => item.category === categoryMap[category as keyof typeof categoryMap]
+                  );
+                  
+                  if (categoryItems.length === 0) return null;
+                  
+                  return (
+                    <div key={category} className="border border-gray-100 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3">{category} ({categoryItems.length}개)</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {categoryItems.map((item) => {
+                          // 기존 아이템 목록에서 매칭되는 아이템 찾기
+                          let existingItems: any[] = [];
+                          switch (category) {
+                            case "가구":
+                              existingItems = furnitureItems;
+                              break;
+                            case "가전":
+                              existingItems = applianceItems;
+                              break;
+                            case "기타":
+                              existingItems = otherItems;
+                              break;
+                          }
+                          
+                          // itemTypeId로 매칭 시도
+                          const matchedItem = existingItems.find(
+                            (existingItem) => existingItem.id === String(item.itemTypeId)
+                          );
+                          
+                          const isSelected = selectedItems[category as MoveCategory].some(
+                            (selectedItem) => selectedItem.name === (matchedItem?.name || item.itemTypeName)
+                          );
+                          
+                          return (
+                            <div
+                              key={item.itemTypeId}
+                              className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+                                isSelected 
+                                  ? 'border-blue-500 bg-blue-50' 
+                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {
+                                  if (matchedItem) {
+                                    handleSelect(
+                                      category as MoveCategory,
+                                      matchedItem.name,
+                                      matchedItem.image
+                                    );
+                                  }
+                                }}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <div className="flex items-center gap-2 flex-1">
+                                {matchedItem && (
+                                  <Image
+                                    src={matchedItem.image}
+                                    alt={item.itemTypeName}
+                                    width={40}
+                                    height={40}
+                                    className="object-contain rounded"
+                                  />
+                                )}
+                                <span className="text-sm font-medium text-gray-800">
+                                  {item.itemTypeName}
+                                  {matchedItem && matchedItem.name !== item.itemTypeName && (
+                                    <span className="text-xs text-gray-500 ml-1">
+                                      ({matchedItem.name})
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                              {!matchedItem && (
+                                <span className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">
+                                  매칭 없음 (ID: {item.itemTypeId})
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={applyVisionItems}
+                  className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  선택된 항목 적용하기
+                </Button>
+                <Button
+                  onClick={() => {
+                    setVisionItems([]);
+                    setVisionError(null);
+                  }}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white"
+                >
+                  초기화
+                </Button>
+              </div>
+            </div>
+          )}
+          
           <div className="space-y-8">
             {[
               { category: "가구", items: furnitureItems, ref: furnitureRef },
