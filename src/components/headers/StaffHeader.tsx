@@ -73,6 +73,12 @@ export default function StaffHeader() {
               >
                 마이페이지
               </Link>
+              <Link
+                href="/staff/verify"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                인증하기
+              </Link>
               <button
                 onClick={handleLogout}
                 className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
@@ -202,6 +208,13 @@ export default function StaffHeader() {
                   onClick={() => setOpen(false)}
                 >
                   마이페이지
+                </Link>
+                <Link
+                  href="/staff/verify"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-orange-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  인증하기
                 </Link>
                 <button
                   onClick={() => {
