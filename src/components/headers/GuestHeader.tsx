@@ -189,7 +189,7 @@ export default function GuestHeader() {
               견적서 작성
             </Link>
             <Link
-              href="/guest/estimate"
+              href="/guest/estimate/received/list"
               className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
               onClick={() => setOpen(false)}
             >

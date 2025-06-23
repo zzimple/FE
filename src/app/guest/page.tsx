@@ -26,7 +26,7 @@ export default function GuestHome() {
               견적서 작성하기
             </button>
           </Link>
-          <Link href="/guest/estimate/received" className="flex">
+          <Link href="/guest/estimate/received/list" className="flex">
             <button className="w-52 flex justify-center bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
               받은 견적서 보기
             </button>

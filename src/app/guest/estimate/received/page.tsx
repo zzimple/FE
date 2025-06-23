@@ -4,36 +4,40 @@ import React, { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
 import Pagination from "@/components/common/Pagination";
 import GuestHeader from "@/components/headers/GuestHeader";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authApi, getAccessTokenFromCookie } from "@/lib/axios";
 
-interface Estimate {
-  estimateNo: number;
+// ✅ 새로운 API 응답 구조에 맞는 타입 정의
+interface Response {
+  storeId: number;
   storeName: string;
   truckCount: number;
-  totalPrice: number;
+  ownerMessage: string;
+  respondedAt: string;
+  itemsTotal: number;
+  extraTotal: number;
+  finalTotal: number;
+  status: string;
 }
 
-interface EstimateResponse {
-  content: Estimate[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
+interface EstimateResponsesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    estimateNo: number;
+    responses: Response[];
+  };
 }
 
 export default function ReceivedEstimatesPage() {
   const router = useRouter();
-  const [estimates, setEstimates] = useState<Estimate[]>([]);
+  const searchParams = useSearchParams();
+  const estimateNo = searchParams.get("estimateNo");
+  
+  const [responses, setResponses] = useState<Response[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rejectedEstimates, setRejectedEstimates] = useState<number[]>([]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
-  const [pageSize] = useState(10);
 
   const checkLogin = () => {
     const token = getAccessTokenFromCookie();
@@ -45,54 +49,92 @@ export default function ReceivedEstimatesPage() {
     return true;
   };
 
-  const fetchEstimates = async (page: number) => {
+  const fetchResponses = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
       if (!checkLogin()) return;
 
-      const response = await authApi.get("/guest/my/estimate/list", {
-        params: {
-          page: page - 1,
-          size: pageSize
-        },
-      });
+      if (!estimateNo) {
+        setError("견적서 번호가 없습니다.");
+        return;
+      }
+
+      // ✅ 새로운 엔드포인트 사용
+      const response = await authApi.get<EstimateResponsesResponse>(`/guest/my/${estimateNo}/responses`);
 
       if (response.data.success) {
-        const data: EstimateResponse = response.data.data;
-        setEstimates(data.content || []);
-        setTotalPages(data.totalPages || 1);
-        setTotalElements(data.totalElements || 0);
+        const data = response.data.data;
+        setResponses(data.responses || []);
       } else {
-        setError("견적서 목록을 불러오는데 실패했습니다.");
+        setError("견적서 응답을 불러오는데 실패했습니다.");
       }
     } catch (err: any) {
-      console.error("견적서 목록 조회 실패:", err);
+      console.error("견적서 응답 조회 실패:", err);
 
       if (err.response?.status === 401) {
         setError("인증이 만료되었습니다. 다시 로그인해주세요.");
+      } else if (err.response?.status === 404) {
+        setError("견적서를 찾을 수 없습니다.");
       } else {
-        setError("견적서 목록을 불러오는데 실패했습니다.");
+        setError("견적서 응답을 불러오는데 실패했습니다.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    fetchEstimates(page);
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // 상태 표시 함수 추가
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'WAITING':
+        return {
+          text: '검토대기',
+          className: 'text-green-600 bg-green-50'
+        };
+      case 'ACCEPTED':
+        return {
+          text: '수락됨',
+          className: 'text-blue-600 bg-blue-50'
+        };
+      case 'CONFIRMED':
+        return {
+          text: '매칭됨',
+          className: 'text-purple-600 bg-purple-50'
+        };
+      case 'REJECTED':
+        return {
+          text: '거절됨',
+          className: 'text-red-600 bg-red-50'
+        };
+      default:
+        return {
+          text: '검토대기',
+          className: 'text-green-600 bg-green-50'
+        };
+    }
   };
 
   useEffect(() => {
-    fetchEstimates(currentPage);
+    fetchResponses();
 
     const rejected = JSON.parse(
       localStorage.getItem("rejectedEstimates") || "[]"
     );
     setRejectedEstimates(rejected);
-  }, []);
+  }, [estimateNo]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -105,7 +147,6 @@ export default function ReceivedEstimatesPage() {
               받은 견적서
             </h1>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              {/* 수정 3: 설명 텍스트를 왼쪽으로, AI 버튼을 오른쪽으로 */}
               <div className="text-left">
                 <p className="text-gray-600 text-sm">
                   어떤 업체를 선택해야 할지 고민된다면? AI에게 견적서 비교 요청을 해보세요!
@@ -113,20 +154,26 @@ export default function ReceivedEstimatesPage() {
               </div>
               <Button
                 className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium"
-                onClick={() => router.push(`/estimate/gpt`)}
+                onClick={() => router.push(`/estimate/gpt?estimateNo=${estimateNo}`)}
               >
                 AI 견적서 비교
               </Button>
             </div>
           </div>
 
-          {/* 통계 */}
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex justify-between items-center text-sm text-gray-600">
-              <span>총 {totalElements}개의 견적서</span>
-              <span>{currentPage} / {totalPages} 페이지</span>
+          {/* 견적서 정보 */}
+          {estimateNo && (
+            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+              <div className="text-center">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  견적서 #{estimateNo}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  총 {responses.length}개의 응답을 받았습니다
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 로딩 */}
           {isLoading ? (
@@ -154,7 +201,7 @@ export default function ReceivedEstimatesPage() {
             <>
               {/* 견적서 목록 */}
               <div className="space-y-4">
-                {estimates.length === 0 ? (
+                {responses.length === 0 ? (
                   <div className="bg-white rounded-lg shadow-sm p-12">
                     <div className="text-center">
                       <p className="text-gray-600 mb-2">받은 견적서가 없습니다</p>
@@ -162,68 +209,82 @@ export default function ReceivedEstimatesPage() {
                     </div>
                   </div>
                 ) : (
-                  estimates
-                    .filter(estimate => !rejectedEstimates.includes(estimate.estimateNo))
-                    .map((estimate) => (
+                  responses
+                    .filter(response => !rejectedEstimates.includes(response.storeId))
+                    .map((response) => (
                       <div
-                        key={estimate.estimateNo}
+                        key={response.storeId}
                         className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
                               <h3 className="text-xl font-bold text-gray-900">
-                                {estimate.storeName}
+                                {response.storeName}
                               </h3>
                               <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                #{estimate.estimateNo}
+                                #{estimateNo}
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                               <div>
                                 <p className="text-sm text-gray-600 mb-1">견적가</p>
                                 <p className="text-lg font-bold text-blue-600">
-                                  {estimate.totalPrice.toLocaleString()}원
+                                  {response.finalTotal.toLocaleString()}원
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm text-gray-600 mb-1">트럭 수</p>
                                 <p className="text-lg font-semibold text-gray-900">
-                                  {estimate.truckCount}대
+                                  {response.truckCount}대
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm text-gray-600 mb-1">상태</p>
-                                {/* 수정 1: 검토 대기 배경을 글씨에 맞춤 */}
-                                <span className="inline-block text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                                  검토 대기
-                                </span>
+                                {(() => {
+                                  const statusInfo = getStatusDisplay(response.status);
+                                  return (
+                                    <span className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${statusInfo.className}`}>
+                                      {statusInfo.text}
+                                    </span>
+                                  );
+                                })()}
                               </div>
                             </div>
+
+                            {/* ✅ 상세 정보 표시 */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 text-sm text-gray-600">
+                              <div>
+                                <p>아이템 총액: {response.itemsTotal.toLocaleString()}원</p>
+                                <p>추가 비용: {response.extraTotal.toLocaleString()}원</p>
+                              </div>
+                              <div>
+                                <p>응답 시간: {formatDateTime(response.respondedAt)}</p>
+                              </div>
+                            </div>
+
+                            {response.ownerMessage && (
+                              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                <p className="text-sm text-gray-700">{response.ownerMessage}</p>
+                              </div>
+                            )}
                           </div>
 
-                          <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="flex flex-col gap-2">
                             <Button
-                              className="w-full sm:w-32 bg-blue-500 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium"
-                              onClick={() => {
-                                router.push(`/guest/estimate/received/detail?estimateNo=${estimate.estimateNo}`);
-                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                              onClick={() => router.push(`/guest/estimate/received/detail?estimateNo=${estimateNo}&storeId=${response.storeId}`)}
                             >
                               상세보기
+
                             </Button>
-                            {/* 수정 2: 거절 버튼을 더 눈에 띄게 변경 */}
                             {/* <Button
-                              className="w-full sm:w-24 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg"
                               onClick={() => {
-                                const rejected = JSON.parse(
-                                  localStorage.getItem("rejectedEstimates") || "[]"
-                                );
-                                if (!rejected.includes(estimate.estimateNo)) {
-                                  rejected.push(estimate.estimateNo);
-                                  localStorage.setItem("rejectedEstimates", JSON.stringify(rejected));
-                                  setRejectedEstimates(rejected);
-                                }
+                                const newRejected = [...rejectedEstimates, response.storeId];
+                                setRejectedEstimates(newRejected);
+                                localStorage.setItem("rejectedEstimates", JSON.stringify(newRejected));
                               }}
                             >
                               거절
@@ -234,17 +295,6 @@ export default function ReceivedEstimatesPage() {
                     ))
                 )}
               </div>
-
-              {/* 페이지네이션 */}
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
             </>
           )}
         </div>

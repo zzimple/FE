@@ -31,6 +31,7 @@ interface EstimateFinalResponse {
         customerMemo: string;      // 고객 메모
         estimatedCost?: number;    // 예상 비용
         finalPrice?: number;       // 최종 가격
+        storeId?: number;          // 매장 ID
     };
 }
 
@@ -64,7 +65,22 @@ export default function EstimateFinalPage() {
     const [duration, setDuration] = useState<number | null>(null);   // ← 추가
     const [distance, setDistance] = useState<number | null>(null);   // ← 추가
 
-    const [estimatedCost, setEstimatedCost] = useState<number>(0);
+    // ✅ storeId 상태 추가
+    /* ===== 상태 추가 ===== */
+    const [storeId, setStoreId] = useState<number | null>(null);  // <-- storeId 상태 추가
+    const [estimatedCost, setEstimatedCost] = useState(0);
+
+    // EstimateFinalPage (bill 페이지) 내에서
+    const handleNext = () => {
+        if (!storeId) {
+            alert("매장 정보가 없습니다.");
+            return;
+        }
+        // estimateNo 와 함께 storeId를 쿼리스트링에 붙여서 체크 페이지로 이동
+        router.push(
+            `/estimate/owner/final/check?estimateNo=${estimateNo}&storeId=${storeId}`
+        );
+    };
 
     // API 데이터 가져오기
     useEffect(() => {
@@ -81,7 +97,9 @@ export default function EstimateFinalPage() {
                 const response = await authApi.get<EstimateFinalResponse>(`/estimates/owner/drafts/${estimateNo}`);
                 console.log("🔥 moveDate:", response.data.data.moveDate);
                 console.log("🔥 moveTime:", response.data.data.moveTime);
+                console.log("🔥 전체 응답 데이터:", response.data);
                 setEstimateData(response.data);
+
                 setError(null);
             } catch (error) {
                 console.error('견적서 데이터 조회 실패:', error);
@@ -101,18 +119,63 @@ export default function EstimateFinalPage() {
             }
         };
 
+        const fetchStoreInfo = async () => {
+            try {
+                const response = await authApi.get("/owner/profile");
+                if (response.data.success && response.data.data.storeId) {
+                    setStoreId(response.data.data.storeId);
+                    console.log("🔍 [fetchStoreInfo] storeId:", response.data.data.storeId);
+                } else {
+                    console.error("❌ [fetchStoreInfo] storeId가 응답에 없습니다:", response.data);
+                }
+            } catch (error) {
+                console.error('매장 정보 조회 실패:', error);
+            }
+        };
+        
         const fetchEstimatedCost = async () => {
             try {
+                console.log("🔍 [fetchEstimatedCost] API 호출 시작:", estimateNo);
                 const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
-                const items = res.data.data.items || [];
-                const total = items.reduce((sum: number, item: any) => sum + (item.itemTotal || 0), 0);
-                setEstimatedCost(total); // ✅ set 후 바로 console 찍어도 값은 이전 값일 수 있음
-            } catch {
+                console.log("🔍 [fetchEstimatedCost] API 응답:", res.data);
+
+                // 응답 구조 확인 및 안전한 데이터 접근
+                const responseData = res.data;
+                if (!responseData.success) {
+                    console.error("❌ [fetchEstimatedCost] API 호출 실패:", responseData.message);
+                    setEstimatedCost(0);
+                    return;
+                }
+
+                const items = responseData.data?.items || [];
+                console.log("🔍 [fetchEstimatedCost] items 배열:", items);
+
+                // itemTotal 필드가 있는지 확인하고 안전하게 계산
+                const total = items.reduce((sum: number, item: any) => {
+                    const itemTotal = item.itemTotal || item.total || item.price || 0;
+                    console.log(`🔍 [fetchEstimatedCost] item ${item.itemTypeId || item.id}: ${itemTotal}`);
+                    return sum + itemTotal;
+                }, 0);
+
+                console.log("🔍 [fetchEstimatedCost] 계산된 총액:", total);
+                setEstimatedCost(total);
+
+                // ✅ storeId도 함께 가져오기
+                const storeIdFromResponse = responseData.data?.storeId;
+                if (storeIdFromResponse) {
+                    setStoreId(storeIdFromResponse);
+                    console.log("🔍 [fetchEstimatedCost] storeId:", storeIdFromResponse);
+                } else {
+                    console.warn("⚠️ [fetchEstimatedCost] storeId가 응답에 없습니다:", responseData.data);
+                }
+            } catch (error) {
+                console.error("❌ [fetchEstimatedCost] API 호출 중 오류:", error);
                 setEstimatedCost(0);
             }
         };
 
         fetchEstimateData();
+        fetchStoreInfo();
         fetchEstimatedCost();
     }, [estimateNo, searchParams]);
 
@@ -120,6 +183,11 @@ export default function EstimateFinalPage() {
     useEffect(() => {
         console.log("🔁 estimatedCost updated:", estimatedCost);
     }, [estimatedCost]);
+
+    // ✅ storeId 상태 변화 추적
+    useEffect(() => {
+        console.log("🔁 storeId updated:", storeId);
+    }, [storeId]);
 
     // ===== 데이터 변환 =====
     const reviewData = estimateData ? {
@@ -159,6 +227,12 @@ export default function EstimateFinalPage() {
             return;
         }
 
+        // ✅ storeId가 없으면 경고
+        if (!storeId) {
+            alert('매장 정보를 가져올 수 없습니다. 다시 시도해주세요.');
+            return;
+        }
+
         try {
             const response = await authApi.post(`/estimates/owner/drafts/${estimateNo}/save-owner-input`,
                 {
@@ -170,7 +244,7 @@ export default function EstimateFinalPage() {
             );
 
             if (response.data.success) {
-                router.push(`/estimate/owner/final/check?estimateNo=${estimateNo}`);
+                router.push(`/estimate/owner/final/check?estimateNo=${estimateNo}&storeId=${storeId}`);
             } else {
                 alert('견적서 제출에 실패했습니다.');
             }
@@ -513,7 +587,7 @@ export default function EstimateFinalPage() {
         </div>
     );
 }
-
 function setError(arg0: null) {
     throw new Error("Function not implemented.");
 }
+

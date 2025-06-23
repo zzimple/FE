@@ -50,6 +50,9 @@ interface TimeOffRequest {
 
 export default function TimeOffRequestPage() {
     const router = useRouter();
+    const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [timeOffType, setTimeOffType] = useState('연차');
@@ -58,6 +61,59 @@ export default function TimeOffRequestPage() {
 
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+
+    // staff 권한 확인
+    useEffect(() => {
+        const checkStaffAccess = async () => {
+            try {
+                const res = await authApi.get("/staff/profile");
+                if (res.data.success) {
+                    setHasAccess(true);
+                    setIsLoading(false);
+                } else {
+                    setHasAccess(false);
+                    setIsLoading(false);
+                }
+            } catch (e) {
+                console.error("Staff 권한 확인 실패", e);
+                setHasAccess(false);
+                setIsLoading(false);
+            }
+        };
+
+        checkStaffAccess();
+    }, []);
+
+    // 권한이 확인된 후에만 데이터 로드
+    useEffect(() => {
+        if (hasAccess === true) {
+            fetchTimeOffHistory();
+        }
+    }, [hasAccess]);
+
+    // 휴무 내역을 가져오는 함수
+    const fetchTimeOffHistory = useCallback(async (currentPage = page) => {
+        try {
+            const response = await authApi.get('/staff/time-off/me', {
+                params: { page: currentPage, size: 5 }
+            });
+            setTimeOffHistory(response.data.content);
+            setTotalPages(response.data.totalPages);
+        } catch (err) {
+            console.error('휴무 내역 조회 실패:', err);
+        }
+    }, [page]);
+
+    // 로딩 중인 경우 로딩 표시
+    if (isLoading) {
+        return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+    }
+
+    // 권한 없는 경우 verify 페이지로 리다이렉트
+    if (hasAccess === false) {
+        router.push("/staff/verify");
+        return <div className="text-center mt-20 text-gray-500">인증 페이지로 이동 중...</div>;
+    }
 
     // ✨ 오늘 날짜를 YYYY-MM-DD 형식으로 가져오는 함수 추가
     const getTodayString = () => {
@@ -78,24 +134,6 @@ export default function TimeOffRequestPage() {
             setEndDate(newStartDate);
         }
     };
-
-    // 휴무 내역을 가져오는 함수
-    const fetchTimeOffHistory = useCallback(async (currentPage = page) => {
-        try {
-            const response = await authApi.get('/staff/time-off/me', {
-                params: { page: currentPage, size: 5 }
-            });
-            setTimeOffHistory(response.data.content);
-            setTotalPages(response.data.totalPages);
-        } catch (err) {
-            console.error('휴무 내역 조회 실패:', err);
-        }
-    }, [page]);
-
-    // 페이지 변경될 때마다 불러오기
-    useEffect(() => {
-        fetchTimeOffHistory();
-    }, [fetchTimeOffHistory]);
 
     // 휴무 신청 후 자동 갱신
     const handleSubmit = async (e: React.FormEvent) => {

@@ -60,11 +60,15 @@ export default function ReceivedEstimateDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'가구' | '가전' | '기타' | '전체'>('전체');
+  const [isAccepting, setIsAccepting] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const estimateNoParam = searchParams.get("estimateNo");
   const estimateNo = estimateNoParam ? parseInt(estimateNoParam, 10) : null;
+
+  const storeIdParam = searchParams.get("storeId");
+  const storeId = storeIdParam ? parseInt(storeIdParam, 10) : null;
 
   // API 데이터 가져오기
   useEffect(() => {
@@ -78,7 +82,7 @@ export default function ReceivedEstimateDetailPage() {
       try {
         // Guest용 API만 사용
         const response = await authApi.get<EstimateDetailResponse>(
-          `/view/estimate/${estimateNo}`
+          `/view/stores/${storeId}/estimates/${estimateNo}`
         );
 
         if (response.data.success) {
@@ -150,6 +154,38 @@ export default function ReceivedEstimateDetailPage() {
     router.back();
   }
 
+  // 수락 API 호출 함수
+  const handleAccept = async () => {
+    if (!estimateNo || !storeId) {
+      alert('견적서 정보가 올바르지 않습니다.');
+      return;
+    }
+
+    try {
+      setIsAccepting(true);
+      const response = await authApi.put(`/guest/my/${estimateNo}/respond/${storeId}`);
+      
+      if (response.data.success) {
+        alert('견적서가 성공적으로 수락되었습니다.');
+        // 수락 성공 후 견적서 목록으로 이동
+        router.push('/guest/estimate/received/list');
+      } else {
+        alert(response.data.message || '견적서 수락에 실패했습니다.');
+      }
+    } catch (err: any) {
+      console.error('견적서 수락 실패:', err);
+      if (err.response?.status === 400) {
+        alert('이미 수락된 견적서입니다.');
+      } else if (err.response?.status === 404) {
+        alert('견적서를 찾을 수 없습니다.');
+      } else {
+        alert('견적서 수락 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
   // ===== 렌더링 =====
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">로딩중...</div>;
@@ -168,7 +204,7 @@ export default function ReceivedEstimateDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <GuestHeader />
         <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
-          
+
           <h1 className="text-2xl font-bold mb-8 text-center text-gray-900">견적서 상세</h1>
 
           <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
@@ -380,12 +416,22 @@ export default function ReceivedEstimateDetailPage() {
           </div>
 
           {/* 견적서 목록 버튼 */}
-          <div className="mt-8">
-            <Link href="/guest/estimate/received" className="block w-full">
+          <div className="mt-8 flex gap-4">
+            {/* 견적서 목록 버튼 */}
+            <Link href="/guest/estimate/received/list" className="flex-1">
               <button className="w-full h-14 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-colors">
                 견적서 목록
               </button>
             </Link>
+            
+            {/* 수락 버튼 */}
+            <button 
+              onClick={handleAccept}
+              disabled={isAccepting}
+              className="flex-1 h-14 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isAccepting ? '수락 중...' : '수락하기'}
+            </button>
           </div>
         </div>
       </div>

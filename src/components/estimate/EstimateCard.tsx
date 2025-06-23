@@ -7,18 +7,39 @@ interface EstimateCardProps {
     onViewDetail: (id: number) => void;
 }
 
+// export default function EstimateCard({ estimate, onViewDetail }: EstimateCardProps) {
+//     const statusBadge = (status: Estimate["status"]) => {
+//         const styles = STATUS_BADGE_STYLES[status];
+//         return (
+//             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
+//                 {styles.label}
+//             </span>
+//         );
+//     };
+
 export default function EstimateCard({ estimate, onViewDetail }: EstimateCardProps) {
-    const statusBadge = (status: Estimate["status"]) => {
+    // ✅ 수정: acceptedByMe가 true면 '수락 완료' 뱃지로 표시
+    const statusBadge = (status: Estimate["status"], acceptedByMe?: boolean) => {
+        if (acceptedByMe) {
+            return (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                    수락 완료
+                </span>
+            );
+        }
+
         const styles = STATUS_BADGE_STYLES[status];
         return (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
+            <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}
+            >
                 {styles.label}
             </span>
         );
     };
 
     return (
-        <div 
+        <div
             className="group bg-white rounded-xl p-4 hover:shadow-sm transition-all cursor-pointer"
             onClick={() => onViewDetail(estimate.estimateNo)}
         >

@@ -126,7 +126,7 @@ export default function Step6Page() {
           }
         );
         console.log("가정이사 옵션 저장 성공:", res.data);
-        router.push("/guest/estimate/stpe7");
+        router.push("/guest/estimate/step7");
       } catch (err) {
         console.error("가정이사 옵션 저장 실패:", err);
         alert("이사 옵션 저장 중 문제가 발생했어요.");

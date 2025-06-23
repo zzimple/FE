@@ -1,52 +1,53 @@
-export type MoveType = "SMALL" | "FAMILY" ;
-export type MoveOption = "BASIC" | "PACKAGING" | "SEMI_PACKAGING" ;
+export type MoveType = "SMALL" | "FAMILY";
+export type MoveOption = "BASIC" | "PACKAGING" | "SEMI_PACKAGING";
 export type EstimateStatus = "WAITING" | "ACCEPTED" | "REJECTED" | "CONFIRMED" | "COMPLETED";
 
 export interface Estimate {
-    estimateNo: number;
-    moveYear: number;
-    moveMonth: number;
-    moveDay: number;
-    moveType: "" | MoveType;
-    moveOption: "" | MoveOption;
-    fromRegion1: string;
-    fromRegion2: string;
-    toRegion1: string;
-    toRegion2: string;
-    status: EstimateStatus;
+  estimateNo: number;
+  moveYear: number;
+  moveMonth: number;
+  moveDay: number;
+  moveType: "" | MoveType;
+  moveOption: "" | MoveOption;
+  fromRegion1: string;
+  fromRegion2: string;
+  toRegion1: string;
+  toRegion2: string;
+  status: EstimateStatus;
+  acceptedByMe?: boolean;
 }
 
 export interface EstimateSearchParams {
-    moveYear: string;
-    moveMonth: string;
-    moveDay: string;
-    moveType: "" | MoveType;
-    moveOption: "" | MoveOption;
-    fromRegion1: string;
-    fromRegion2: string;
-    toRegion1: string;
-    toRegion2: string;
-    // status: EstimateStatus;
+  moveYear: string;
+  moveMonth: string;
+  moveDay: string;
+  moveType: "" | MoveType;
+  moveOption: "" | MoveOption;
+  fromRegion1: string;
+  fromRegion2: string;
+  toRegion1: string;
+  toRegion2: string;
+  // status: EstimateStatus;
 }
 
 export const MOVE_TYPE_LABELS: Record<MoveType, string> = {
-    SMALL: "소형이사",
-    FAMILY: "가정이사"
+  SMALL: "소형이사",
+  FAMILY: "가정이사"
 };
 
 export const MOVE_OPTION_LABELS: Record<MoveOption, string> = {
-    BASIC: "일반",
-    PACKAGING: "포장이사",
-    SEMI_PACKAGING: "포장"
+  BASIC: "일반",
+  PACKAGING: "포장이사",
+  SEMI_PACKAGING: "포장"
 };
 
 export const STATUS_BADGE_STYLES: Record<EstimateStatus, { bg: string; text: string; label: string }> = {
-    WAITING: { bg: "bg-yellow-50", text: "text-yellow-600", label: "대기중" },
-    ACCEPTED: { bg: "bg-green-50", text: "text-green-600", label: "수락" },
-    REJECTED: { bg: "bg-red-50", text: "text-red-600", label: "거절" },
-    CONFIRMED: { bg: "bg-blue-50", text: "text-blue-600", label: "확정" },
-    COMPLETED: { bg: "bg-purple-50", text: "text-purple-600", label: "완료" },
-}; 
+  WAITING: { bg: "bg-yellow-50", text: "text-yellow-600", label: "대기중" },
+  ACCEPTED: { bg: "bg-green-50", text: "text-green-600", label: "수락" },
+  REJECTED: { bg: "bg-red-50", text: "text-red-600", label: "거절" },
+  CONFIRMED: { bg: "bg-blue-50", text: "text-blue-600", label: "확정" },
+  COMPLETED: { bg: "bg-purple-50", text: "text-purple-600", label: "완료" },
+};
 
 export interface Address {
   roadFullAddr: string;      // 전체 도로명 주소

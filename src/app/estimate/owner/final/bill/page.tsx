@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/axios";
 import OwnerHeader from "@/components/headers/OwnerHeader";
+import axios from "axios";
 
 // 타입 정의
 interface EstimateItem {
@@ -184,26 +185,56 @@ function BillPageContent() {
             const newShowExtra: { [id: number]: boolean } = {};
 
             data.forEach((item: {
+                estimateNo: number;
                 itemTypeId: number;
+                itemTypeName: string;
+                moveItemCategory: string;
                 basePrice: number;
-                reason: string;
                 extraCharge: number;
-            }) => {
+                reason: string;
+            }, index: number) => {
+                console.log(`�� [handleLoadPrices] 아이템 ${index + 1}:`, item);
+
+                // ✅ basePrice 필드 사용
                 newPriceMap[item.itemTypeId] = item.basePrice || 0;
 
+                // ✅ reason과 extraCharge 필드 사용
                 const reason = item.reason || "";
                 const amount = item.extraCharge || 0;
 
                 newExtraChargeMap[item.itemTypeId] = { reason, amount };
+                // ✅ 추가금이 있을 때만 showExtra를 true로 설정
                 newShowExtra[item.itemTypeId] = reason.length > 0 && amount > 0;
             });
+
+            console.log("�� [handleLoadPrices] 새로운 priceMap:", newPriceMap);
+            console.log("�� [handleLoadPrices] 새로운 extraChargeMap:", newExtraChargeMap);
+            console.log("�� [handleLoadPrices] 새로운 showExtra:", newShowExtra);
 
             setPriceMap(newPriceMap);
             setExtraChargeMap(newExtraChargeMap);
             setShowExtra(newShowExtra);
+
+            // ✅ 성공 메시지 추가
+            alert("이전 입력을 성공적으로 가져왔습니다.");
+
         } catch (e) {
-            console.error("가격 불러오기 실패", e);
-            alert("단가 정보를 불러오지 못했습니다.");
+            console.error("❌ [handleLoadPrices] 가격 불러오기 실패", e);
+
+            if (axios.isAxiosError(e)) {
+                console.error("❌ [handleLoadPrices] 에러 상태:", e.response?.status);
+                console.error("❌ [handleLoadPrices] 에러 메시지:", e.response?.data);
+
+                if (e.response?.status === 404) {
+                    alert("이전 입력 데이터를 찾을 수 없습니다.");
+                } else if (e.response?.status === 403) {
+                    alert("이전 입력 데이터에 접근할 권한이 없습니다.");
+                } else {
+                    alert(`단가 정보를 불러오지 못했습니다. (${e.response?.status})`);
+                }
+            } else {
+                alert("단가 정보를 불러오지 못했습니다.");
+            }
         }
     };
 
@@ -273,16 +304,16 @@ function BillPageContent() {
         };
         calculateTotal();
     }, [priceMap, extraChargeMap, showExtra, items]);
-    
+
     return (
         <div className="min-h-screen bg-gray-50 font-pretendard">
             <OwnerHeader />
-            
+
             <main className="pt-24 pb-40">
                 <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
                     품목별 비용 산정
                 </h2>
-                
+
                 <div className="px-4 flex justify-center gap-4 mb-8">
                     <button
                         onClick={handleLoadDefaultPrices}

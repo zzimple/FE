@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { authApi } from "@/lib/axios";
+import { useRouter } from "next/navigation";
 import OwnerHeader from "@/components/headers/OwnerHeader";
 import TimeOffModal from '@/components/mypage/owner/staff/TimeOffModal';
 import TimeOffSection from "@/components/mypage/owner/staff/TimeOffSection";
 import PendingStaffSection from "@/components/mypage/owner/staff/PendingStaffSection";
 import ApprovedStaffSection from "@/components/mypage/owner/staff/ApprovedStaffSection";
+import UnauthorizedPage from "@/components/common/UnauthorizedPage";
 
 type Status = "APPROVED" | "PENDING" | "REJECTED";
 
@@ -31,6 +33,10 @@ type TimeOffRequest = {
 };
 
 export default function EmployeeListPage() {
+  const router = useRouter();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // 활성 탭
   const [activeTab, setActiveTab] = useState<'staff' | 'timeoff'>('staff');
   // 직원 리스트
@@ -47,10 +53,47 @@ export default function EmployeeListPage() {
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [showRejectedModal, setShowRejectedModal] = useState(false);
 
+  // owner 권한 확인
   useEffect(() => {
-    fetchStaffList();
-    fetchAllTimeoffRequests();
+    const checkOwnerAccess = async () => {
+      try {
+        const res = await authApi.get("/owner/profile");
+        if (res.data.success) {
+          setHasAccess(true);
+          setIsLoading(false);
+        } else {
+          setHasAccess(false);
+          setIsLoading(false);
+        }
+      } catch (e: any) {
+        console.error("Owner 권한 확인 실패", e);
+        
+        // 401 에러인 경우 로그인 페이지로 리다이렉트
+        if (e.response?.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        
+        // 403 에러인 경우 권한 없음
+        if (e.response?.status === 403) {
+          setErrorMessage("사장님 계정으로 로그인해주세요.");
+        }
+        
+        setHasAccess(false);
+        setIsLoading(false);
+      }
+    };
+
+    checkOwnerAccess();
   }, []);
+
+  // 권한이 확인된 후에만 데이터 로드
+  useEffect(() => {
+    if (hasAccess === true) {
+      fetchStaffList();
+      fetchAllTimeoffRequests();
+    }
+  }, [hasAccess]);
 
   // 가게 직원 리스트 불러오기 
   const fetchStaffList = async () => {
@@ -61,10 +104,21 @@ export default function EmployeeListPage() {
       setApprovedEmployees(all.filter((e) => e.status === "APPROVED"));
       setPendingEmployees(all.filter((e) => e.status === "PENDING"));
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
       console.error("직원 리스트 불러오기 실패", err);
       setApprovedEmployees([]);
       setPendingEmployees([]);
+      
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
+      // 403 에러인 경우 권한 문제로 처리
+      if (err.response?.status === 403) {
+        setErrorMessage("직원 관리 권한이 없습니다. 사장님 계정으로 로그인해주세요.");
+      }
     }
   };
 
@@ -82,9 +136,20 @@ export default function EmployeeListPage() {
       ];
       setTimeoffRequests(combined);
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
       console.error("휴무 신청 목록 불러오기 실패", err);
       setTimeoffRequests([]);
+      
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
+      // 403 에러인 경우 권한 문제로 처리
+      if (err.response?.status === 403) {
+        setErrorMessage("휴무 관리 권한이 없습니다. 사장님 계정으로 로그인해주세요.");
+      }
     }
   };
 
@@ -109,6 +174,12 @@ export default function EmployeeListPage() {
       setApprovedEmployees((prev) => [...prev, { ...target, status: returnedStatus }]);
       setPendingEmployees((prev) => prev.filter((e) => e.staffId !== staffId));
     } catch (err: any) {
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "승인 요청 중 오류가 발생했습니다.");
     }
@@ -133,6 +204,12 @@ export default function EmployeeListPage() {
 
       setPendingEmployees((prev) => prev.filter((e) => e.staffId !== staffId));
     } catch (err: any) {
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "거절 요청 중 오류가 발생했습니다.");
     }
@@ -154,7 +231,14 @@ export default function EmployeeListPage() {
         )
       );
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
+      
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "휴무 승인 중 오류가 발생했습니다.");
     }
@@ -175,7 +259,14 @@ export default function EmployeeListPage() {
         )
       );
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
+      
+      // 401 에러인 경우 로그인 페이지로 리다이렉트
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      
       const serverError = err.response?.data?.message;
       setErrorMessage(serverError || "휴무 거절 중 오류가 발생했습니다.");
     }
@@ -185,6 +276,16 @@ export default function EmployeeListPage() {
   const filterTimeoffByStatus = (status: Status) => {
     return timeoffRequests.filter((request) => request.status === status);
   };
+
+  // 로딩 중인 경우 로딩 표시
+  if (isLoading) {
+    return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+  }
+
+  // 권한 없는 경우
+  if (hasAccess === false) {
+    return <UnauthorizedPage />;
+  }
 
   return (
     <div className="min-h-screen bg-white">

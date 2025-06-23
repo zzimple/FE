@@ -69,11 +69,17 @@ export default function EstimateFinalCheckPage() {
     const estimateNoParam = searchParams.get("estimateNo");
     const estimateNo = estimateNoParam ? parseInt(estimateNoParam, 10) : null;
 
+    const storeIdParam = searchParams.get("storeId");
+    const storeId = storeIdParam ? parseInt(storeIdParam, 10) : null;
+
     const hasCalculated = useRef(false);
 
 
     // API 데이터 가져오기
     useEffect(() => {
+
+        console.log("▶️ estimateNo:", estimateNo);
+        console.log("▶️ storeId:", storeId);
         if (!estimateNo || isNaN(estimateNo) || estimateNo <= 0) {
             setError('잘못된 견적서 번호입니다.');
             setIsLoading(false);
@@ -103,7 +109,7 @@ export default function EstimateFinalCheckPage() {
 
                 // 3) view estimate 상세 정보 (itemPriceDetails, extraCharges, totalPrice)
                 const viewResp = await authApi.get<EstimateFinalCheckResponse>(
-                    `/view/estimate/${estimateNo}`
+                    `/view/stores/${storeId}/estimates/${estimateNo}`
                 );
 
                 // 4) 두 응답을 머지해서 state에 저장
