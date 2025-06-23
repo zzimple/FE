@@ -7,6 +7,7 @@ import EstimateHeader from "@/components/common/EstimateHeader";
 import SelectTab from "@/components/common/SelectTab";
 import { authApi } from "@/lib/axios";
 import Image from "next/image";
+import GuestHeader from "@/components/headers/GuestHeader";
 
 interface ServiceOption {
   id: string;
@@ -135,6 +136,7 @@ export default function Step6Page() {
 
     return (
       <div className="min-h-screen flex flex-col items-center bg-gray-50">
+        <GuestHeader />
         <EstimateHeader step={6} title="서비스 종류" />
         <div className="w-full max-w-5xl px-4 md:px-12">
           <main className="mt-8 flex flex-col items-center">
@@ -241,6 +243,7 @@ export default function Step6Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
+      <GuestHeader />
       <EstimateHeader step={6} title="서비스 종류" />
       <div className="w-full max-w-5xl px-4 md:px-12">
         <main className="mt-8 flex flex-col items-center">

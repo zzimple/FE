@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { authApi } from "@/lib/axios";
 import Button from "@/components/common/Button";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
+import GuestHeader from "@/components/headers/GuestHeader";
 import { useRouter } from "next/navigation";
 
 export default function Step1Page() {
@@ -91,6 +92,7 @@ export default function Step1Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
+      <GuestHeader />
       <EstimateProgressHeader step={1} title="이사 유형 선택" />
       <div className="w-full max-w-5xl px-4 md:px-12">
         <main className="mt-10 flex flex-col items-center">

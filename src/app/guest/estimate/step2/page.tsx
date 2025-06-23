@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Calendar from "@/components/common/Calendar";
 import TimePicker from "@/components/common/TimePicker";
 import EstimateProgressHeader from "@/components/common/EstimateHeader";
+import GuestHeader from "@/components/headers/GuestHeader";
 import Button from "@/components/common/Button";
 import { authApi } from "@/lib/axios";
 
@@ -146,6 +147,7 @@ export default function Step2Page() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
+      <GuestHeader />
       <EstimateProgressHeader step={2} title="예정일 입력" />
       <div className="w-full max-w-5xl px-4 md:px-12">
         <main className="mt-8 flex flex-col items-center">

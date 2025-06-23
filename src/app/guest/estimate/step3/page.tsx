@@ -2,6 +2,7 @@
 
 import Button from "@/components/common/Button";
 import EstimateHeader from "@/components/common/EstimateHeader";
+import GuestHeader from "@/components/headers/GuestHeader";
 import { useRouter } from "next/navigation";
 import { useState , useEffect} from "react";
 
@@ -12,6 +13,7 @@ export default function Step3Page() {
   
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
+      <GuestHeader />
       <EstimateHeader step={3} title="주소입력" />
       <div className="w-full max-w-5xl px-4 md:px-12">
         <main className="mt-8 flex flex-col items-center">
