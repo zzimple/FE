@@ -11,6 +11,7 @@ export default function VisionUpload() {
     const [preview, setPreview] = useState<string | null>(null);
     const [detectedItems, setDetectedItems] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isDragOver, setIsDragOver] = useState(false);
 
@@ -72,6 +73,51 @@ export default function VisionUpload() {
             setError("분석 중 오류가 발생했습니다.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 저장 API 호출 함수 추가
+    const handleSave = async () => {
+        if (detectedItems.length === 0) return;
+        
+        setSaving(true);
+        setError(null);
+
+        try {
+            // 요청한 request body 구조에 맞게 데이터 구성
+            const requestBody = {
+                additionalProp1: detectedItems,
+                additionalProp2: detectedItems,
+                additionalProp3: detectedItems
+            };
+
+            console.log("전송할 데이터:", requestBody); // 디버깅용 로그 추가
+
+            const response = await publicApi.post("/api/vision/save", requestBody);
+
+            if (response.data.success) {
+                alert("분석 결과가 성공적으로 저장되었습니다.");
+            } else {
+                setError("저장 중 오류가 발생했습니다.");
+            }
+        } catch (err: any) {
+            console.error("저장 실패:", err);
+            console.error("에러 응답:", err.response?.data);
+            console.error("에러 상태:", err.response?.status);
+            
+            if (err.response?.status === 400) {
+                setError(`저장 실패: ${err.response?.data?.message || '잘못된 요청입니다.'}`);
+            } else if (err.response?.status === 401) {
+                setError("인증이 필요합니다.");
+            } else if (err.response?.status === 403) {
+                setError("저장 권한이 없습니다.");
+            } else if (err.response?.status === 404) {
+                setError("저장 API를 찾을 수 없습니다.");
+            } else {
+                setError(`저장 중 오류가 발생했습니다. (${err.response?.status || '알 수 없는 오류'})`);
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -146,14 +192,25 @@ export default function VisionUpload() {
                                     {error}
                                 </div>
                             ) : detectedItems.length > 0 ? (
-                                <ul className="space-y-3">
-                                    {detectedItems.map((item, index) => (
-                                        <li key={index} className="flex items-center bg-gray-50 p-3 rounded-lg">
-                                            <svg className="w-5 h-5 text-cyan-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"></path></svg>
-                                            <span className="text-gray-800">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <div>
+                                    <ul className="space-y-3 mb-6">
+                                        {detectedItems.map((item, index) => (
+                                            <li key={index} className="flex items-center bg-gray-50 p-3 rounded-lg">
+                                                <svg className="w-5 h-5 text-cyan-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"></path></svg>
+                                                <span className="text-gray-800">{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    
+                                    {/* 저장 버튼 */}
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                        {saving ? "저장 중..." : "저장하기"}
+                                    </Button>
+                                </div>
                             ) : (
                                 <div className="text-center py-10 text-gray-500">
                                     이미지를 업로드하고 분석하기 버튼을 눌러주세요.
