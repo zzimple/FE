@@ -549,7 +549,7 @@ export default function EstimateGptPage() {
                 {/* ✨ 수정: "견적서 목록" 버튼을 하단에 추가 */}
                 <div className="mt-12 text-center">
                     <button
-                        onClick={() => router.push('/guest/estimate/received')}
+                        onClick={() => router.push(`/guest/estimate/received?estimateNo=${estimateNo}`)}
                         className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                     >
                         견적서 목록
