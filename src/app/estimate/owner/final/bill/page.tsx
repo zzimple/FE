@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/axios";
+import OwnerHeader from "@/components/headers/OwnerHeader";
 
 // 타입 정의
 interface EstimateItem {
@@ -134,7 +135,8 @@ const getImagePath = (category: string, name: string): string => {
     return `/icons/${folder}/${fileName}.jpeg`;
 };
 
-export default function EstimatePriceByEstimateId() {
+// ✨ 수정: 페이지 로직을 담당할 내부 컴포넌트 생성
+function BillPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const estimateNo = parseInt(searchParams.get("estimateNo") ?? "", 10);
@@ -258,177 +260,156 @@ export default function EstimatePriceByEstimateId() {
         grouped[item.category].push(item);
     });
 
+    useEffect(() => {
+        const calculateTotal = () => {
+            let total = 0;
+            items.forEach(item => {
+                total += priceMap[item.itemTypeId] || 0;
+                if (showExtra[item.itemTypeId]) {
+                    total += extraChargeMap[item.itemTypeId]?.amount || 0;
+                }
+            });
+            setTotalAmount(total);
+        };
+        calculateTotal();
+    }, [priceMap, extraChargeMap, showExtra, items]);
+    
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <div className="max-w-2xl mx-auto py-8">
-                <div className="flex items-center justify-between mb-8">
-                    {/* 왼쪽: 이전 페이지 버튼 */}
+        <div className="min-h-screen bg-gray-50 font-pretendard">
+            <OwnerHeader />
+            
+            <main className="pt-24 pb-40">
+                <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+                    품목별 비용 산정
+                </h2>
+                
+                <div className="px-4 flex justify-center gap-4 mb-8">
                     <button
-                        onClick={() => router.push(`/estimate/owner/final?estimateNo=${estimateNo}`)}
-                        className="flex items-center bg-gray-100 text-gray-600 px-3 py-2 rounded hover:bg-gray-200"
+                        onClick={handleLoadDefaultPrices}
+                        className="flex-grow sm:flex-grow-0 px-4 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
                     >
-                        <span className="mr-1">&lt;</span>
-                        이전페이지
+                        기본 단가 불러오기
                     </button>
-
-                    {/* 가운데: 제목 */}
-                    <h2 className="text-lg font-semibold text-center flex-1">
-                        기본 단가 및 추가금 입력
-                    </h2>
-
-                    {/* 오른쪽: 빈 공간 */}
-                    <div className="w-[100px]" />
+                    <button
+                        onClick={handleLoadPrices}
+                        className="flex-grow sm:flex-grow-0 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        이전 입력 가져오기
+                    </button>
                 </div>
 
-                {loading && <div className="text-center py-8">로딩 중...</div>}
+                <div className="px-4 space-y-4">
+                    {loading && <div className="text-center py-8">로딩 중...</div>}
+                    {!loading && items.length === 0 && <div className="text-center py-12 text-gray-500">등록된 짐이 없습니다.</div>}
 
-                {
-                    !loading && items.length > 0 && (
-                        <>
-                            <div className="space-y-12">
-                                {CATEGORY_ORDER.map((cat) =>
-                                    grouped[cat] && grouped[cat].length > 0 ? (
-                                        <div key={cat}>
-                                            <div className="flex items-center gap-2 mb-6">
-                                                <h3 className="text-base font-bold">{cat}</h3>
-                                                <div className="h-px flex-1 bg-gray-100" />
+                    {!loading && CATEGORY_ORDER.map((cat) =>
+                        grouped[cat] && grouped[cat].length > 0 ? (
+                            <div key={cat} className="space-y-3">
+                                <h3 className="text-lg font-semibold text-gray-900 px-1">{cat}</h3>
+                                {grouped[cat].map((item) => (
+                                    <div key={item.itemTypeId} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                                <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                                                    <Image
+                                                        src={getImagePath(item.category, item.name)}
+                                                        alt={item.name}
+                                                        width={64}
+                                                        height={64}
+                                                        className="object-cover w-full h-full"
+                                                        onError={(e) => { e.currentTarget.src = "/icons/placeholder.jpeg"; }}
+                                                    />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <div className="text-base font-semibold text-gray-800">{item.name}</div>
+                                                    <div className="text-sm text-gray-500">{item.category}</div>
+                                                </div>
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {grouped[cat].map((item) => (
-                                                    <div
-                                                        key={item.itemTypeId}
-                                                        className="flex flex-col items-center justify-between p-5 rounded-2xl bg-white border shadow-sm"
-                                                    >
-                                                        <Image
-                                                            src={getImagePath(item.category, item.name)}
-                                                            alt={item.name}
-                                                            width={56}
-                                                            height={56}
-                                                            className="rounded-xl object-cover bg-gray-100"
-                                                            onError={(e) => {
-                                                                const target = e.target as HTMLImageElement;
-                                                                target.src = "/icons/placeholder.jpeg";
-                                                            }}
+
+                                            <div className="flex-grow w-full">
+                                                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                                                    <div className="relative flex-grow">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="기본 비용"
+                                                            className="w-full h-12 px-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                                            value={priceMap[item.itemTypeId] || ''}
+                                                            onChange={(e) => setPriceMap(prev => ({ ...prev, [item.itemTypeId]: parseInt(e.target.value) || 0 }))}
                                                         />
-                                                        <span className="text-sm font-medium mt-2">{item.name}</span>
-                                                        <div className="flex items-center w-full mt-3">
-                                                            <input
-                                                                value={priceMap[item.itemTypeId] ?? 0}
-                                                                onChange={(e) =>
-                                                                    setPriceMap((prev) => ({
-                                                                        ...prev,
-                                                                        [item.itemTypeId]: parseInt(e.target.value || "0"),
-                                                                    }))
-                                                                }
-                                                                className="flex-1 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
-                                                                placeholder="기본 단가"
-                                                            />
-                                                            <span className="ml-1 text-gray-700">원</span>
-                                                        </div>
-                                                        {!showExtra[item.itemTypeId] ? (
-                                                            <button
-                                                                className="mt-2 text-xs text-blue-600 border border-blue-200 rounded px-2 py-1 hover:bg-blue-50"
-                                                                onClick={() =>
-                                                                    setShowExtra((prev) => ({
-                                                                        ...prev,
-                                                                        [item.itemTypeId]: true,
-                                                                    }))
-                                                                }
-                                                            >
-                                                                + 추가금
-                                                            </button>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2 w-full mt-2">
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="사유 (예: 사다리차)"
-                                                                    className="flex-[2] min-w-0 px-3 py-2 border rounded"
-                                                                    value={extraChargeMap[item.itemTypeId]?.reason || ""}
-                                                                    onChange={(e) =>
-                                                                        setExtraChargeMap((prev) => ({
-                                                                            ...prev,
-                                                                            [item.itemTypeId]: {
-                                                                                ...prev[item.itemTypeId],
-                                                                                reason: e.target.value,
-                                                                                amount: prev[item.itemTypeId]?.amount || 0,
-                                                                            },
-                                                                        }))
-                                                                    }
-                                                                />
-                                                                <input
-                                                                    placeholder="0"
-                                                                    className="flex-[1] min-w-0 text-right outline-none rounded-lg px-3 py-2 bg-gray-50 border"
-                                                                    value={extraChargeMap[item.itemTypeId]?.amount || ""}
-                                                                    onChange={(e) =>
-                                                                        setExtraChargeMap((prev) => ({
-                                                                            ...prev,
-                                                                            [item.itemTypeId]: {
-                                                                                ...prev[item.itemTypeId],
-                                                                                amount: parseInt(e.target.value || "0"),
-                                                                                reason: prev[item.itemTypeId]?.reason || "",
-                                                                            },
-                                                                        }))
-                                                                    }
-                                                                />
-                                                                <span className="ml-1 text-gray-700 whitespace-nowrap">원</span>
-                                                            </div>
-                                                        )}
+                                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">원</span>
                                                     </div>
-                                                ))}
+                                                    <button
+                                                        className="h-12 px-4 text-sm font-medium text-blue-600 border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap"
+                                                        onClick={() => setShowExtra(prev => ({ ...prev, [item.itemTypeId]: !prev[item.itemTypeId] }))}
+                                                    >
+                                                        {showExtra[item.itemTypeId] ? '추가금 닫기' : '추가금 열기'}
+                                                    </button>
+                                                </div>
+
+                                                {showExtra[item.itemTypeId] && (
+                                                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="추가금 사유"
+                                                            className="flex-grow h-12 px-4 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500"
+                                                            value={extraChargeMap[item.itemTypeId]?.reason || ''}
+                                                            onChange={(e) => setExtraChargeMap(prev => ({ ...prev, [item.itemTypeId]: { ...prev[item.itemTypeId], reason: e.target.value, amount: prev[item.itemTypeId]?.amount || 0 } }))}
+                                                        />
+                                                        <div className="relative flex-grow">
+                                                            <input
+                                                                type="number"
+                                                                placeholder="추가 금액"
+                                                                className="w-full h-12 px-4 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500"
+                                                                value={extraChargeMap[item.itemTypeId]?.amount || ''}
+                                                                onChange={(e) => setExtraChargeMap(prev => ({ ...prev, [item.itemTypeId]: { ...prev[item.itemTypeId], amount: parseInt(e.target.value) || 0, reason: prev[item.itemTypeId]?.reason || '' } }))}
+                                                            />
+                                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">원</span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    ) : null
-                                )}
+                                    </div>
+                                ))}
                             </div>
+                        ) : null
+                    )}
+                </div>
+            </main>
 
-                            <div className="mt-10 space-y-6">
-                                {/* 가격 불러오기 버튼들 */}
-                                <div className="flex justify-center gap-4">
-                                    <button
-                                        onClick={handleLoadDefaultPrices}
-                                        className="flex items-center gap-2 bg-white border border-blue-200 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                        </svg>
-                                        기본 단가 불러오기
-                                    </button>
-                                    <button
-                                        onClick={handleLoadPrices}
-                                        className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                                        </svg>
-                                        이전 입력 가져오기
-                                    </button>
-                                </div>
-
-                                {/* 저장 버튼과 총액 */}
-                                <div className="text-center">
-                                    <button
-                                        onClick={handleSave}
-                                        className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                                    >
-                                        저장하기
-                                    </button>
-                                    {totalAmount > 0 && (
-                                        <div className="mt-4 text-lg font-bold text-blue-600">
-                                            물품 총 금액: {totalAmount.toLocaleString()}원
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )
-                }
-
-                {
-                    !loading && items.length === 0 && (
-                        <div className="text-center text-gray-400 py-8">짐 목록이 없습니다.</div>
-                    )
-                }
+            <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200 shadow-top z-10">
+                <div className="max-w-2xl mx-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <span className="text-lg font-bold text-gray-800">총 합계</span>
+                        <span className="text-xl font-bold text-blue-600">
+                            {totalAmount ? totalAmount.toLocaleString() : 0}원
+                        </span>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => router.back()}
+                            className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                        >
+                            계속 작성하기
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                            저장하기
+                        </button>
+                    </div>
+                </div>
             </div>
+        </div>
+    );
+}
+
+// ✨ 수정: export default 컴포넌트는 Suspense로 내부 컴포넌트를 감싸는 역할만 하도록 변경
+export default function EstimatePriceByEstimateId() {
+    return (
+        <Suspense fallback={<div className="text-center py-10">페이지를 불러오는 중입니다...</div>}>
+            <BillPageContent />
         </Suspense>
     );
 }

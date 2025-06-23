@@ -47,6 +47,12 @@ export default function OwnerHeader() {
           {isLoggedIn ? (
             <>
               <Link
+                href="/owner"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                사장님 홈
+              </Link>
+              <Link
                 href="/owner/estimates"
                 className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
               >
@@ -175,6 +181,13 @@ export default function OwnerHeader() {
             {isLoggedIn ? (
               <>
                 <Link
+                  href="/owner"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  사장님 홈
+                </Link>
+                <Link
                   href="/owner/estimates"
                   className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
                   onClick={() => setOpen(false)}
@@ -218,6 +231,13 @@ export default function OwnerHeader() {
                   onClick={() => setOpen(false)}
                 >
                   견적서 관리
+                </Link>
+                <Link
+                  href="/estimate/publiclist"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  고객 견적서 
                 </Link>
                 <Link
                   href="/owner/staff"

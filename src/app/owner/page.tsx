@@ -22,17 +22,22 @@ export default function OwnerHome() {
         {/* 주요 액션 버튼들 */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <Link href="/owner/estimates">
-            <button className="bg-green-600 text-white border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-40">
-              견적서 관리
+            <button className="bg-green-600 text-white border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-42">
+              내 견적서 관리
+            </button>
+          </Link>
+          <Link href="/estimate/owner/publiclist">
+            <button className="bg-white text-green-600 border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-42">
+              고객 견적서
             </button>
           </Link>
           <Link href="/owner/staff">
-            <button className="bg-white text-green-600 border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-40">
+            <button className="bg-white text-green-600 border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-42">
               직원 관리
             </button>
           </Link>
           <Link href="/owner/shop">
-            <button className="bg-white text-green-600 border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-40">
+            <button className="bg-white text-green-600 border-2 border-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition w-42">
               매출 관리
             </button>
           </Link>
