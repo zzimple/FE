@@ -4,7 +4,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { publicApi } from '@/lib/axios';
+import { authApi } from '@/lib/axios';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError('');
     try {
       // withCredentials는 이미 publicApi에 설정되어 있습니다.
-      const res = await publicApi.post('/users/login', { loginId, password }); // 수정됨
+      const res = await authApi.post('/users/login', { loginId, password }); // 수정됨
       const { accessToken } = res.data.data;
       document.cookie = `accessToken=${accessToken}; path=/; samesite=strict`;
       router.push('/'); // 수정됨
