@@ -38,7 +38,7 @@ export default function Step4Page() {
   });
   const [leftoverBoxCount, setLeftoverBoxCount] = useState(0);
   const [showBoxModal, setShowBoxModal] = useState(false);
-  
+
   // Vision API 관련 상태 추가
   const [visionItems, setVisionItems] = useState<VisionItem[]>([]);
   const [loadingVision, setLoadingVision] = useState(false);
@@ -66,7 +66,7 @@ export default function Step4Page() {
       const response = await publicApi.get("/api/vision");
       console.log("Vision API 응답:", response);
       console.log("Vision API 응답 데이터:", response.data);
-      
+
       // API 응답 형식: { success, message, data }
       if (response.data.success && response.data.data) {
         setVisionItems(response.data.data);
@@ -100,7 +100,7 @@ export default function Step4Page() {
       };
 
       const category = categoryMap[visionItem.category];
-      
+
       // 기존 아이템 목록에서 매칭되는 아이템 찾기
       let existingItems: any[] = [];
       switch (category) {
@@ -142,7 +142,7 @@ export default function Step4Page() {
     }
 
     const mappedItems = mapVisionItemsToExistingItems(visionItems);
-    
+
     // 기존 선택된 아이템과 병합 (중복 제거)
     setSelectedItems((prev) => {
       const merged: SelectedItems = {
@@ -250,24 +250,24 @@ export default function Step4Page() {
               </div>
             ))}
           </div>
-          
+
           {/* AI 분석 결과 버튼 */}
           <div className="flex justify-center mb-6 w-full max-w-md">
             <Button
               onClick={fetchVisionItems}
               disabled={loadingVision}
-              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold"
             >
               {loadingVision ? "AI 분석 결과 가져오는 중..." : "AI 분석 결과 가져오기"}
             </Button>
           </div>
-          
+
           {visionError && (
             <div className="text-red-500 text-center mb-4">
               {visionError}
             </div>
           )}
-          
+
           {/* AI 분석 결과 표시 섹션 */}
           {visionItems.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
@@ -277,21 +277,21 @@ export default function Step4Page() {
                 </svg>
                 AI 분석 결과 ({visionItems.length}개)
               </h3>
-              
+
               <div className="space-y-4">
                 {["가구", "가전", "기타"].map((category) => {
                   const categoryMap = {
                     "가구": "FURNITURE",
-                    "가전": "APPLIANCE", 
+                    "가전": "APPLIANCE",
                     "기타": "OTHER"
                   };
-                  
+
                   const categoryItems = visionItems.filter(
                     item => item.category === categoryMap[category as keyof typeof categoryMap]
                   );
-                  
+
                   if (categoryItems.length === 0) return null;
-                  
+
                   return (
                     <div key={category} className="border border-gray-100 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-800 mb-3">{category} ({categoryItems.length}개)</h4>
@@ -310,24 +310,23 @@ export default function Step4Page() {
                               existingItems = otherItems;
                               break;
                           }
-                          
+
                           // itemTypeId로 매칭 시도
                           const matchedItem = existingItems.find(
                             (existingItem) => existingItem.id === String(item.itemTypeId)
                           );
-                          
+
                           const isSelected = selectedItems[category as MoveCategory].some(
                             (selectedItem) => selectedItem.name === (matchedItem?.name || item.itemTypeName)
                           );
-                          
+
                           return (
                             <div
                               key={item.itemTypeId}
-                              className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
-                                isSelected 
-                                  ? 'border-blue-500 bg-blue-50' 
-                                  : 'border-gray-200 bg-white hover:border-gray-300'
-                              }`}
+                              className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${isSelected
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                }`}
                             >
                               <input
                                 type="checkbox"
@@ -375,11 +374,11 @@ export default function Step4Page() {
                   );
                 })}
               </div>
-              
-              <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-200">
                 <Button
                   onClick={applyVisionItems}
-                  className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full sm:w-1/2 h-12 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
                 >
                   선택된 항목 적용하기
                 </Button>
@@ -388,14 +387,14 @@ export default function Step4Page() {
                     setVisionItems([]);
                     setVisionError(null);
                   }}
-                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white"
+                  className="w-full sm:w-1/2 h-12 rounded-lg bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold"
                 >
                   초기화
                 </Button>
               </div>
             </div>
           )}
-          
+
           <div className="space-y-8">
             {[
               { category: "가구", items: furnitureItems, ref: furnitureRef },

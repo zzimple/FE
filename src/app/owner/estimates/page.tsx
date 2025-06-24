@@ -612,7 +612,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                                 <div className="text-sm text-gray-500">{staff.phone}</div>
                                             </div>
                                             <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                                사용 가능
+                                                배정 가능
                                             </div>
                                         </label>
                                     ))
