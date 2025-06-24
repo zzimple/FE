@@ -68,7 +68,9 @@ export default function EstimateFinalPage() {
     // ✅ storeId 상태 추가
     /* ===== 상태 추가 ===== */
     const [storeId, setStoreId] = useState<number | null>(null);  // <-- storeId 상태 추가
-    const [estimatedCost, setEstimatedCost] = useState(0);
+    // const [estimatedCost, setEstimatedCost] = useState(0);
+    const amountParam = searchParams.get("amount");
+    const estimatedCost = amountParam ? parseInt(amountParam) : 0;
 
     // EstimateFinalPage (bill 페이지) 내에서
     const handleNext = () => {
@@ -132,51 +134,12 @@ export default function EstimateFinalPage() {
                 console.error('매장 정보 조회 실패:', error);
             }
         };
-        
-        const fetchEstimatedCost = async () => {
-            try {
-                console.log("🔍 [fetchEstimatedCost] API 호출 시작:", estimateNo);
-                const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
-                console.log("🔍 [fetchEstimatedCost] API 응답:", res.data);
 
-                // 응답 구조 확인 및 안전한 데이터 접근
-                const responseData = res.data;
-                if (!responseData.success) {
-                    console.error("❌ [fetchEstimatedCost] API 호출 실패:", responseData.message);
-                    setEstimatedCost(0);
-                    return;
-                }
 
-                const items = responseData.data?.items || [];
-                console.log("🔍 [fetchEstimatedCost] items 배열:", items);
-
-                // itemTotal 필드가 있는지 확인하고 안전하게 계산
-                const total = items.reduce((sum: number, item: any) => {
-                    const itemTotal = item.itemTotal || item.total || item.price || 0;
-                    console.log(`🔍 [fetchEstimatedCost] item ${item.itemTypeId || item.id}: ${itemTotal}`);
-                    return sum + itemTotal;
-                }, 0);
-
-                console.log("🔍 [fetchEstimatedCost] 계산된 총액:", total);
-                setEstimatedCost(total);
-
-                // ✅ storeId도 함께 가져오기
-                const storeIdFromResponse = responseData.data?.storeId;
-                if (storeIdFromResponse) {
-                    setStoreId(storeIdFromResponse);
-                    console.log("🔍 [fetchEstimatedCost] storeId:", storeIdFromResponse);
-                } else {
-                    console.warn("⚠️ [fetchEstimatedCost] storeId가 응답에 없습니다:", responseData.data);
-                }
-            } catch (error) {
-                console.error("❌ [fetchEstimatedCost] API 호출 중 오류:", error);
-                setEstimatedCost(0);
-            }
-        };
 
         fetchEstimateData();
         fetchStoreInfo();
-        fetchEstimatedCost();
+        // fetchEstimatedCost();
     }, [estimateNo, searchParams]);
 
     // ✅ 실시간 반영 여부 확인용 로그 추가

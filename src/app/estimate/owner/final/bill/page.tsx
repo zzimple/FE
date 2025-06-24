@@ -148,6 +148,8 @@ function BillPageContent() {
     const [showExtra, setShowExtra] = useState<{ [id: number]: boolean }>({});
     const [loading, setLoading] = useState(true);
     const [totalAmount, setTotalAmount] = useState<number>(0);
+    const [estimatedCost, setEstimatedCost] = useState(0);
+
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -174,6 +176,47 @@ function BillPageContent() {
             fetchItems();
         }
     }, [estimateNo]);
+
+    const fetchEstimatedCost = async () => {
+        try {
+            console.log("🔍 [fetchEstimatedCost] API 호출 시작:", estimateNo);
+            const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
+            console.log("🔍 [fetchEstimatedCost] API 응답:", res.data);
+
+            // 응답 구조 확인 및 안전한 데이터 접근
+            const responseData = res.data;
+            if (!responseData.success) {
+                console.error("❌ [fetchEstimatedCost] API 호출 실패:", responseData.message);
+                setEstimatedCost(0);
+                return;
+            }
+
+            const items = responseData.data?.items || [];
+            console.log("🔍 [fetchEstimatedCost] items 배열:", items);
+
+            // itemTotal 필드가 있는지 확인하고 안전하게 계산
+            const total = items.reduce((sum: number, item: any) => {
+                const itemTotal = item.itemTotal || item.total || item.price || 0;
+                console.log(`🔍 [fetchEstimatedCost] item ${item.itemTypeId || item.id}: ${itemTotal}`);
+                return sum + itemTotal;
+            }, 0);
+
+            console.log("🔍 [fetchEstimatedCost] 계산된 총액:", total);
+            setEstimatedCost(total);
+
+            // ✅ storeId도 함께 가져오기
+            const storeIdFromResponse = responseData.data?.storeId;
+            if (storeIdFromResponse) {
+                setStoreId(storeIdFromResponse);
+                console.log("🔍 [fetchEstimatedCost] storeId:", storeIdFromResponse);
+            } else {
+                console.warn("⚠️ [fetchEstimatedCost] storeId가 응답에 없습니다:", responseData.data);
+            }
+        } catch (error) {
+            console.error("❌ [fetchEstimatedCost] API 호출 중 오류:", error);
+            setEstimatedCost(0);
+        }
+    };
 
     const handleLoadPrices = async () => {
         try {
@@ -272,11 +315,31 @@ function BillPageContent() {
             });
 
             const response = await savePrices(estimateNo, itemsPayload);
-            if (response.success) {
-                setTotalAmount(response.data.totalAmount);
-                alert("가격이 성공적으로 저장되었습니다.");
-                router.push(`/estimate/owner/final?estimateNo=${estimateNo}`);
+            if (!response.success) {
+                alert("가격 저장 실패: " + response.message);
+                return;
             }
+
+            // [🆕 추가] 저장 성공 후 item-total API 호출
+            const itemTotalRes = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
+            const itemTotalData = itemTotalRes.data;
+
+            if (!itemTotalData.success) {
+                alert("총 금액 계산 실패: " + itemTotalData.message);
+                return;
+            }
+
+            // [🆕 추가] 총 금액 계산
+            const amount = itemTotalData.data?.items?.reduce((sum: number, item: any) => {
+                return sum + (item.itemTotal || item.total || item.price || 0);
+            }, 0) || 0;
+
+            // [🆕 추가] storeId 추출
+            const storeId = itemTotalData.data?.storeId;
+
+            // [🆕 추가] 최종 페이지로 이동
+            router.push(`/estimate/owner/final?estimateNo=${estimateNo}&amount=${amount}&storeId=${storeId}`);
+
         } catch (error) {
             console.error("가격 저장 중 오류 발생:", error);
             alert("가격 저장 중 오류가 발생했습니다.");
