@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { authApi } from "@/lib/axios";
 import { useRouter } from "next/navigation";
+import StaffHeader from "@/components/headers/StaffHeader";
+
 
 export default function StaffVerifyPage() {
   const [centerCode, setCenterCode] = useState("");
@@ -69,6 +71,7 @@ export default function StaffVerifyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <StaffHeader />
       <div className="max-w-md mx-auto px-4 py-8 pt-12">
         <div className="bg-white rounded-xl shadow-sm p-8">
           {/* 헤더 */}
