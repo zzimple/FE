@@ -28,7 +28,11 @@ const AddressSearchButton = ({ onAddressSelect }: AddressSearchButtonProps) => {
         ? process.env.NEXT_PUBLIC_BASE_URL ?? window.location.origin
         : "";
 
-    const returnUrl = encodeURIComponent("http://localhost:8080/juso/callback");
+    // const returnUrl = encodeURIComponent("http://localhost:8080/juso/callback");
+    const returnUrl = encodeURIComponent(window.location.hostname === "zzimple.store"
+      ? "https://api.zzimple.store/juso/callback"
+      : "http://localhost:8080/juso/callback");
+
 
     // 전역 콜백 지정
     (window as any).onJusoCallback = (addr: Addr) => {
