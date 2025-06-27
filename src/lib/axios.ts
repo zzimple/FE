@@ -11,7 +11,7 @@ interface RetryableRequestConfig extends AxiosRequestConfig {
 // const BASE_URL = "https://api.zzimple.store";
 // const BASE_URL = "http://localhost:8080";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const getAccessTokenFromCookie = (): string | null => {
   const cookies = document.cookie.split(';');
@@ -35,7 +35,7 @@ const removeAccessTokenFromCookie = (): void => {
  *    401 응답 시 refresh-token 호출 → 재시도
  */
 export const authApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: "/proxy",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,   // 수정됨: httpOnly 쿠키(=refreshToken) 자동 전송
 });
@@ -88,7 +88,7 @@ authApi.interceptors.response.use(
  * 2) publicApi: 인증 없이 호출해야 하는 엔드포인트 전용
  */
 export const publicApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: "/proxy",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,   // 수정됨: 사업자번호 인증 등 쿠키 필요 시 자동 전송
 });

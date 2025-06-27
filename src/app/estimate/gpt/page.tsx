@@ -487,10 +487,10 @@ export default function EstimateGptPage() {
                                         <div className="mb-6">
                                             <h3 className="text-sm font-medium text-gray-900 mb-3">📊 상세 비교</h3>
                                             <div className="overflow-x-auto">
-                                                <table className="w-full text-sm">
+                                                <table className="w-full min-w-[600px] text-sm">
                                                     <thead>
                                                         <tr className="border-b border-gray-200">
-                                                            <th className="text-left py-2 px-3 font-medium text-gray-700">구분</th>
+                                                            <th className="text-left py-2 px-3 font-medium text-gray-700 whitespace-nowrap">구분</th>
                                                             <th className="text-center py-2 px-3 font-medium text-gray-700">
                                                                 {responses.find(r => r.storeId === selectedResponses[0])?.storeName || '견적서 A'}
                                                             </th>
@@ -502,7 +502,7 @@ export default function EstimateGptPage() {
                                                     <tbody>
                                                         {analysisResult.comparisonTable.map((item, idx) => (
                                                             <tr key={idx} className="border-b border-gray-100">
-                                                                <td className="py-2 px-3 text-gray-700 font-medium">
+                                                                <td className="py-2 px-3 text-gray-700 font-medium whitespace-nowrap">
                                                                     {getCategoryLabel(item.category)}
                                                                 </td>
                                                                 <td className="py-2 px-3 text-center text-gray-600 whitespace-pre-line">
