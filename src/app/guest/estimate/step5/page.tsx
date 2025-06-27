@@ -157,7 +157,7 @@ export default function Step5Page() {
     };
 
     try {
-      const res = await authApi.put(
+      const res = await authApi.patch(
         `/estimates/draft/move-items?draftId=${uuid}`,
         payload
       );
