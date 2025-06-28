@@ -27,6 +27,7 @@ export interface EstimateSearchParams {
   fromRegion2: string;
   toRegion1: string;
   toRegion2: string;
+  respondedByMe?: boolean;
   // status: EstimateStatus;
 }
 
