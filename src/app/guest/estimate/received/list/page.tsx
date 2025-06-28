@@ -135,7 +135,7 @@ export default function MyEstimatesListPage() {
               </div>
               <Button
                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
-                onClick={() => router.push("/guest/estimate")}
+                onClick={() => router.push("/guest/estimate/step1")}
               >
                 새 견적서 작성
               </Button>
@@ -242,12 +242,6 @@ export default function MyEstimatesListPage() {
                             onClick={() => router.push(`/guest/estimate/received?estimateNo=${estimate.estimateNo}`)}
                           >
                             응답 보기
-                          </Button>
-                          <Button
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
-                            onClick={() => router.push(`/guest/estimate/received/detail?estimateNo=${estimate.estimateNo}`)}
-                          >
-                            상세보기
                           </Button>
                         </div>
                       </div>
