@@ -177,47 +177,6 @@ function BillPageContent() {
         }
     }, [estimateNo]);
 
-    // const fetchEstimatedCost = async () => {
-    //     try {
-    //         console.log("🔍 [fetchEstimatedCost] API 호출 시작:", estimateNo);
-    //         const res = await authApi.post(`/estimates/owner/drafts/${estimateNo}/items/item-total`);
-    //         console.log("🔍 [fetchEstimatedCost] API 응답:", res.data);
-
-    //         // 응답 구조 확인 및 안전한 데이터 접근
-    //         const responseData = res.data;
-    //         if (!responseData.success) {
-    //             console.error("❌ [fetchEstimatedCost] API 호출 실패:", responseData.message);
-    //             setEstimatedCost(0);
-    //             return;
-    //         }
-
-    //         const items = responseData.data?.items || [];
-    //         console.log("🔍 [fetchEstimatedCost] items 배열:", items);
-
-    //         // itemTotal 필드가 있는지 확인하고 안전하게 계산
-    //         const total = items.reduce((sum: number, item: any) => {
-    //             const itemTotal = item.itemTotal || item.total || item.price || 0;
-    //             console.log(`🔍 [fetchEstimatedCost] item ${item.itemTypeId || item.id}: ${itemTotal}`);
-    //             return sum + itemTotal;
-    //         }, 0);
-
-    //         console.log("🔍 [fetchEstimatedCost] 계산된 총액:", total);
-    //         setEstimatedCost(total);
-
-    //         // ✅ storeId도 함께 가져오기
-    //         const storeIdFromResponse = responseData.data?.storeId;
-    //         if (storeIdFromResponse) {
-    //             setStoreId(storeIdFromResponse);
-    //             console.log("🔍 [fetchEstimatedCost] storeId:", storeIdFromResponse);
-    //         } else {
-    //             console.warn("⚠️ [fetchEstimatedCost] storeId가 응답에 없습니다:", responseData.data);
-    //         }
-    //     } catch (error) {
-    //         console.error("❌ [fetchEstimatedCost] API 호출 중 오류:", error);
-    //         setEstimatedCost(0);
-    //     }
-    // };
-
     const handleLoadPrices = async () => {
         try {
             const response = await authApi.get(`/estimates/owner/with-extra/${estimateNo}`);
@@ -384,12 +343,12 @@ function BillPageContent() {
                     >
                         기본 단가 불러오기
                     </button>
-                    <button
+                    {/* <button
                         onClick={handleLoadPrices}
                         className="flex-grow sm:flex-grow-0 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                         이전 입력 가져오기
-                    </button>
+                    </button> */}
                 </div>
 
                 <div className="px-4 space-y-4">
