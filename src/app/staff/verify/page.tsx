@@ -11,6 +11,7 @@ export default function StaffVerifyPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAlreadyVerified, setIsAlreadyVerified] = useState(false);
 
   const router = useRouter();
 
@@ -27,9 +28,8 @@ export default function StaffVerifyPage() {
       try {
         const res = await authApi.get("/staff/profile");
         if (res.data.success) {
-          // 이미 staff 권한이 있으면 profile 페이지로 이동
-          router.push("/staff/profile");
-          return;
+          // 이미 staff 권한이 있으면 인증 완료 상태로 설정
+          setIsAlreadyVerified(true);
         }
       } catch (e) {
         // 에러가 발생하면 staff 권한이 없는 것으로 간주하고 인증 페이지를 보여줌
@@ -40,7 +40,7 @@ export default function StaffVerifyPage() {
     };
 
     checkStaffAccess();
-  }, [router]);
+  }, []);
 
   const handleRequestCenterVerification = async () => {
     if (!centerCode.trim()) {
@@ -67,6 +67,49 @@ export default function StaffVerifyPage() {
   // 로딩 중인 경우 로딩 표시
   if (isLoading) {
     return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+  }
+
+  // 이미 인증된 경우 인증 완료 메시지 표시
+  if (isAlreadyVerified) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <StaffHeader />
+        <div className="max-w-md mx-auto px-4 py-8 pt-12">
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <div className="text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  인증 완료
+                </h1>
+                <p className="text-gray-600 mb-6">
+                  이미 스태프 인증이 완료되었습니다.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => router.push("/staff/profile")}
+                  className="w-full h-12 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  마이페이지로 이동
+                </button>
+                <button
+                  onClick={() => router.back()}
+                  className="w-full h-12 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  뒤로가기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -53,31 +53,31 @@ export default function StaffHeader() {
           >
             직원 홈
           </Link>
-          <Link
-            href="/staff/schedule"
-            className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
-          >
-            내 스케줄
-          </Link>
-          <Link
-            href="/staff/timeoff/request"
-            className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
-          >
-            휴무 신청
-          </Link>
           {isLoggedIn ? (
             <>
-              <Link
-                href="/staff/profile"
-                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                마이페이지
-              </Link>
               <Link
                 href="/staff/verify"
                 className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
               >
                 인증하기
+              </Link>
+              <Link
+                href="/staff/schedule"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                내 스케줄
+              </Link>
+              <Link
+                href="/staff/timeoff/request"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                휴무 신청
+              </Link>
+              <Link
+                href="/staff/profile"
+                className="text-base font-semibold text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                마이페이지
               </Link>
               <button
                 onClick={handleLogout}

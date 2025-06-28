@@ -138,36 +138,6 @@ export default function StaffProfilePage() {
           />
 
           <div className="h-px bg-gray-200 my-6" />
-          <h2 className="text-lg font-semibold">인증요청</h2>
-
-          {/* 소속 센터 */}
-          <div className="relative">
-            <label className="block text-sm font-medium mb-2">
-              소속 센터
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="소속 센터 사장님 번호 입력"
-                value={centerCode}
-                onChange={(e) => setCenterCode(formatPhoneNumber(e.target.value))}
-                className="w-full h-14 px-4 pr-28 rounded-full border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#2988FF]"
-              />
-              <button
-                type="button"
-                onClick={handleRequestCenterVerification}
-                disabled={isVerifying}
-                className="absolute right-4 top-1/2 -translate-y-1/2 h-8 px-3 rounded-full bg-blue-50 text-[#2988FF] text-sm font-medium hover:bg-blue-100 transition-colors"
-              >
-                {isVerifying ? "인증 중..." : "인증요청"}
-              </button>
-            </div>
-            {verificationMessage && (
-              <p className="mt-2 text-sm text-[#2988FF]">{verificationMessage}</p>
-            )}
-          </div>
-
-          <div className="h-px bg-gray-200 my-6" />
           <h2 className="text-lg font-semibold">회사 정보</h2>
 
           <div>

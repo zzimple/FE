@@ -17,7 +17,7 @@ const SystemHangerModal = ({ onClose, onSave, itemTypeId }: SystemHangerModalPro
   const [quantity, setQuantity] = useState<number>(1);
   const [material, setMaterial] = useState<string | null>(null);
   const [width, setWidth] = useState<string | null>(null);
-  const [hasGlass, setHasGlass] = useState<string | null>(null);
+  const [hasGlass, setHasGlass] = useState<boolean | null>(null);
 
   return (
     <ModalWrapper>
@@ -43,8 +43,8 @@ const SystemHangerModal = ({ onClose, onSave, itemTypeId }: SystemHangerModalPro
       <OptionSelector
         label="유리"
         options={["있음", "없음"]}
-        selected={hasGlass}
-        onSelect={setHasGlass}
+        selected={hasGlass === true ? "있음" : hasGlass === false ? "없음" : null}
+        onSelect={(value) => setHasGlass(value === "있음" ? true : value === "없음" ? false : null)}
       />
 
       <div className="pt-4">
