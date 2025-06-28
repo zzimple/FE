@@ -59,7 +59,7 @@ export default function OwnerHome() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold mb-4 text-green-500">직원 관리</h2>
-            <p className="text-gray-700 mb-3">
+            <p className="text-gray-700 mb-3 whitespace-nowrap">
               직원들의 휴무와 스케줄을 체계적으로 관리하세요
             </p>
             <ul className="text-gray-600 text-sm space-y-1">
