@@ -59,6 +59,12 @@ export default function OwnerHeader() {
                 견적서 관리
               </Link>
               <Link
+                href="/estimate/owner/publiclist"
+                className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
+              >
+                고객 견적서
+              </Link>
+              <Link
                 href="/owner/staff"
                 className="text-base font-semibold text-gray-700 hover:text-green-600 transition-colors"
               >
@@ -195,6 +201,13 @@ export default function OwnerHeader() {
                   견적서 관리
                 </Link>
                 <Link
+                  href="/estimate/owner/publiclist"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  고객 견적서
+                </Link>
+                <Link
                   href="/owner/staff"
                   className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
                   onClick={() => setOpen(false)}
@@ -223,43 +236,7 @@ export default function OwnerHeader() {
                 </button>
               </>
             ) : (
-              // 수정: 로그아웃 시 "로그인"과 "회원가입"을 모두 보여줍니다.
               <>
-                <Link
-                  href="/owner/estimates"
-                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  견적서 관리
-                </Link>
-                <Link
-                  href="/estimate/publiclist"
-                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  고객 견적서 
-                </Link>
-                <Link
-                  href="/owner/staff"
-                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  직원 관리
-                </Link>
-                <Link
-                  href="/owner/shop"
-                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  매출 관리
-                </Link>
-                <Link
-                  href="/owner/profile"
-                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
-                  onClick={() => setOpen(false)}
-                >
-                  마이페이지
-                </Link>
                 <Link
                   href="/login"
                   className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-green-600 transition-colors"
