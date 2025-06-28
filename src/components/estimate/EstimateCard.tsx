@@ -6,19 +6,10 @@ import { authApi } from "@/lib/axios";
 interface EstimateCardProps {
     estimate: Estimate;
     onViewDetail: (id: number) => void;
+    showStaffInfo?: boolean; // 직원 정보 표시 여부 (기본값 true)
 }
 
-// export default function EstimateCard({ estimate, onViewDetail }: EstimateCardProps) {
-//     const statusBadge = (status: Estimate["status"]) => {
-//         const styles = STATUS_BADGE_STYLES[status];
-//         return (
-//             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
-//                 {styles.label}
-//             </span>
-//         );
-//     };
-
-export default function EstimateCard({ estimate, onViewDetail }: EstimateCardProps) {
+export default function EstimateCard({ estimate, onViewDetail, showStaffInfo = true }: EstimateCardProps) {
     // ✅ 수정: acceptedByMe가 true면 '수락 완료' 뱃지로 표시
     const statusBadge = (status: Estimate["status"], acceptedByMe?: boolean) => {
         if (acceptedByMe) {
@@ -45,6 +36,7 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
     const [staffError, setStaffError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!showStaffInfo) return;
         let ignore = false;
         setStaffLoading(true);
         setStaffError(null);
@@ -64,7 +56,7 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
                 if (!ignore) setStaffLoading(false);
             });
         return () => { ignore = true; };
-    }, [estimate.estimateNo]);
+    }, [estimate.estimateNo, showStaffInfo]);
 
     return (
         <div
@@ -100,17 +92,19 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
                     </span>
                 </div>
             </div>
-            {/* 직원 정보 실제 API 연동 */}
-            <div className="mt-3 flex items-center gap-2 text-xs text-gray-700">
-                {staffLoading && <span className="text-gray-400">직원 정보를 불러오는 중...</span>}
-                {staffError && <span className="text-red-400">{staffError}</span>}
-                {staffInfo && !staffLoading && !staffError && (
-                    <>
-                        <span className="font-semibold">직원 {staffInfo.count}명:</span>
-                        <span>{staffInfo.names.join(", ")}</span>
-                    </>
-                )}
-            </div>
+            {/* 직원 정보 실제 API 연동 (showStaffInfo가 true일 때만) */}
+            {showStaffInfo && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-700">
+                    {staffLoading && <span className="text-gray-400">직원 정보를 불러오는 중...</span>}
+                    {staffError && <span className="text-red-400">{staffError}</span>}
+                    {staffInfo && !staffLoading && !staffError && (
+                        <>
+                            <span className="font-semibold">직원 {staffInfo.count}명:</span>
+                            <span>{staffInfo.names.join(", ")}</span>
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 } 
