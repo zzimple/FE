@@ -57,7 +57,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedEstimate, setSelectedEstimate] = useState<ConfirmedEstimate | null>(null);
     const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([]);
-    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+    const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [isAssigning, setIsAssigning] = useState(false);
 
     const fetchConfirmedEstimates = useCallback(async () => {
@@ -194,7 +194,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const handleAssignStaff = async (estimate: ConfirmedEstimate) => {
         setSelectedEstimate(estimate);
         setShowAssignModal(true);
-
+        setSelectedStaffIds([]);
         try {
             // API 요청 정보 출력
             const requestUrl = `/owner/schedule/${estimate.estimateNo}/available-staff`;
@@ -241,32 +241,36 @@ export default function OwnerConfirmedEstimatesPage() {
         }
     };
 
+    const handleStaffToggle = (id: number) => {
+        setSelectedStaffIds(prev =>
+            prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+        );
+    };
+
     const handleConfirmAssignment = async () => {
-        if (!selectedEstimate || !selectedStaffId) {
+        if (!selectedEstimate || selectedStaffIds.length === 0) {
             alert('직원을 선택해주세요.');
             return;
         }
-
         setIsAssigning(true);
         try {
-            // staffId를 query parameter로 전송
+            // 여러 명을 staffIds로 전송
             const response = await authApi.post(
                 `/owner/schedule/${selectedEstimate.estimateNo}/assign`,
-                null,  // body는 null
+                null,
                 {
                     params: {
-                        staffId: selectedStaffId.toString(),
+                        staffIds: selectedStaffIds, // List<Long>
                         workDate: `${selectedEstimate.moveYear}-${String(selectedEstimate.moveMonth).padStart(2, '0')}-${String(selectedEstimate.moveDay).padStart(2, '0')}`
                     }
                 }
             );
-
             if (response.data.success) {
                 alert('직원 배정이 완료되었습니다.');
                 setShowAssignModal(false);
                 setSelectedEstimate(null);
-                setSelectedStaffId(null);
-                fetchConfirmedEstimates(); // 목록 새로고침
+                setSelectedStaffIds([]);
+                fetchConfirmedEstimates();
             } else {
                 alert(response.data.message || '직원 배정에 실패했습니다.');
             }
@@ -596,17 +600,16 @@ export default function OwnerConfirmedEstimatesPage() {
                                     .map(staff => (
                                         <label
                                             key={staff.id}
-                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedStaffId === staff.id
+                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedStaffIds.includes(staff.id)
                                                 ? 'border-blue-500 bg-blue-50'
                                                 : 'border-gray-200 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <input
-                                                type="radio"
-                                                name="staff"
+                                                type="checkbox"
                                                 value={staff.id}
-                                                checked={selectedStaffId === staff.id}
-                                                onChange={(e) => setSelectedStaffId(Number(e.target.value))}
+                                                checked={selectedStaffIds.includes(staff.id)}
+                                                onChange={() => handleStaffToggle(staff.id)}
                                                 className="mr-3"
                                             />
                                             <div className="flex-1">
@@ -614,7 +617,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                                 <div className="text-sm text-gray-500">{staff.phone}</div>
                                             </div>
                                             <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                                사용 가능
+                                                배정 가능
                                             </div>
                                         </label>
                                     ))
@@ -626,7 +629,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                 onClick={() => {
                                     setShowAssignModal(false);
                                     setSelectedEstimate(null);
-                                    setSelectedStaffId(null);
+                                    setSelectedStaffIds([]);
                                 }}
                                 className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                                 disabled={isAssigning}
@@ -635,7 +638,7 @@ export default function OwnerConfirmedEstimatesPage() {
                             </button>
                             <button
                                 onClick={handleConfirmAssignment}
-                                disabled={!selectedStaffId || isAssigning}
+                                disabled={selectedStaffIds.length === 0 || isAssigning}
                                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isAssigning ? '배정 중...' : '배정하기'}
