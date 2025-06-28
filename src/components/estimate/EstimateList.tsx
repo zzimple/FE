@@ -7,14 +7,16 @@ import { authApi } from "@/lib/axios";
 interface EstimateListProps {
     searchParams: EstimateSearchParams;
     onSelect: (estimateNo: number) => void;
+    showStaffInfo?: boolean;
 }
 
-export default function EstimateList({ searchParams, onSelect }: EstimateListProps) {
+export default function EstimateList({ searchParams, onSelect, showStaffInfo = true }: EstimateListProps) {
     const [estimates, setEstimates] = React.useState<Estimate[]>([]);
     const [page, setPage] = React.useState(0);
     const [totalPages, setTotalPages] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [filteredEstimates, setFilteredEstimates] = React.useState<Estimate[]>([]);
 
     const handlePageChange = (newPage: number) => {
         // Pagination은 1부터 시작하므로 0부터 시작하는 page로 변환
@@ -35,7 +37,6 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
                         ...(searchParams.moveMonth && { moveMonth: Number(searchParams.moveMonth) }),
                         ...(searchParams.moveDay && { moveDay: Number(searchParams.moveDay) }),
                         ...(searchParams.moveType && { moveType: searchParams.moveType }),
-                        ...(searchParams.moveOption && { moveOption: searchParams.moveOption }),
                         ...(searchParams.fromRegion1 && { fromRegion1: searchParams.fromRegion1 }),
                         ...(searchParams.fromRegion2 && { fromRegion2: searchParams.fromRegion2 }),
                         ...(searchParams.toRegion1 && { toRegion1: searchParams.toRegion1 }),
@@ -56,6 +57,30 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
         }
     }, [page, searchParams]);
 
+    // 프론트 필터링
+    React.useEffect(() => {
+        let result = estimates;
+        if (searchParams.moveYear)
+            result = result.filter(e => String(e.moveYear ?? '') === String(searchParams.moveYear));
+        if (searchParams.moveMonth)
+            result = result.filter(e => String(e.moveMonth ?? '') === String(searchParams.moveMonth));
+        if (searchParams.moveDay)
+            result = result.filter(e => String(e.moveDay ?? '') === String(searchParams.moveDay));
+        if (searchParams.moveType)
+            result = result.filter(e => e.moveType === searchParams.moveType);
+        if (searchParams.fromRegion1)
+            result = result.filter(e => e.fromRegion1 === searchParams.fromRegion1);
+        if (searchParams.fromRegion2)
+            result = result.filter(e => e.fromRegion2 === searchParams.fromRegion2);
+        if (searchParams.toRegion1)
+            result = result.filter(e => e.toRegion1 === searchParams.toRegion1);
+        if (searchParams.toRegion2)
+            result = result.filter(e => e.toRegion2 === searchParams.toRegion2);
+        setFilteredEstimates(result);
+        setPage(0); // 필터 변경 시 첫 페이지로
+        setTotalPages(Math.ceil(result.length / 10) || 1);
+    }, [estimates, searchParams]);
+
     React.useEffect(() => {
         fetchEstimates();
     }, [fetchEstimates]);
@@ -63,6 +88,9 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
     const handleViewDetail = (estimateNo: number) => {
         onSelect(estimateNo);
     };
+
+    // 페이지네이션 적용된 데이터
+    const pagedEstimates = filteredEstimates.slice(page * 10, (page + 1) * 10);
 
     if (isLoading) {
         return (
@@ -93,33 +121,29 @@ export default function EstimateList({ searchParams, onSelect }: EstimateListPro
     return (
         <>
             <div className="space-y-4">
-                {estimates.length === 0 ? (
+                {filteredEstimates.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-2xl">
                         <p className="text-gray-500 text-sm">견적서가 없습니다.</p>
                     </div>
                 ) : (
                     <>
-                        {/* ✅ 이 위치에서 console.log로 중복 확인 */}
-                        {console.log("📌 estimateNo 목록:", estimates.map(e => e.estimateNo))}
-                        {estimates.map(estimate => (
+                        {(() => { console.log("📌 estimateNo 목록:", filteredEstimates.map(e => e.estimateNo)); return null; })()}
+                        {pagedEstimates.map(estimate => (
                             <EstimateCard
                                 key={estimate.estimateNo}
                                 estimate={estimate}
                                 onViewDetail={() => handleViewDetail(estimate.estimateNo)}
+                                showStaffInfo={showStaffInfo}
                             />
                         ))}
-
                     </>
                 )}
             </div>
-
             <div className="mt-8">
                 <Pagination
-                    // �� 수정: currentPage를 1부터 시작하는 값으로 변환
                     currentPage={page + 1}
                     totalPages={totalPages}
-                    // 🔧 수정: onPageChange를 handlePageChange로 변경
-                    onPageChange={handlePageChange}
+                    onPageChange={p => setPage(p - 1)}
                 />
             </div>
         </>

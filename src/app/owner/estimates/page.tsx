@@ -19,6 +19,7 @@ interface ConfirmedEstimate extends Estimate {
         name: string;
         phone: string;
     };
+    storeId: number;
 }
 
 interface SearchFilters {
@@ -56,7 +57,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedEstimate, setSelectedEstimate] = useState<ConfirmedEstimate | null>(null);
     const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([]);
-    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+    const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
     const [isAssigning, setIsAssigning] = useState(false);
 
     const fetchConfirmedEstimates = useCallback(async () => {
@@ -106,7 +107,8 @@ export default function OwnerConfirmedEstimatesPage() {
                         guestPhone: item.guestPhone,
                         confirmedAt: item.confirmedAt,
                         totalPrice: item.totalPrice,
-                        assignedStaff: item.assignedStaff
+                        assignedStaff: item.assignedStaff,
+                        storeId: item.storeId
                     };
                 });
 
@@ -167,8 +169,8 @@ export default function OwnerConfirmedEstimatesPage() {
         setFilteredEstimates(filtered);
     }, [estimates, filters]);
 
-    const handleViewDetail = (estimateNo: number) => {
-        router.push(`/owner/estimates/detail?estimateNo=${estimateNo}`);
+    const handleViewDetail = (estimateNo: number, storeId: number) => {
+        router.push(`/owner/estimates/detail?estimateNo=${estimateNo}&storeId=${storeId}`);
     };
 
     const handleRefresh = () => {
@@ -192,7 +194,7 @@ export default function OwnerConfirmedEstimatesPage() {
     const handleAssignStaff = async (estimate: ConfirmedEstimate) => {
         setSelectedEstimate(estimate);
         setShowAssignModal(true);
-
+        setSelectedStaffIds([]);
         try {
             // API 요청 정보 출력
             const requestUrl = `/owner/schedule/${estimate.estimateNo}/available-staff`;
@@ -239,32 +241,36 @@ export default function OwnerConfirmedEstimatesPage() {
         }
     };
 
+    const handleStaffToggle = (id: number) => {
+        setSelectedStaffIds(prev =>
+            prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+        );
+    };
+
     const handleConfirmAssignment = async () => {
-        if (!selectedEstimate || !selectedStaffId) {
+        if (!selectedEstimate || selectedStaffIds.length === 0) {
             alert('직원을 선택해주세요.');
             return;
         }
-
         setIsAssigning(true);
         try {
-            // staffId를 query parameter로 전송
+            // 여러 명을 staffIds로 전송
             const response = await authApi.post(
                 `/owner/schedule/${selectedEstimate.estimateNo}/assign`,
-                null,  // body는 null
+                null,
                 {
                     params: {
-                        staffId: selectedStaffId.toString(),
+                        staffIds: selectedStaffIds, // List<Long>
                         workDate: `${selectedEstimate.moveYear}-${String(selectedEstimate.moveMonth).padStart(2, '0')}-${String(selectedEstimate.moveDay).padStart(2, '0')}`
                     }
                 }
             );
-
             if (response.data.success) {
                 alert('직원 배정이 완료되었습니다.');
                 setShowAssignModal(false);
                 setSelectedEstimate(null);
-                setSelectedStaffId(null);
-                fetchConfirmedEstimates(); // 목록 새로고침
+                setSelectedStaffIds([]);
+                fetchConfirmedEstimates();
             } else {
                 alert(response.data.message || '직원 배정에 실패했습니다.');
             }
@@ -481,7 +487,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                 <div key={estimate.estimateNo} className="bg-white rounded-xl shadow-sm overflow-hidden">
                                     <EstimateCard
                                         estimate={estimate}
-                                        onViewDetail={handleViewDetail}
+                                        onViewDetail={(estimateNo) => handleViewDetail(estimateNo, estimate.storeId)}
                                     />
 
                                     {/* 추가 정보 */}
@@ -516,7 +522,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                         {/* 액션 버튼들 */}
                                         <div className="mt-4 flex gap-2">
                                             <button
-                                                onClick={() => handleViewDetail(estimate.estimateNo)}
+                                                onClick={() => handleViewDetail(estimate.estimateNo, estimate.storeId)}
                                                 className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                             >
                                                 상세보기
@@ -594,17 +600,16 @@ export default function OwnerConfirmedEstimatesPage() {
                                     .map(staff => (
                                         <label
                                             key={staff.id}
-                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedStaffId === staff.id
+                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${selectedStaffIds.includes(staff.id)
                                                 ? 'border-blue-500 bg-blue-50'
                                                 : 'border-gray-200 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <input
-                                                type="radio"
-                                                name="staff"
+                                                type="checkbox"
                                                 value={staff.id}
-                                                checked={selectedStaffId === staff.id}
-                                                onChange={(e) => setSelectedStaffId(Number(e.target.value))}
+                                                checked={selectedStaffIds.includes(staff.id)}
+                                                onChange={() => handleStaffToggle(staff.id)}
                                                 className="mr-3"
                                             />
                                             <div className="flex-1">
@@ -624,7 +629,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                 onClick={() => {
                                     setShowAssignModal(false);
                                     setSelectedEstimate(null);
-                                    setSelectedStaffId(null);
+                                    setSelectedStaffIds([]);
                                 }}
                                 className="flex-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                                 disabled={isAssigning}
@@ -633,7 +638,7 @@ export default function OwnerConfirmedEstimatesPage() {
                             </button>
                             <button
                                 onClick={handleConfirmAssignment}
-                                disabled={!selectedStaffId || isAssigning}
+                                disabled={selectedStaffIds.length === 0 || isAssigning}
                                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isAssigning ? '배정 중...' : '배정하기'}

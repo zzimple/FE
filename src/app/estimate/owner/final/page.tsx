@@ -520,16 +520,6 @@ export default function EstimateFinalPage() {
                         </div>
                     </div>
 
-                    {/* 유의사항 */}
-                    <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
-                        <h4 className="font-semibold text-red-600 mb-2">유의사항</h4>
-                        <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
-                            {reviewData.notes.map((note, idx) => (
-                                <li key={idx}>{note}</li>
-                            ))}
-                        </ol>
-                    </div>
-
                     {/* 버튼 */}
                     <div className="flex gap-2">
                         <Button
