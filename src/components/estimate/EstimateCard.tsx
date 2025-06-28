@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HiOutlineLocationMarker, HiOutlineCalendar, HiOutlineTruck, HiOutlineChevronRight } from "react-icons/hi";
 import { Estimate, MOVE_TYPE_LABELS, MOVE_OPTION_LABELS, STATUS_BADGE_STYLES, MoveType, MoveOption } from "@/types/estimate";
+import { authApi } from "@/lib/axios";
 
 interface EstimateCardProps {
     estimate: Estimate;
@@ -38,6 +39,33 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
         );
     };
 
+    // 직원 정보 상태
+    const [staffInfo, setStaffInfo] = useState<{ count: number; names: string[] } | null>(null);
+    const [staffLoading, setStaffLoading] = useState(true);
+    const [staffError, setStaffError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let ignore = false;
+        setStaffLoading(true);
+        setStaffError(null);
+        authApi.get(`/owner/schedule/${estimate.estimateNo}/assigned-staff`)
+            .then(res => {
+                if (!ignore && res.data.success && res.data.data) {
+                    setStaffInfo({
+                        count: res.data.data.count,
+                        names: res.data.data.staffList.map((s: any) => s.staffName)
+                    });
+                }
+            })
+            .catch(() => {
+                if (!ignore) setStaffError('직원 정보를 불러올 수 없음');
+            })
+            .finally(() => {
+                if (!ignore) setStaffLoading(false);
+            });
+        return () => { ignore = true; };
+    }, [estimate.estimateNo]);
+
     return (
         <div
             className="group bg-white rounded-xl p-4 hover:shadow-sm transition-all cursor-pointer"
@@ -71,6 +99,17 @@ export default function EstimateCard({ estimate, onViewDetail }: EstimateCardPro
                         {MOVE_OPTION_LABELS[estimate.moveOption as MoveOption]}
                     </span>
                 </div>
+            </div>
+            {/* 직원 정보 실제 API 연동 */}
+            <div className="mt-3 flex items-center gap-2 text-xs text-gray-700">
+                {staffLoading && <span className="text-gray-400">직원 정보를 불러오는 중...</span>}
+                {staffError && <span className="text-red-400">{staffError}</span>}
+                {staffInfo && !staffLoading && !staffError && (
+                    <>
+                        <span className="font-semibold">직원 {staffInfo.count}명:</span>
+                        <span>{staffInfo.names.join(", ")}</span>
+                    </>
+                )}
             </div>
         </div>
     );
