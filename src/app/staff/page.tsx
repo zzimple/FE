@@ -30,11 +30,6 @@ export default function StaffHome() {
               휴무 신청
             </button>
           </Link>
-          {/* <Link href="/staff/estimates">
-            <button className="w-44 bg-white text-orange-600 border-2 border-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition">
-              견적서 확인
-            </button>
-          </Link> */}
         </div>
 
         {/* 직원 전용 기능 안내 */}
@@ -47,9 +42,8 @@ export default function StaffHome() {
               내 업무 스케줄을 한눈에 확인하세요
             </p>
             <ul className="text-gray-600 text-sm space-y-1">
+              <li>• 월간 스케줄</li>
               <li>• 오늘의 업무 확인</li>
-              <li>• 주간/월간 스케줄</li>
-              <li>• 업무 완료 체크</li>
             </ul>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
@@ -62,33 +56,9 @@ export default function StaffHome() {
             <ul className="text-gray-600 text-sm space-y-1">
               <li>• 견적서 상세 확인</li>
               <li>• 고객 정보 확인</li>
-              <li>• 업무 진행 상황 업데이트</li>
             </ul>
           </div>
         </div>
-
-        {/* 오늘의 업무 요약
-        <div className="w-full max-w-4xl mt-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold mb-4 text-orange-500">
-              오늘의 업무 요약
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div className="bg-orange-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-orange-600">3</div>
-                <div className="text-sm text-gray-600">예정된 이사</div>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-600">1</div>
-                <div className="text-sm text-gray-600">완료된 이사</div>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600">2</div>
-                <div className="text-sm text-gray-600">대기 중인 견적</div>
-              </div>
-            </div>
-          </div>
-        </div> */}
       </main>
 
       {/* 푸터 */}
