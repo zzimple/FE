@@ -349,6 +349,94 @@ export default function OwnerEstimateDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* 가격 정보 섹션 */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 mt-8">
+            <h2 className="text-lg font-bold mb-4">최종 가격 정보</h2>
+            {/* 물품별 가격 상세 */}
+            <div className="mb-6">
+              <div className="text-sm font-semibold mb-2">물품별 가격</div>
+              <ul className="space-y-2">
+                {reviewData.itemPriceDetails?.map((item, idx) => (
+                  <li
+                    key={idx}
+                    className="flex flex-col gap-1 border-b last:border-b-0 pb-2 last:pb-0"
+                  >
+                    {/* 기본 가격 */}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-700">
+                        {item.itemTypeName}
+                      </span>
+                      <span className="text-blue-600 font-semibold">
+                        {item.basePrice.toLocaleString()}원
+                      </span>
+                    </div>
+
+                    {/* extraCharges */}
+                    {item.extraCharges?.map((charge, cidx) => (
+                      <div
+                        key={cidx}
+                        className="flex justify-between text-xs text-gray-500 pl-2"
+                      >
+                        <span>+ {charge.reason}</span>
+                        <span>+{charge.amount.toLocaleString()}원</span>
+                      </div>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 추가 요금 내역 */}
+            <div className="mb-4">
+              <div className="text-sm font-semibold mb-2">추가 요금</div>
+              <ul className="space-y-1">
+                {/* 트럭 가격 */}
+                {estimateData?.data?.truckTotalPrice && estimateData.data.truckTotalPrice > 0 && (
+                  <li className="flex justify-between text-sm">
+                    <span className="text-gray-600">트럭 {estimateData.data.truckCount}대</span>
+                    <span className="text-blue-600 font-semibold">
+                      {estimateData.data.truckTotalPrice.toLocaleString()}원
+                    </span>
+                  </li>
+                )}
+                {/* 기존 추가 요금들 */}
+                {reviewData.extraCharges && reviewData.extraCharges.map((charge, idx) => (
+                  <li key={idx} className="flex justify-between text-sm">
+                    <span className="text-gray-600">{charge.reason}</span>
+                    <span className="text-blue-600 font-semibold">+{charge.amount.toLocaleString()}원</span>
+                  </li>
+                ))}
+                {/* 특별 요금들 */}
+                {estimateData?.data.holidayCharge && (
+                  <li className="flex justify-between text-sm">
+                    <span className="text-gray-600">공휴일 요금</span>
+                    <span className="text-blue-600 font-semibold">+{estimateData.data.holidayCharge.toLocaleString()}원</span>
+                  </li>
+                )}
+                {estimateData?.data.goodDayCharge && (
+                  <li className="flex justify-between text-sm">
+                    <span className="text-gray-600">길일 요금</span>
+                    <span className="text-blue-600 font-semibold">+{estimateData.data.goodDayCharge.toLocaleString()}원</span>
+                  </li>
+                )}
+                {estimateData?.data.weekendCharge && (
+                  <li className="flex justify-between text-sm">
+                    <span className="text-gray-600">주말 요금</span>
+                    <span className="text-blue-600 font-semibold">+{estimateData.data.weekendCharge.toLocaleString()}원</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* 총액 */}
+            <div className="flex justify-between items-center border-t pt-4 mt-4">
+              <span className="text-base font-bold">총액</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {reviewData.totalPrice.toLocaleString()}원
+              </span>
+            </div>
+          </div>
           
           {/* 버튼 영역 */}
           <div className="mt-8 flex gap-4">
