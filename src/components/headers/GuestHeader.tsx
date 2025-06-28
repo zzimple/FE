@@ -34,39 +34,28 @@ export default function GuestHeader() {
           >
             손님 홈
           </Link>
-          <Link
-            href="/guest/estimate/step1"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            견적서 작성
-          </Link>
-          <Link
-            href="/guest/estimate"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            내 견적서
-          </Link>
-          <Link
-            href="/guest/estimate/received"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            받은 견적서
-          </Link>
-          <Link
-            href="/estimate/gpt"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            견적서 비교하기
-          </Link>
-          <Link
-            href="/estimate/vision"
-            className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
-          >
-            물품 찾기
-          </Link>
+
           {/* 수정: 로그인 상태에 따라 '로그인/회원가입' 또는 '내 정보/로그아웃'만 변경 */}
           {isLoggedIn ? (
             <>
+              <Link
+                href="/guest/estimate/step1"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                견적서 작성
+              </Link>
+              <Link
+                href="/guest/estimate/received/list"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                내 견적서
+              </Link>
+              <Link
+                href="/estimate/vision"
+                className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
+              >
+                물품 분석
+              </Link>
               <Link
                 href="/guest/profile"
                 className="text-base font-semibold text-gray-700 hover:text-[#3454FF] transition-colors"
@@ -181,43 +170,36 @@ export default function GuestHeader() {
             >
               손님 홈
             </Link>
-            <Link
-              href="/guest/estimate/step1"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              견적서 작성
-            </Link>
-            <Link
-              href="/guest/estimate/received/list"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              내 견적서
-            </Link>
-            <Link
-              href="/guest/estimate/received"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              받은 견적서
-            </Link>
-            <Link
-              href="/estimate/gpt"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              견적서 비교하기
-            </Link>
-            <Link
-              href="/estimate/vision"
-              className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              물품 찾기
-            </Link>
             {isLoggedIn ? (
               <>
+                <Link
+                  href="/guest/estimate/step1"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  견적서 작성
+                </Link>
+                <Link
+                  href="/guest/estimate/received/list"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  내 견적서
+                </Link>
+                <Link
+                  href="/estimate/gpt"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  견적서 비교하기
+                </Link>
+                <Link
+                  href="/estimate/vision"
+                  className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  물품 분석
+                </Link>
                 <Link
                   href="/guest/profile"
                   className="py-3 text-lg font-semibold text-gray-800 w-full text-center hover:text-[#3454FF] transition-colors"

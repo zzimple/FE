@@ -1,98 +1,107 @@
-// 'use client';
-
-// import TabHeader, { Tab } from "@/components/common/TabHeader";
-// import { useRouter } from "next/router";
-// import { useState } from "react";
-
-// export default function OwnerProfilePage() {
-//   const [password, setPassword] = useState('');
-//   const [email, setEmail] = useState('');
-//   const router = useRouter();
-
-//   return (
-//     <main className="px-4">
-//       <TabHeader
-//           tabs={[
-//             { label: '견적서', href: '/mypage/owner/estimates' },
-//           { label: '나의 가게 관리', href: '/mypage/owner/shop' },
-//           { label: '매출 관리', href: '/mypage/owner/sales' },
-//           { label: '나의 정보', href: '/mypage/owner/profile' },
-//         ]}
-//     />
-//     </main>
-//   )
-
-// }
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { authApi } from '@/lib/axios';
+import PasswordEditor from '@/components/mypage/PasswordEditor';
+import EmailEditor from '@/components/mypage/EmailEditor';
+import GuestHeader from '@/components/headers/GuestHeader';
 
-export default function MyPageInfoForm() {
+interface UserProfile {
+  id: number;
+  userName: string;
+  phoneNumber: string;
+  email: string;
+  loginId: string;
+}
+
+export default function GuestProfilePage() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await authApi.get('/users/profile');
+        setProfile(res.data);
+      } catch (e: any) {
+        setError('프로필 정보를 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center mt-20 text-gray-500">로딩 중...</div>;
+  }
+  if (error) {
+    return <div className="text-center mt-20 text-red-500">{error}</div>;
+  }
+  if (!profile) {
+    return <div className="text-center mt-20 text-gray-500">프로필 정보가 없습니다.</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-white px-4 py-6 max-w-md mx-auto relative">
-      <h1 className="text-center text-xl font-bold mb-6">마이페이지</h1>
+    <div className="min-h-screen bg-gray-50">
+      <GuestHeader />
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 pt-12">
+        {/* 기본 정보 섹션 */}
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold">기본 정보</h2>
 
-      {/* 이름 */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">
-          이름<span className="text-pink-500">*</span>
-        </label>
-        <input
-          type="text"
-          value="조연제"
-          disabled
-          className="w-full h-14 px-4 rounded-full border border-gray-300 bg-gray-50 text-sm"
-        />
-      </div>
+          {/* 이름 */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              이름
+            </label>
+            <input
+              type="text"
+              value={profile.userName}
+              disabled
+              className="w-full h-14 px-4 rounded-full border border-gray-200 bg-gray-50 text-sm focus:outline-none"
+            />
+          </div>
 
-      {/* 아이디 */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">아이디</label>
-        <input
-          type="text"
-          value="hellokitty83"
-          disabled
-          className="w-full h-14 px-4 rounded-full border border-gray-300 bg-gray-50 text-sm"
-        />
-      </div>
+          {/* 아이디 */}
+          <div>
+            <label className="block text-sm font-medium mb-2">아이디</label>
+            <input
+              type="text"
+              value={profile.loginId}
+              disabled
+              className="w-full h-14 px-4 rounded-full border border-gray-200 bg-gray-50 text-sm focus:outline-none"
+            />
+          </div>
 
-      {/* 비밀번호 */}
-      <div className="mb-4 relative">
-        <label className="block text-sm font-medium mb-1">
-          비밀번호<span className="text-pink-500">*</span>
-        </label>
-        <input
-          type="password"
-          value="********"
-          disabled
-          className="w-full h-14 px-4 pr-28 rounded-full border border-gray-300 bg-white text-sm"
-        />
-        <button
-          type="button"
-          className="absolute right-4 top-10 inline-flex h-[28px] px-[10px] justify-center items-center gap-1 rounded-full bg-blue-100 text-blue-600 text-xs"
-        >
-          변경하기
-        </button>
-      </div>
+          {/* 비밀번호 변경 */}
+          <PasswordEditor />
 
-      {/* 이메일 주소 */}
-      <div className="mb-4 relative">
-        <label className="block text-sm font-medium mb-1">
-          이메일 주소 (선택)
-        </label>
-        <input
-          type="email"
-          value="kitty83@naver.com"
-          disabled
-          className="w-full h-14 px-4 pr-28 rounded-full border border-gray-300 bg-gray-50 text-sm text-gray-400"
-        />
-        <button
-          type="button"
-          className="absolute right-4 top-10 inline-flex h-[28px] px-[10px] justify-center items-center gap-1 rounded-full bg-blue-100 text-blue-600 text-xs"
-        >
-          변경하기
-        </button>
+          {/* 이메일 변경 */}
+          <EmailEditor
+            email={profile.email ?? ""}
+            setEmail={(newEmail) =>
+              setProfile((prev) => prev ? { ...prev, email: newEmail } : prev)
+            }
+          />
+
+          {/* 전화번호 */}
+          <div>
+            <label className="block text-sm font-medium mb-2">전화번호</label>
+            <input
+              type="text"
+              value={profile.phoneNumber}
+              disabled
+              className="w-full h-14 px-4 rounded-full border border-gray-200 bg-gray-50 text-sm focus:outline-none"
+            />
+          </div>
+        </section>
       </div>
+    </div>
     </div>
   );
 }
