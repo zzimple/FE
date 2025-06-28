@@ -19,6 +19,7 @@ interface ConfirmedEstimate extends Estimate {
         name: string;
         phone: string;
     };
+    storeId: number;
 }
 
 interface SearchFilters {
@@ -106,7 +107,8 @@ export default function OwnerConfirmedEstimatesPage() {
                         guestPhone: item.guestPhone,
                         confirmedAt: item.confirmedAt,
                         totalPrice: item.totalPrice,
-                        assignedStaff: item.assignedStaff
+                        assignedStaff: item.assignedStaff,
+                        storeId: item.storeId
                     };
                 });
 
@@ -167,8 +169,8 @@ export default function OwnerConfirmedEstimatesPage() {
         setFilteredEstimates(filtered);
     }, [estimates, filters]);
 
-    const handleViewDetail = (estimateNo: number) => {
-        router.push(`/owner/estimates/detail?estimateNo=${estimateNo}`);
+    const handleViewDetail = (estimateNo: number, storeId: number) => {
+        router.push(`/owner/estimates/detail?estimateNo=${estimateNo}&storeId=${storeId}`);
     };
 
     const handleRefresh = () => {
@@ -481,7 +483,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                 <div key={estimate.estimateNo} className="bg-white rounded-xl shadow-sm overflow-hidden">
                                     <EstimateCard
                                         estimate={estimate}
-                                        onViewDetail={handleViewDetail}
+                                        onViewDetail={(estimateNo) => handleViewDetail(estimateNo, estimate.storeId)}
                                     />
 
                                     {/* 추가 정보 */}
@@ -516,7 +518,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                         {/* 액션 버튼들 */}
                                         <div className="mt-4 flex gap-2">
                                             <button
-                                                onClick={() => handleViewDetail(estimate.estimateNo)}
+                                                onClick={() => handleViewDetail(estimate.estimateNo, estimate.storeId)}
                                                 className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                             >
                                                 상세보기
@@ -612,7 +614,7 @@ export default function OwnerConfirmedEstimatesPage() {
                                                 <div className="text-sm text-gray-500">{staff.phone}</div>
                                             </div>
                                             <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                                배정 가능
+                                                사용 가능
                                             </div>
                                         </label>
                                     ))
