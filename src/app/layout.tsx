@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/common/Header";
 import { Suspense } from "react";
+import { Providers } from "@/providers";
 
 // 폰트 변수 선언
 const geistSans = Geist({
@@ -28,10 +29,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header />
-        <Suspense fallback={<div>Loading...</div>}>
-          <div className="pt-14">{children}</div>
-        </Suspense>
+        <Providers>
+          <Header />
+          <Suspense fallback={<div>Loading...</div>}>
+            <div className="pt-14">{children}</div>
+          </Suspense>
+        </Providers>
       </body>
     </html>
   );
