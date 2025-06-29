@@ -243,6 +243,12 @@ export default function MyEstimatesListPage() {
                           >
                             응답 보기
                           </Button>
+                          <Button
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+                            onClick={() => router.push(`/guest/estimate/received/list/detail?estimateNo=${estimate.estimateNo}`)}
+                          >
+                            상세보기
+                          </Button>
                         </div>
                       </div>
                     </div>
