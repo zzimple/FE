@@ -19,13 +19,7 @@ export default function Home() {
           견적 비교부터 직원 배정까지, 이삿짐센터 사장님과 고객 모두를 위한
           플랫폼
         </p>
-        {/* <Link href="/guest/estimate/step1">
-          <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition mb-12">
-            견적서 작성하러 가기
-          </button>
-        </Link> */}
-
-        {/* 사용자 유형 선택 */}
+        
         <div className="w-full max-w-4xl mb-12">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">
             어떤 서비스를 이용하시나요?
