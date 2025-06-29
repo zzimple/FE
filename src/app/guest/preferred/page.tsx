@@ -144,7 +144,7 @@ export default function PreferredListPage() {
             <div className="bg-white rounded-lg shadow-sm p-12">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-4"></div>
-                <p className="text-gray-600">선호 항목을 불러오는 중입니다...</p>
+                <p className="text-gray-600">저장 항목을 불러오는 중입니다...</p>
               </div>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function PreferredListPage() {
           {/* 통계 */}
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <div className="flex justify-between items-center text-sm text-gray-600">
-              <span>총 {items.length}개의 선호 항목</span>
+              <span>총 {items.length}개의 저장 항목</span>
               <span>{filteredItems.length}개 표시</span>
             </div>
           </div>
