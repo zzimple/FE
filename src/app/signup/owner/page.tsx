@@ -170,7 +170,7 @@ export default function OwnerSignupPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-4 sm:py-6 md:py-8 bg-white">
+    <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-4 sm:py-6 md:py-8 bg-white pt-12">
       <div className="w-full max-w-[320px] sm:max-w-md md:max-w-lg mb-4 sm:mb-6 md:mb-8">
         <SignupHeader title="회원가입" currentStep={1} />
       </div>
