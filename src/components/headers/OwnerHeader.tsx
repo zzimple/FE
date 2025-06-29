@@ -9,12 +9,16 @@ import { authApi, getAccessTokenFromCookie } from "@/lib/axios";
 export default function OwnerHeader() {
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isClient, setIsClient] = useState(false); // 추가
   const router = useRouter();
 
   useEffect(() => {
+    setIsClient(true); // 클라이언트에서만 true
     const token = getAccessTokenFromCookie();
     setIsLoggedIn(!!token);
   }, []);
+
+  if (!isClient) return null; // SSR에서는 아무것도 렌더링하지 않음
 
   const handleLogout = async () => {
     try {
