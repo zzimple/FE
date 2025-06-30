@@ -368,6 +368,34 @@ export default function ReceivedEstimateDetailPage() {
                 </div>
               </div>
 
+              {/* 사장님 정보 */}
+              <div className="border-t pt-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-500 mb-2">사장님 정보</div>
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">상호명</span>
+                        <span className="text-sm font-medium text-gray-900">{reviewData.storeName}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">사장님</span>
+                        <span className="text-sm font-medium text-gray-900">{reviewData.ownerName}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">연락처</span>
+                        <span className="text-sm font-medium text-blue-600">{reviewData.ownerPhone}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="border-t pt-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
